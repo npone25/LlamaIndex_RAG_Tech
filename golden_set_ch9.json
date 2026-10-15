@@ -1,0 +1,294 @@
+[
+ {
+  "id": "TS01",
+  "nhom": "TS",
+  "cau_hoi": "Galaxy Z Fold7 dùng chip gì?",
+  "dap_an_product_id": [
+   "dien-thoai-samsung-galaxy-z-fold-7"
+  ],
+  "tra_loi_mau": "Samsung Galaxy Z Fold7 12GB 256GB dùng chip Qualcomm Snapdragon 8 Elite For Galaxy"
+ },
+ {
+  "id": "TS02",
+  "nhom": "TS",
+  "cau_hoi": "Màn hình iPhone 17 Pro Max rộng bao nhiêu inch?",
+  "dap_an_product_id": [
+   "iphone-17-pro-max"
+  ],
+  "tra_loi_mau": "iPhone 17 Pro Max 256GB có màn hình (inch) 6.9"
+ },
+ {
+  "id": "TS03",
+  "nhom": "TS",
+  "cau_hoi": "Galaxy S25 Ultra pin bao nhiêu mAh?",
+  "dap_an_product_id": [
+   "dien-thoai-samsung-galaxy-s25-ultra"
+  ],
+  "tra_loi_mau": "Samsung Galaxy S25 Ultra 12GB 256GB có pin (mAh) 5000"
+ },
+ {
+  "id": "TS04",
+  "nhom": "TS",
+  "cau_hoi": "Xiaomi 15T Pro chạy chip nào?",
+  "dap_an_product_id": [
+   "dien-thoai-xiaomi-15t-pro-5g"
+  ],
+  "tra_loi_mau": "Xiaomi 15T Pro 5G 12GB 512GB dùng chip MediaTek Dimensity 9400+"
+ },
+ {
+  "id": "TS05",
+  "nhom": "TS",
+  "cau_hoi": "OPPO Reno13 F có pin dung lượng bao nhiêu?",
+  "dap_an_product_id": [
+   "dien-thoai-oppo-reno13f-5g"
+  ],
+  "tra_loi_mau": "OPPO Reno13 F 5G 12GB 256GB có pin (mAh) 5800"
+ },
+ {
+  "id": "TS06",
+  "nhom": "TS",
+  "cau_hoi": "Galaxy A56 dùng vi xử lý gì?",
+  "dap_an_product_id": [
+   "dien-thoai-samsung-galaxy-a56"
+  ],
+  "tra_loi_mau": "Samsung Galaxy A56 5G 8GB 128GB dùng chip Exynos 1580"
+ },
+ {
+  "id": "TS07",
+  "nhom": "TS",
+  "cau_hoi": "HONOR Magic V5 pin bao nhiêu?",
+  "dap_an_product_id": [
+   "dien-thoai-honor-magic-v5"
+  ],
+  "tra_loi_mau": "HONOR Magic V5 16GB 512GB có pin (mAh) 5820"
+ },
+ {
+  "id": "TS08",
+  "nhom": "TS",
+  "cau_hoi": "Pixel 9 Pro dùng chip gì?",
+  "dap_an_product_id": [
+   "dien-thoai-google-pixel-9-pro"
+  ],
+  "tra_loi_mau": "Google Pixel 9 Pro dùng chip Google Tensor G4"
+ },
+ {
+  "id": "TS09",
+  "nhom": "TS",
+  "cau_hoi": "TECNO CAMON 40 bản 8GB 128GB giá bao nhiêu?",
+  "dap_an_product_id": [
+   "dien-thoai-tecno-camon-40"
+  ],
+  "tra_loi_mau": "TECNO CAMON 40 8GB 128GB có giá (đồng) 5190000"
+ },
+ {
+  "id": "TS10",
+  "nhom": "TS",
+  "cau_hoi": "realme 13+ dùng chip gì?",
+  "dap_an_product_id": [
+   "dien-thoai-realme-13-plus-5g"
+  ],
+  "tra_loi_mau": "realme 13+ 5G 8GB 256GB dùng chip Dimensity 7300 Energy 5G"
+ },
+ {
+  "id": "TS11",
+  "nhom": "TS",
+  "cau_hoi": "Galaxy Z Flip7 bản 512GB giá bao nhiêu?",
+  "dap_an_product_id": [
+   "dien-thoai-samsung-galaxy-z-flip-7-12gb-512gb"
+  ],
+  "tra_loi_mau": "Samsung Galaxy Z Flip7 12GB 512GB có giá (đồng) 24990000"
+ },
+ {
+  "id": "TS12",
+  "nhom": "TS",
+  "cau_hoi": "Galaxy S24 FE dùng chip gì?",
+  "dap_an_product_id": [
+   "dien-thoai-samsung-galaxy-s24-fe-256gb"
+  ],
+  "tra_loi_mau": "Samsung Galaxy S24FE 5G 8GB 256GB dùng chip Exynos 2400e (4nm)"
+ },
+ {
+  "id": "TS13",
+  "nhom": "TS",
+  "cau_hoi": "iPhone 16 Pro Max chạy chip nào?",
+  "dap_an_product_id": [
+   "iphone-16-pro-max"
+  ],
+  "tra_loi_mau": "Điện thoại iPhone 16 Pro Max 256GB dùng chip Apple A18 Pro"
+ },
+ {
+  "id": "TS14",
+  "nhom": "TS",
+  "cau_hoi": "So sánh dung lượng pin của Galaxy S25 Ultra và HONOR Magic V5",
+  "dap_an_product_id": [
+   "dien-thoai-samsung-galaxy-s25-ultra",
+   "dien-thoai-honor-magic-v5"
+  ],
+  "tra_loi_mau": "Samsung Galaxy S25 Ultra 12GB 256GB có pin (mAh) 5000; HONOR Magic V5 16GB 512GB có pin (mAh) 5820"
+ },
+ {
+  "id": "TS15",
+  "nhom": "TS",
+  "cau_hoi": "Galaxy Z Fold7 và Galaxy Z Flip7 khác nhau về chip thế nào?",
+  "dap_an_product_id": [
+   "dien-thoai-samsung-galaxy-z-fold-7",
+   "dien-thoai-samsung-galaxy-z-flip-7-12gb-512gb"
+  ],
+  "tra_loi_mau": "Samsung Galaxy Z Fold7 12GB 256GB dùng chip Qualcomm Snapdragon 8 Elite For Galaxy; Samsung Galaxy Z Flip7 12GB 512GB dùng chip Exynos 2500"
+ },
+ {
+  "id": "CS01",
+  "nhom": "CS",
+  "cau_hoi": "Điện thoại mua ở đây được bảo hành bao lâu?",
+  "cum_tu_dap_an": "12 tháng kể từ ngày kích hoạt",
+  "tep_nguon": "chinh_sach/chinh_sach_bao_hanh_doi_tra.md",
+  "tra_loi_mau": "Bảo hành tiêu chuẩn 12 tháng kể từ ngày kích hoạt bảo hành điện tử; dòng máy được hãng công bố bảo hành 18 hoặc 24 tháng thì tính theo công bố của hãng."
+ },
+ {
+  "id": "CS02",
+  "nhom": "CS",
+  "cau_hoi": "Em lỡ làm rơi móp máy thì có được bảo hành không ạ?",
+  "cum_tu_dap_an": "cong vênh, móp méo",
+  "tep_nguon": "chinh_sach/chinh_sach_bao_hanh_doi_tra.md",
+  "tra_loi_mau": "Không. Sản phẩm bị rơi vỡ, cong vênh, móp méo hoặc nứt màn hình do tác động bên ngoài không được bảo hành."
+ },
+ {
+  "id": "CS03",
+  "nhom": "CS",
+  "cau_hoi": "Pin với cục sạc theo máy được bảo hành mấy tháng?",
+  "cum_tu_dap_an": "pin và bộ sạc đi kèm",
+  "tep_nguon": "chinh_sach/chinh_sach_bao_hanh_doi_tra.md",
+  "tra_loi_mau": "Pin và bộ sạc đi kèm trong hộp được bảo hành 6 tháng kể từ ngày mua."
+ },
+ {
+  "id": "CS04",
+  "nhom": "CS",
+  "cau_hoi": "Gửi bảo hành thì bao lâu mới lấy lại máy?",
+  "cum_tu_dap_an": "tùy theo tình trạng linh kiện",
+  "tep_nguon": "chinh_sach/chinh_sach_bao_hanh_doi_tra.md",
+  "tra_loi_mau": "Thời gian xử lý bảo hành thông thường từ 7 đến 15 ngày làm việc, tùy theo tình trạng linh kiện tại trung tâm bảo hành của hãng."
+ },
+ {
+  "id": "CS05",
+  "nhom": "CS",
+  "cau_hoi": "Máy em đi mưa bị vô nước thì shop có bảo hành không?",
+  "cum_tu_dap_an": "bị vào nước, vào hóa chất",
+  "tep_nguon": "chinh_sach/chinh_sach_bao_hanh_doi_tra.md",
+  "tra_loi_mau": "Không. Sản phẩm bị vào nước không được bảo hành, kể cả dòng máy có chứng nhận kháng nước IP67 hoặc IP68."
+ },
+ {
+  "id": "CS06",
+  "nhom": "CS",
+  "cau_hoi": "Máy lỗi ngay tháng đầu có được đổi máy mới không?",
+  "cum_tu_dap_an": "đổi mới sản phẩm trong 30 ngày đầu",
+  "tep_nguon": "chinh_sach/chinh_sach_bao_hanh_doi_tra.md",
+  "tra_loi_mau": "Được đổi mới trong 30 ngày đầu kể từ ngày mua nếu máy lỗi phần cứng do nhà sản xuất và lỗi được trung tâm kỹ thuật của cửa hàng xác nhận."
+ },
+ {
+  "id": "CS07",
+  "nhom": "CS",
+  "cau_hoi": "Mua về không ưng thì trả lại có mất phí không?",
+  "cum_tu_dap_an": "phí trả hàng là 20%",
+  "tep_nguon": "chinh_sach/chinh_sach_bao_hanh_doi_tra.md",
+  "tra_loi_mau": "Được trả trong 7 ngày đầu; phí trả hàng là 20% giá trị hóa đơn nếu máy đã kích hoạt và 10% nếu chưa kích hoạt."
+ },
+ {
+  "id": "CS08",
+  "nhom": "CS",
+  "cau_hoi": "Máy đã sửa ở tiệm ngoài thì còn bảo hành được không?",
+  "cum_tu_dap_an": "không được ủy quyền",
+  "tep_nguon": "chinh_sach/chinh_sach_bao_hanh_doi_tra.md",
+  "tra_loi_mau": "Không. Sản phẩm tự ý tháo máy hoặc sửa tại cơ sở không được ủy quyền bị từ chối bảo hành."
+ },
+ {
+  "id": "CS09",
+  "nhom": "CS",
+  "cau_hoi": "Mua trả góp cần mang theo giấy tờ gì?",
+  "cum_tu_dap_an": "căn cước công dân gắn chip còn hiệu lực",
+  "tep_nguon": "chinh_sach/chinh_sach_tra_gop.md",
+  "tra_loi_mau": "Cần căn cước công dân gắn chip còn hiệu lực và số điện thoại chính chủ; khoản vay lớn có thể cần thêm giấy phép lái xe, hóa đơn điện nước hoặc giấy tờ chứng minh thu nhập."
+ },
+ {
+  "id": "CS10",
+  "nhom": "CS",
+  "cau_hoi": "Đặt máy giao tận nhà có tốn tiền ship không?",
+  "cum_tu_dap_an": "miễn phí giao hàng trong bán kính 20 km",
+  "tep_nguon": "chinh_sach/giao_hang_thanh_toan.md",
+  "tra_loi_mau": "Đơn điện thoại được miễn phí giao hàng trong bán kính 20 km từ cửa hàng gần nhất; xa hơn thì tính phí theo bảng giá của đơn vị vận chuyển."
+ },
+ {
+  "id": "CS11",
+  "nhom": "CS",
+  "cau_hoi": "Máy cũ quên đăng xuất iCloud thì shop có thu không?",
+  "cum_tu_dap_an": "khóa kích hoạt và không thể thu",
+  "tep_nguon": "chinh_sach/thu_cu_doi_moi.md",
+  "tra_loi_mau": "Không thu được: máy còn đăng nhập tài khoản sẽ bị khóa kích hoạt; cần đăng xuất iCloud, tắt Tìm iPhone và khôi phục cài đặt gốc trước khi mang đến."
+ },
+ {
+  "id": "CS12",
+  "nhom": "CS",
+  "cau_hoi": "Chụp ảnh buổi tối bằng điện thoại sao cho đỡ mờ?",
+  "cum_tu_dap_an": "bật chế độ ban đêm",
+  "tep_nguon": "meo_su_dung/meo_chup_anh_dep.md",
+  "tra_loi_mau": "Bật chế độ Ban đêm, giữ máy thật chắc hoặc tựa vào tường, lan can hay dùng chân máy, tránh nguồn sáng chiếu thẳng vào ống kính và không dùng phóng to kỹ thuật số."
+ },
+ {
+  "id": "CS13",
+  "nhom": "CS",
+  "cau_hoi": "Chơi game được một lúc thì bị giật, phải làm sao?",
+  "cum_tu_dap_an": "khiến game giật dần",
+  "tep_nguon": "meo_su_dung/meo_choi_game_muot.md",
+  "tra_loi_mau": "Máy nóng làm chip tự giảm xung nhịp; nên tháo ốp dày, chơi nơi thoáng mát, không chơi khi đang sạc nhanh, giảm độ sáng hoặc hạ thiết lập đồ họa."
+ },
+ {
+  "id": "CS14",
+  "nhom": "CS",
+  "cau_hoi": "Chuẩn IP68 nghĩa là gì, có mang đi bơi được không?",
+  "cum_tu_dap_an": "ip68 chịu được ngâm nước sâu hơn 1 mét",
+  "tep_nguon": "kien_thuc/ket_noi_va_khang_nuoc.md",
+  "tra_loi_mau": "IP68 là kín bụi và chịu ngâm nước ngọt sâu hơn 1 mét theo điều kiện hãng công bố; thử nghiệm dùng nước ngọt nên không nên mang đi bơi, nước biển hay hồ bơi có thể làm hỏng máy."
+ },
+ {
+  "id": "CS15",
+  "nhom": "CS",
+  "cau_hoi": "Máy có RAM ảo 8GB thì có mạnh hơn không?",
+  "cum_tu_dap_an": "ram ảo chỉ giúp giữ thêm ứng dụng chạy nền",
+  "tep_nguon": "kien_thuc/ram_va_bo_nho_trong.md",
+  "tra_loi_mau": "Không. RAM ảo dùng bộ nhớ trong chậm hơn RAM thật nên chỉ giúp giữ thêm ứng dụng chạy nền, không làm máy mạnh hơn hay chơi game mượt hơn."
+ },
+ {
+  "id": "NG01",
+  "nhom": "NG",
+  "cau_hoi": "Cửa hàng có giảm giá riêng cho sinh viên không?",
+  "tu_khoa_kiem_tra": "sinh viên",
+  "tra_loi_mau": "Từ chối: dữ liệu của cửa hàng không có thông tin này."
+ },
+ {
+  "id": "NG02",
+  "nhom": "NG",
+  "cau_hoi": "Số hotline chăm sóc khách hàng của cửa hàng là bao nhiêu?",
+  "tu_khoa_kiem_tra": "hotline",
+  "tra_loi_mau": "Từ chối: dữ liệu của cửa hàng không có thông tin này."
+ },
+ {
+  "id": "NG03",
+  "nhom": "NG",
+  "cau_hoi": "Cửa hàng mở cửa từ mấy giờ đến mấy giờ?",
+  "tu_khoa_kiem_tra": "giờ mở cửa",
+  "tra_loi_mau": "Từ chối: dữ liệu của cửa hàng không có thông tin này."
+ },
+ {
+  "id": "NG04",
+  "nhom": "NG",
+  "cau_hoi": "Galaxy S30 Ultra giá bao nhiêu?",
+  "tu_khoa_kiem_tra": "s30",
+  "tra_loi_mau": "Từ chối: dữ liệu của cửa hàng không có thông tin này."
+ },
+ {
+  "id": "NG05",
+  "nhom": "NG",
+  "cau_hoi": "Cửa hàng có chi nhánh ở Đà Nẵng không?",
+  "tu_khoa_kiem_tra": "đà nẵng",
+  "tra_loi_mau": "Từ chối: dữ liệu của cửa hàng không có thông tin này."
+ }
+]

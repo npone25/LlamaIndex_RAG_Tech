@@ -1,0 +1,1 @@
+Đây là dữ liệu thử nghiệm độc lập dành cho chương 4 về nạp dữ liệu thông qua SimpleDirectoryReader

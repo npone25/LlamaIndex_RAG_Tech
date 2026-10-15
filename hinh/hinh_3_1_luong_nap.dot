@@ -1,0 +1,22 @@
+digraph G {
+  rankdir=LR; nodesep=0.35; ranksep=0.45;
+  node [shape=box, style="rounded,filled", fillcolor="#eef3fb", color="#4a6fa5", fontname="Liberation Sans", fontsize=11];
+  edge [color="#555555", fontname="Liberation Sans", fontsize=10];
+  excel [label="phones.xlsx\n818 sản phẩm", shape=cylinder, fillcolor="#fdf3e1", color="#b7863b"];
+  cs [label="data_kien_thuc/ (20 tệp .md)\nchính sách, kiến thức,\nmẹo sử dụng, tư vấn", shape=cylinder, fillcolor="#fdf3e1", color="#b7863b"];
+  r2t [label="row_to_document\n(Row-to-Text, lay_gia)"];
+  sdr [label="SimpleDirectoryReader"];
+  seed [label="seed_sql.py"];
+  products [label="Bảng products\n(lớp a, 21 cột)", shape=cylinder, fillcolor="#e6f4ea", color="#3b8b55"];
+  ds [label="Docstore UPSERTS\nhash đổi?", shape=diamond, fillcolor="#fff7d6", color="#b39b2d"];
+  skip [label="Bỏ qua\n(không nhúng lại)", fillcolor="#f2f2f2", color="#888888"];
+  split [label="SentenceSplitter\nsản phẩm 1024/0\nkiến thức 256/30"];
+  emb [label="gemini-embedding-2\n768 chiều, tiền tố\n\"title: none | text:\""];
+  pg [label="data_san_pham / data_kien_thuc\npgvector + chỉ mục HNSW cosine", shape=cylinder, fillcolor="#e6f4ea", color="#3b8b55"];
+  excel -> seed -> products;
+  excel -> r2t -> ds;
+  cs -> sdr -> ds;
+  ds -> skip [label="không đổi"];
+  ds -> split [label="mới / đổi"];
+  split -> emb -> pg;
+}

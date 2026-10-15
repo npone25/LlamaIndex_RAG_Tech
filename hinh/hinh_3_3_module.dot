@@ -1,0 +1,17 @@
+digraph G {
+  rankdir=TB; nodesep=0.3; ranksep=0.5;
+  node [shape=box, style="rounded,filled", fillcolor="#eef3fb", color="#4a6fa5", fontname="Liberation Sans", fontsize=11];
+  edge [color="#555555"];
+  subgraph cluster_chay { label="Chạy / thí nghiệm"; fontname="Liberation Sans"; style=dashed; color="#999999";
+    app [label="app Streamlit\n(chương 12)"]; ingest [label="ingest.py"]; seed [label="seed_sql.py"]; exp [label="exp_*.py\nchay_thi_nghiem.py"]; }
+  subgraph cluster_tl { label="Tầng nghiệp vụ"; fontname="Liberation Sans"; style=dashed; color="#999999";
+    bao_ve; dinh_tuyen; tro_ly; loc_metadata; tra_gop; }
+  subgraph cluster_th { label="Truy hồi"; fontname="Liberation Sans"; style=dashed; color="#999999"; truy_hoi; }
+  subgraph cluster_nen { label="Nền tảng"; fontname="Liberation Sans"; style=dashed; color="#999999";
+    chuyen_doi_san_pham; kho_du_lieu; nhung_gemini; llm_gemini; }
+  app -> bao_ve; app -> dinh_tuyen; exp -> dinh_tuyen; exp -> truy_hoi;
+  ingest -> kho_du_lieu; ingest -> chuyen_doi_san_pham; ingest -> nhung_gemini; seed -> chuyen_doi_san_pham;
+  dinh_tuyen -> tro_ly; dinh_tuyen -> tra_gop; dinh_tuyen -> kho_du_lieu;
+  tro_ly -> truy_hoi; loc_metadata -> truy_hoi; truy_hoi -> kho_du_lieu;
+  exp -> nhung_gemini; exp -> llm_gemini;
+}
