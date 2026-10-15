@@ -1,0 +1,37 @@
+# PostgreSQL 16 + pgvector cho đồ án. Mật khẩu đọc từ file .env (không ghi trong file này)
+# Chạy: docker compose up -d     | Dừng: docker compose down
+
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: phone_rag_db
+    environment:
+      POSTGRES_USER: ${PG_USER:-postgres}
+      POSTGRES_PASSWORD: ${PG_PASSWORD:?Chua dat PG_PASSWORD trong file .env}
+      POSTGRES_DB: ${PG_DB:-phone_rag_db}
+    ports:
+      - "${PG_PORT:-5432}:5432"
+    volumes:
+      - pgdata_v2:/var/lib/postgresql/data
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${PG_USER:-postgres} -d ${PG_DB:-phone_rag_db}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  # Giao diện web xem dữ liệu (tùy chọn): docker compose --profile tools up -d
+  pgadmin:
+    image: dpage/pgadmin4
+    profiles: ["tools"]
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@example.com}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-}   # chỉ cần khi bật pgAdmin
+    ports:
+      - "5050:80"
+    depends_on:
+      - db
+
+volumes:
+  pgdata_v2:

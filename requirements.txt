@@ -1,0 +1,24 @@
+# Thư viện của đồ án (cài: pip install -r requirements.txt)
+llama-index-core==0.14.25
+llama-index-embeddings-google-genai==0.6.0
+llama-index-vector-stores-postgres
+llama-index-readers-file
+pandas
+openpyxl
+python-dotenv
+numpy
+sqlalchemy
+psycopg2-binary
+# Mục 4.4: docstore và cache lưu trong PostgreSQL (hai bản này đi cùng nhau, bản mới hơn của
+# docstore không tương thích với kvstore 0.4.3)
+llama-index-storage-docstore-postgres==0.5.0
+llama-index-storage-kvstore-postgres==0.4.3
+# Chương 6: BM25 và reranker (sentence-transformers cài kèm torch, dung lượng lớn)
+llama-index-retrievers-bm25==0.8.0
+sentence-transformers
+# Chương 7: LLM Gemini
+llama-index-llms-google-genai==0.11.2
+# Chương 9: Ragas 0.4.3 cần langchain-community 0.3.x (bản 0.4 bỏ mô-đun mà Ragas nhập)
+ragas==0.4.3
+langchain-community==0.3.31
+matplotlib

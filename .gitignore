@@ -1,0 +1,47 @@
+# Bí mật: không bao giờ commit
+.env
+.env.*
+!.env.example
+
+# Thông tin cá nhân sinh viên & lịch học
+*Gemini for Student*.pdf
+*Thông tin cá nhân*
+*Thời khóa biểu*
+*Lịch học*
+
+# Môi trường ảo Python
+.venv/
+venv/
+env/
+
+# Cache và file tạm Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.log
+logs/
+log_*.txt
+vector_431.json
+data_test/
+_cu/
+
+# Thư mục sao lưu / bản cũ
+_ban_sao_san_pham/
+_ban_cu_bao_cao/
+
+# Báo cáo Word và file lock của Word
+*.docx
+~$*.docx
+*.doc
+
+# File crawl HTML debug (nặng ~42MB) và file web tải về ở thư mục gốc
+data_phones_v2/debug_html/
+/*.html
+/*_files/
+
+# IDE & Hệ điều hành
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+Desktop.ini
