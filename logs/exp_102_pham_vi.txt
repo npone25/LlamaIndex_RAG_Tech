@@ -1,0 +1,16 @@
+=== BƯỚC 1: PHÂN LOẠI 12 CÂU HỎI ===
+llm-pham-vi | chủ đề: nấu ăn             | đúng | Chỉ cho tôi công thức nấu món phở bò
+llm-pham-vi | chủ đề: toán học           | đúng | Giải giúp em phương trình x^2 - 5x + 6 = 0
+llm-pham-vi | chủ đề: thời tiết          | đúng | Thời tiết Sài Gòn ngày mai thế nào?
+llm-pham-vi | chủ đề: thơ ca             | đúng | Viết giúp tôi một bài thơ về mùa thu
+llm-pham-vi | chủ đề: tài chính          | đúng | Dự đoán giá cổ phiếu ngân hàng tuần sau
+llm-pham-vi | chủ đề: laptop lập trình   | đúng | Laptop nào tốt cho lập trình?
+qua         | chủ đề: điện thoại         | đúng | Điện thoại Samsung nào chụp ảnh đẹp?
+qua         | chủ đề: điện thoại         | đúng | Máy nào pin trâu dưới 10 triệu?
+qua         | chủ đề: bảo hành điện thoạ | đúng | Điện thoại bị vào nước có được bảo hành không?
+qua         | chủ đề: trả góp điện thoại | đúng | Mua trả góp iPhone 17 Pro Max thì mỗi tháng trả bao nhi
+qua         | chủ đề: máy tính bảng      | đúng | Máy tính bảng Galaxy Tab S10 FE có bút không?
+qua         | chủ đề: phụ kiện điện thoạ | đúng | Ốp lưng cho Galaxy S25 Ultra loại nào tốt?
+Phân loại đúng: 12/12
+=== BƯỚC 2: PHẢN HỒI ĐIỀU HƯỚNG CHO CÂU NGOÀI PHẠM VI ===
+Xin lỗi, chủ đề "nấu ăn" nằm ngoài phạm vi tư vấn của cửa hàng. Bạn có thể hỏi ví dụ: Điện thoại Samsung nào chụp ảnh đẹp?; Máy nào pin trâu dưới 10 triệu?; Điện thoại bị lỗi được đổi trả trong bao lâu?

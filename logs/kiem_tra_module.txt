@@ -1,0 +1,17 @@
+=== BƯỚC 1: TỔNG QUAN ===
+Số file .py: 77 | thí nghiệm exp_*: 48 | module dùng chung: 12
+=== BƯỚC 2: TỪNG MODULE DÙNG CHUNG ===
+chuyen_doi_san_pham  |  5 hàm/lớp | được 14 file dùng | phụ thuộc: -
+kho_du_lieu          |  8 hàm/lớp | được 17 file dùng | phụ thuộc: -
+nhung_gemini         |  7 hàm/lớp | được 27 file dùng | phụ thuộc: -
+llm_gemini           |  2 hàm/lớp | được 14 file dùng | phụ thuộc: -
+truy_hoi             | 10 hàm/lớp | được 20 file dùng | phụ thuộc: kho_du_lieu
+loc_metadata         |  3 hàm/lớp | được  3 file dùng | phụ thuộc: truy_hoi
+tro_ly               |  4 hàm/lớp | được  6 file dùng | phụ thuộc: truy_hoi
+tra_gop              |  2 hàm/lớp | được  2 file dùng | phụ thuộc: -
+dinh_tuyen           |  5 hàm/lớp | được  4 file dùng | phụ thuộc: kho_du_lieu, tra_gop, tro_ly
+bao_ve               |  7 hàm/lớp | được  4 file dùng | phụ thuộc: -
+ham_chung_42         |  6 hàm/lớp | được 10 file dùng | phụ thuộc: chuyen_doi_san_pham
+vector_gia           |  1 hàm/lớp | được  5 file dùng | phụ thuộc: -
+=== BƯỚC 3: KIỂM TRA PHỤ THUỘC MỘT CHIỀU ===
+Module dùng chung import ngược thí nghiệm/script chạy: không có

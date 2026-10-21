@@ -1,0 +1,12 @@
+[
+  {"id": "SP1", "cau_hoi": "Điện thoại màn hình gập của OPPO", "dap_an_product_id": "dien-thoai-oppo-find-n6"},
+  {"id": "SP2", "cau_hoi": "iPhone 15 bản 256GB giá bao nhiêu", "dap_an_product_id": "iphone-15-256gb"},
+  {"id": "SP3", "cau_hoi": "Máy Sony Xperia dùng chip Snapdragon 8 Elite", "dap_an_product_id": "dien-thoai-sony-xperia-1-vii"},
+  {"id": "SP4", "cau_hoi": "Google Pixel chạy chip Tensor", "dap_an_product_id": "google-pixel-8-pro"},
+  {"id": "SP5", "cau_hoi": "Điện thoại Nubia pin 6050 mAh", "dap_an_product_id": "dien-thoai-nubia-neo-5-5g"},
+  {"id": "CS1", "cau_hoi": "Muốn trả lại máy không bị lỗi thì được không", "cum_tu_dap_an": "trả lại sản phẩm không do lỗi"},
+  {"id": "CS2", "cau_hoi": "Pin và sạc đi kèm được bảo hành bao lâu", "cum_tu_dap_an": "được bảo hành 6 tháng"},
+  {"id": "CS3", "cau_hoi": "Trả góp 0% có phải trả lãi không", "cum_tu_dap_an": "không phát sinh tiền lãi"},
+  {"id": "CS4", "cau_hoi": "Mất hóa đơn thì có bảo hành được không", "cum_tu_dap_an": "mất hóa đơn"},
+  {"id": "CS5", "cau_hoi": "Trả góp qua thẻ tín dụng có những kỳ hạn nào", "cum_tu_dap_an": "với thẻ tín dụng, kỳ hạn"}
+]

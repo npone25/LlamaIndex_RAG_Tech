@@ -4,8 +4,7 @@ from typing import Optional
 
 from llama_index.core import PromptTemplate, SQLDatabase
 from llama_index.core.embeddings import MockEmbedding
-from llama_index.core.query_engine import (CustomQueryEngine, NLSQLTableQueryEngine,
-                                           RouterQueryEngine)
+from llama_index.core.query_engine import CustomQueryEngine, NLSQLTableQueryEngine, RouterQueryEngine
 from llama_index.core.selectors import LLMSingleSelector
 from llama_index.core.tools import QueryEngineTool
 from pydantic import BaseModel, Field
@@ -85,19 +84,69 @@ class TraGopEngine(CustomQueryEngine):
                 "{:,}".format(so["tra_moi_thang"]), "{:,}".format(so["tien_lai"])))
 
 
-def tao_router(llm, embed_model):
+def tao_router(
+    llm,
+    embed_model,
+    query_engine_rag=None,
+    retriever=None,
+    hau_xu_ly=None,
+    nodes_theo_bang=None,
+):
+    if query_engine_rag is None:
+        query_engine_rag = tao_query_engine(
+            llm,
+            embed_model,
+            retriever=retriever,
+            hau_xu_ly=hau_xu_ly,
+            nodes_theo_bang=nodes_theo_bang,
+        )
     cong_cu = [
         QueryEngineTool.from_defaults(
-            query_engine=tao_sql_engine(llm), name="tra_cuu_so_lieu",
+            query_engine=tao_sql_engine(llm),
+            name="tra_cuu_so_lieu",
             description="Câu hỏi cần lọc, đếm, sắp xếp, tính trung bình hoặc so sánh số liệu "
-                        "trong bảng sản phẩm: giá, RAM, bộ nhớ, pin, điểm đánh giá, còn hàng."),
+                        "trong bảng sản phẩm: giá, RAM, bộ nhớ, pin, điểm đánh giá, còn hàng.",
+        ),
         QueryEngineTool.from_defaults(
-            query_engine=tao_query_engine(llm, embed_model), name="tu_van_va_chinh_sach",
+            query_engine=query_engine_rag,
+            name="tu_van_va_chinh_sach",
             description="Tư vấn chọn máy theo nhu cầu và tính năng mô tả bằng lời (chụp ảnh, "
-                        "chơi game, màn hình gập...) và chính sách bảo hành, đổi trả."),
+                        "chơi game, màn hình gập...) và chính sách bảo hành, đổi trả.",
+        ),
         QueryEngineTool.from_defaults(
-            query_engine=TraGopEngine(llm=llm), name="tinh_tra_gop",
-            description="Tính tiền trả trước và tiền góp mỗi tháng khi mua máy trả góp."),
+            query_engine=TraGopEngine(llm=llm),
+            name="tinh_tra_gop",
+            description="Tính tiền trả trước và tiền góp mỗi tháng khi mua máy trả góp.",
+        ),
     ]
-    return RouterQueryEngine(selector=LLMSingleSelector.from_defaults(llm=llm),
-                             query_engine_tools=cong_cu, llm=llm)
+    return RouterQueryEngine(
+        selector=LLMSingleSelector.from_defaults(llm=llm),
+        query_engine_tools=cong_cu,
+        llm=llm,
+    )
+
+
+DANH_SACH_CONG_CU = ["tra_cuu_so_lieu", "tu_van_va_chinh_sach", "tinh_tra_gop"]
+
+
+def lay_ten_cong_cu_da_chon(response) -> str:
+    """Xác định tên công cụ do RouterQueryEngine lựa chọn."""
+    if not hasattr(response, "metadata") or not isinstance(response.metadata, dict):
+        return "khong_ro"
+    sel_result = response.metadata.get("selector_result")
+    if sel_result is None or not hasattr(sel_result, "selections"):
+        return "khong_ro"
+    selections = sel_result.selections
+    if not selections or len(selections) == 0:
+        return "khong_ro"
+    idx = getattr(selections[0], "index", None)
+    if idx is not None and 0 <= idx < len(DANH_SACH_CONG_CU):
+        return DANH_SACH_CONG_CU[idx]
+    return "khong_ro"
+
+
+def lay_cau_sql(response) -> Optional[str]:
+    """Lấy câu lệnh SQL do NLSQLTableQueryEngine sinh ra, nếu có."""
+    if hasattr(response, "metadata") and isinstance(response.metadata, dict):
+        return response.metadata.get("sql_query")
+    return None

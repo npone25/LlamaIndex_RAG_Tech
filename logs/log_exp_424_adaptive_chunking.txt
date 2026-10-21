@@ -1,0 +1,50 @@
+=== BƯỚC 0: PHIÊN BẢN ===
+Python 3.13.5 | llama-index-core 0.14.25
+Bản ghi A: iphone-18-pro | bản ghi B: iphone-18-pro-max
+
+=== BƯỚC 1: HAI DOCUMENT RIÊNG (size 128, overlap 60) ===
+
+Node: 24 | Node có chữ của bản ghi khác: 0
+
+=== BƯỚC 2: HAI BẢN GHI NỐI VÀO MỘT DOCUMENT ===
+
+Node chứa chữ của cả A và B, quanh ranh giới:
+
+   ...mới với modem C2, Wi‑Fi 7 và Bluetooth 6 Điện thoại iPhone 18 Pro Max 256GB của ...
+
+Node: 15 | Node trộn hai bản ghi: 1
+
+metadata của Document nối: {} (mất product_id riêng)
+
+=== BƯỚC 3: BẢNG ĐIỆN THOẠI (size 1024, overlap 0) ===
+Document: 818 | Node: 818
+
+=== BƯỚC 4: TÀI LIỆU PDF (4 trang) ===
+
+page_label 1 | iphone-18-pro-max-info.pdf | Trước khi sử dụng iPhone, hãy ...
+
+page_label 2 | iphone-18-pro-max-info.pdf | Tiếp xúc với tần số vô tuyến T...
+
+page_label 2 | iphone-18-pro-max-info.pdf | Thông tin về Laser loại 1 Th...
+
+page_label 2 | iphone-18-pro-max-info.pdf | Chú ý: Thiết bị này chứa một h...
+
+page_label 2 | iphone-18-pro-max-info.pdf | SẢN PHẨM LASER LOẠI 1 Khả năn...
+
+page_label 2 | iphone-18-pro-max-info.pdf | Thông tin thêm về âm thanh và ...
+
+page_label 3 | iphone-18-pro-max-info.pdf | Nhiễu thiết bị y tế iPhone ch...
+
+page_label 3 | iphone-18-pro-max-info.pdf | T óm tắt v ề Bảo hành giới h...
+
+page_label 3 | iphone-18-pro-max-info.pdf | Để nhận được dịch vụ, hãy gọi ...
+
+page_label 3 | iphone-18-pro-max-info.pdf | Theo điều khoản đầy  đủ và th...
+
+page_label 3 | iphone-18-pro-max-info.pdf | Bạn có thể được yêu cầu cung  ...
+
+page_label 4 | iphone-18-pro-max-info.pdf | © 2026 Apple Inc. Mọi quyền đư...
+
+=== BƯỚC 5: CA LỖI (FILE PDF KHÔNG TỒN TẠI) ===
+ValueError - File khong_co_file_nay.pdf does not exist.
+

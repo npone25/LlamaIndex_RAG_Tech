@@ -1,0 +1,25 @@
+=== BƯỚC 1: CÂU TRẢ LỜI KÈM NGUỒN TRÍCH DẪN ===
+Trả lời: Xin lỗi, dữ liệu của cửa hàng chưa có thông tin cho câu hỏi này.
+[1] tài liệu | thu_cu_doi_moi.md tr.1 | điểm 0.153 | giá None
+    Đoạn gốc: Khách hàng có thể tra cứu giá thu dự kiến trên trang web; giá tra cứu chỉ mang t
+=== BƯỚC 2: ĐIỂM RERANKER CAO NHẤT CỦA TỪNG CÂU HỎI ===
+trong | 1.000 | Galaxy Z Fold7 có pin bao nhiêu mAh?
+trong | 1.000 | điện thoại chip Helio G99
+trong | 0.153 | Redmi Note 14 Pro giá bao nhiêu?
+trong | 0.997 | điện thoại cho người lớn tuổi nghe gọi
+trong | 0.984 | Sản phẩm lỗi được đổi trả trong bao lâu?
+ngoài | 0.000 | Thời tiết Sài Gòn hôm nay thế nào?
+ngoài | 0.008 | Cách nấu phở bò
+ngoài | 0.006 | Máy giặt nào tiết kiệm điện?
+ngoài | 0.000 | Giá vàng hôm nay bao nhiêu?
+ngoài | 0.039 | Laptop nào tốt cho lập trình?
+Thấp nhất nhóm trong: 0.153 | cao nhất nhóm ngoài: 0.039 | ngưỡng đang dùng: 0.10
+=== BƯỚC 3: CÓ NGƯỠNG VÀ KHÔNG CÓ NGƯỠNG ===
+có ngưỡng    | 0 lần gọi LLM | 0 nguồn | Máy giặt nào tiết ki -> Xin lỗi, dữ liệu của cửa hàng chưa có th
+không ngưỡng | 1 lần gọi LLM | 3 nguồn | Máy giặt nào tiết ki -> Xin lỗi, dữ liệu của cửa hàng chưa có th
+có ngưỡng    | 1 lần gọi LLM | 3 nguồn | Galaxy Z Fold7 có pi -> Dạ, theo thông tin của sản phẩm Samsung 
+không ngưỡng | 1 lần gọi LLM | 3 nguồn | Galaxy Z Fold7 có pi -> Dạ, điện thoại Samsung Galaxy Z Fold7 12
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading weights:   0%|          | 0/201 [00:00<?, ?it/s]Loading weights:  10%|█         | 21/201 [00:00<00:00, 193.44it/s]Loading weights:  20%|██        | 41/201 [00:00<00:01, 150.46it/s]Loading weights: 100%|██████████| 201/201 [00:00<00:00, 624.35it/s]
+Loading weights:   0%|          | 0/201 [00:00<?, ?it/s]Loading weights:   2%|▏         | 4/201 [00:00<00:38,  5.13it/s]Loading weights:  13%|█▎        | 27/201 [00:00<00:04, 38.25it/s]Loading weights:  22%|██▏       | 44/201 [00:01<00:02, 58.74it/s]Loading weights:  31%|███▏      | 63/201 [00:01<00:01, 83.96it/s]Loading weights: 100%|██████████| 201/201 [00:01<00:00, 175.88it/s]
+Loading weights:   0%|          | 0/201 [00:00<?, ?it/s]Loading weights:   8%|▊         | 17/201 [00:00<00:01, 150.98it/s]Loading weights:  16%|█▋        | 33/201 [00:00<00:01, 103.30it/s]Loading weights:  22%|██▏       | 45/201 [00:00<00:01, 94.67it/s] Loading weights:  31%|███       | 62/201 [00:00<00:01, 116.47it/s]Loading weights: 100%|██████████| 201/201 [00:00<00:00, 333.06it/s]

@@ -1,0 +1,19 @@
+=== BƯỚC 1: PHIÊN BẢN THƯ VIỆN ===
+llama-index-core               0.14.25
+llama-index-retrievers-bm25    0.8.0
+llama-index-llms-google-genai  0.11.2
+ragas                          0.4.3
+langchain-community            0.3.31
+=== BƯỚC 2: MÔ HÌNH VÀ KHO VECTOR ===
+Mô hình nhúng: gemini-embedding-2 | 768 chiều
+LLM trả lời : gemini-3.5-flash-lite
+LLM giám khảo: gemini-3.1-flash-lite | temperature = 0
+PostgreSQL 16.15 | pgvector 0.8.7
+data_san_pham    818 dòng | 768 chiều | chỉ mục HNSW: có
+data_kien_thuc   204 dòng | 768 chiều | chỉ mục HNSW: có
+=== BƯỚC 3: HAI CẤU HÌNH TRUY HỒI ĐƯỢC SO SÁNH ===
+Cơ sở  : chỉ vector trên bảng sản phẩm và bảng chính sách, lấy Top 3
+Nâng cao: vector + BM25 trên hai bảng, RRF Top 10 -> BAAI/bge-reranker-base Top 3
+=== BƯỚC 4: CA LỖI - API METRIC MỚI CỦA RAGAS VỚI CLIENT GEMINI ===
+ValueError - Failed to initialize google client with instructor adapter. Ensure you've created a valid 
+-> Đồ án dùng API evaluate() với LlamaIndexLLMWrapper (xem exp_94_ragas.py)

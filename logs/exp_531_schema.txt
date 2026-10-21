@@ -1,0 +1,38 @@
+=== BƯỚC 1: SCHEMA DẠNG JSON (ĐÚNG CHUỖI ĐƯỢC CHÈN VÀO PROMPT) ===
+{
+ "metadata_info": [
+  {
+   "name": "brand",
+   "type": "str",
+   "description": "Hãng sản xuất, viết đúng như: Apple, Samsung, Xiaomi, OPPO, vivo, HONOR, realme, Google, Nokia"
+  },
+  {
+   "name": "price",
+   "type": "int",
+   "description": "Giá bán, đơn vị đồng. Ví dụ 15 triệu = 15000000"
+  },
+  {
+   "name": "ram_gb",
+   "type": "int",
+   "description": "Dung lượng RAM, đơn vị GB"
+  },
+  {
+   "name": "rating",
+   "type": "float",
+   "description": "Điểm đánh giá của khách, 0 đến 5"
+  },
+  {
+   "name": "stock_status",
+   "type": "str",
+   "description": "Tình trạng hàng: InStock (còn hàng) hoặc OutOfStock (hết hàng)"
+  }
+ ],
+ "content_info": "Mô tả cấu hình và tính năng của một mẫu điện thoại bán tại cửa hàng"
+}
+=== BƯỚC 2: ĐỐI CHIẾU SCHEMA VỚI METADATA THẬT TRONG data_san_pham ===
+brand        (str  ): có ở 818/818 Node | ví dụ: Apple
+price        (int  ): có ở 299/818 Node | ví dụ: 38790000
+ram_gb       (int  ): có ở 729/818 Node | ví dụ: 12
+rating       (float): có ở 202/818 Node | ví dụ: 5.0
+stock_status (str  ): có ở 817/818 Node | ví dụ: InStock
+Các khóa metadata thật: ["brand", "doc_id", "document_id", "price", "product_id", "product_name", "ram_gb", "rating", "ref_doc_id", "stock_status"]

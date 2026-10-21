@@ -1,0 +1,11 @@
+=== BƯỚC 1: ĐỌC DỮ LIỆU ===
+File: data_phones_v2/phones.xlsx | dòng: 818 | cột lớp (a): 21
+=== BƯỚC 2: NẠP VÀO POSTGRESQL ===
+=== BƯỚC 3: KIỂM CHỨNG BẰNG SQL ===
+PostgreSQL: 16.15 (Debian 16.15-1.pgdg12+2) | pgvector: 0.8.7
+SELECT count(*) FROM products -> 818
+Có giá: 299 | còn hàng: 180
+Ví dụ câu hỏi NLSQL: 3 máy Samsung còn hàng rẻ nhất có giá
+   Samsung Galaxy A07 4GB 128GB | 4190000
+   Samsung Galaxy A08 4GB 64GB | 4790000
+   Samsung Galaxy A07 5G 4GB 128GB | 4890000

@@ -1,0 +1,16 @@
+=== BƯỚC 0: PHIÊN BẢN ===
+Python 3.13.16 | llama-index-core 0.14.25
+=== BƯỚC 1: LẦN ĐẦU, CACHE TRỐNG ===
+Node: 818 | văn bản phải nhúng: 818 | số mục trong cache: 2
+=== BƯỚC 2: PIPELINE MỚI, CÙNG DỮ LIỆU, CÙNG CẤU HÌNH ===
+Node: 818 | văn bản phải nhúng: 0 | số mục trong cache: 2
+=== BƯỚC 3: GIẢM GIÁ 1 TRONG 818 MÁY ===
+Node: 818 | văn bản phải nhúng: 818 | số mục trong cache: 4
+=== BƯỚC 4: ĐỔI THAM SỐ chunk_size 1024 -> 1000 ===
+Node: 818 | văn bản phải nhúng: 0 | số mục trong cache: 5
+=== BƯỚC 5: CA LỖI (CACHE MẶC ĐỊNH TRONG RAM, PIPELINE MỚI) ===
+Node: 818 | văn bản phải nhúng: 818
+=== BƯỚC 6: CA LỖI (CACHE LƯU Ở CỘT JSONB) ===
+Lần 1 -> Node: 818 | văn bản phải nhúng: 818
+Lần 2 -> Node: 818 | văn bản phải nhúng: 818
+Đã xóa cache thử

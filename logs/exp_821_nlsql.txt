@@ -1,0 +1,18 @@
+=== CÂU 1: 3 điện thoại Samsung còn hàng rẻ nhất là máy nào, giá bao nhiêu? ===
+SQL do LLM sinh: SELECT product_name, price FROM products WHERE brand = 'Samsung' AND stock_status = 'InStock' AND price IS NOT NULL ORDER BY price ASC LIMIT 3;
+Kết quả SQL    : [('Samsung Galaxy A07 4GB 128GB', 4190000), ('Samsung Galaxy A08 4GB 64GB', 4790000), ('Samsung Galaxy A07 5G 4GB 128GB'
+SQL viết tay   : [('Samsung Galaxy A07 4GB 128GB', 4190000), ('Samsung Galaxy A08 4GB 64GB', 4790000), ('Samsung Galaxy A07 5G 4GB 128GB', 4890000)]
+Trả lời        : 3 mẫu điện thoại Samsung còn hàng rẻ nhất là: 1. **Samsung Galaxy A07 4GB 128GB** – Giá: 4.190.000đ 2. **Samsung Galaxy 
+=== CÂU 2: Giá trung bình của các điện thoại Xiaomi có giá là bao nhiêu? ===
+SQL do LLM sinh: SELECT AVG(price) FROM products WHERE brand = 'Xiaomi' AND price IS NOT NULL;
+Kết quả SQL    : [(Decimal('11834323.351851851852'),)]
+SQL viết tay   : [(Decimal('11834323'),)]
+Trả lời        : Giá trung bình của các điện thoại Xiaomi là khoảng 11.834.323 đồng.
+=== CÂU 3: Có bao nhiêu điện thoại pin từ 6000 mAh trở lên? ===
+SQL do LLM sinh: SELECT COUNT(*) FROM products WHERE battery_mah >= 6000;
+Kết quả SQL    : [(135,)]
+SQL viết tay   : [(135,)]
+Trả lời        : Có 135 chiếc điện thoại có dung lượng pin từ 6000 mAh trở lên.
+=== CA LỖI: HỎI THÔNG TIN KHÔNG CÓ TRONG BẢNG (SỐ LƯỢNG TỒN KHO) ===
+SQL do LLM sinh: SELECT stock_status, product_name FROM products WHERE product_name ILIKE '%Galaxy S25 Ultra%';
+Trả lời        : Dựa trên thông tin trong kho, cửa hàng hiện đang có các phiên bản của Samsung Galaxy S25 Ultra: - Samsung Galaxy S25 Ult

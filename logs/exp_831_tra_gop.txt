@@ -1,0 +1,15 @@
+=== BƯỚC 1: MÔ TẢ CÔNG CỤ MÀ LLM NHÌN THẤY ===
+name: tinh_tra_gop | description: Tính tiền trả trước và tiền góp mỗi tháng khi mua điện thoại trả góp
+tham số: ['gia_san_pham', 'ty_le_tra_truoc', 'ky_han_thang', 'lai_suat_nam_phan_tram']
+=== BƯỚC 2: iPhone 17 Pro Max 256GB, GIÁ 34,990,000 ĐỒNG, TRẢ TRƯỚC 30%, 12 THÁNG ===
+Lãi  0.0%/năm | trả trước 10,497,000 | mỗi tháng 2,041,083 | tháng cuối 2,041,087 | tổng lãi 0
+   Kiểm tra: trả trước + 12 kỳ góp = 34,990,000 | giá + lãi = 34,990,000
+Lãi 12.0%/năm | trả trước 10,497,000 | mỗi tháng 2,176,173 | tháng cuối 2,176,178 | tổng lãi 1,621,081
+   Kiểm tra: trả trước + 12 kỳ góp = 36,611,081 | giá + lãi = 36,611,081
+=== BƯỚC 3: DỮ LIỆU ĐẦU VÀO KHÔNG HỢP LỆ ===
+(0, 0.3, 12) -> ValueError: Giá sản phẩm phải lớn hơn 0
+(34990000, 1.0, 12) -> ValueError: Tỷ lệ trả trước phải nằm trong khoảng 0 <= tỷ lệ < 1
+(34990000, 0.3, 0) -> ValueError: Kỳ hạn phải là số nguyên dương
+(34990000, 0.3, 6.5) -> ValueError: Kỳ hạn phải là số nguyên dương
+=== BƯỚC 4: CA LỖI - LÀM TRÒN TỪNG THÁNG MÀ KHÔNG ĐIỀU CHỈNH THÁNG CUỐI ===
+Gốc vay 24,493,000, mỗi tháng làm tròn 2,041,083 -> 12 tháng trả 24,492,996, lệch -4 đồng so với gốc

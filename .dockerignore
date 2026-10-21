@@ -1,0 +1,12 @@
+.env
+.venv/
+logs/
+__pycache__/
+*.pyc
+*.docx
+bao_cao/
+_cu/
+thi_nghiem/logs/
+.git/
+.pytest_cache/
+.ruff_cache/

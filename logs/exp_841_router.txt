@@ -1,0 +1,26 @@
+=== CÂU 1: 3 điện thoại Samsung còn hàng rẻ nhất là máy nào? ===
+Chọn: tra_cuu_so_lieu | mong đợi: tra_cuu_so_lieu | ĐÚNG
+Lý do: Câu hỏi yêu cầu lọc và tìm kiếm '3 điện thoại Samsung còn hàng rẻ nhất', liên quan trực tiếp đến việ
+Trả lời: 3 mẫu điện thoại Samsung còn hàng có giá rẻ nhất là: 1. **Samsung Galaxy A07 4GB 128GB**: 4.190.000 VNĐ 2. **S
+=== CÂU 2: Có bao nhiêu điện thoại Xiaomi giá dưới 10 triệu? ===
+Chọn: tra_cuu_so_lieu | mong đợi: tra_cuu_so_lieu | ĐÚNG
+Lý do: Câu hỏi yêu cầu đếm số lượng điện thoại Xiaomi dựa trên điều kiện về giá (dưới 10 triệu), thuộc nhóm
+Trả lời: Có 33 điện thoại Xiaomi có giá dưới 10 triệu đồng.
+=== CÂU 3: Tư vấn điện thoại màn hình gập chụp ảnh đẹp ===
+Chọn: tu_van_va_chinh_sach | mong đợi: tu_van_va_chinh_sach | ĐÚNG
+Lý do: Câu hỏi 'Tư vấn điện thoại màn hình gập chụp ảnh đẹp' yêu cầu tư vấn chọn máy theo nhu cầu và tính n
+Trả lời: Dạ, em xin tư vấn cho anh/chị dòng điện thoại màn hình gập chụp ảnh đẹp là **Samsung Galaxy Z Flip7 12GB 512GB
+=== CÂU 4: Điện thoại bị vào nước có được bảo hành không? ===
+Chọn: tu_van_va_chinh_sach | mong đợi: tu_van_va_chinh_sach | ĐÚNG
+Lý do: Câu hỏi liên quan đến chính sách bảo hành khi điện thoại bị vào nước, phù hợp với nội dung tư vấn về
+Trả lời: Dạ, theo chính sách của cửa hàng, sản phẩm bị vào nước sẽ không được bảo hành, kể cả với các dòng máy có chứng
+=== CÂU 5: Mua iPhone 17 Pro Max 256GB trả trước 30%, góp 12 tháng lãi 0% thì mỗi tháng bao nhiêu? ===
+Chọn: tinh_tra_gop | mong đợi: tinh_tra_gop | ĐÚNG
+Lý do: Câu hỏi yêu cầu tính tiền trả trước và tiền góp mỗi tháng khi mua máy trả góp, phù hợp hoàn toàn với
+Trả lời: iPhone 17 Pro Max 256GB giá 34,990,000 đồng: trả trước 10,497,000 đồng, góp 12 tháng, mỗi tháng 2,041,083 đồng
+Định tuyến đúng: 5/5
+=== CA LỖI: CÂU HỎI CẦN HAI CÔNG CỤ CÙNG LÚC ===
+Câu hỏi: Máy Samsung còn hàng rẻ nhất là máy nào, nếu góp 6 tháng lãi 0% thì mỗi tháng bao nhiêu?
+Chọn: tra_cuu_so_lieu | số công cụ được gọi: 2
+Trả lời: Điện thoại Samsung còn hàng có giá rẻ nhất là Samsung Galaxy A07 4GB 128GB. Nếu trả góp 6 tháng với lãi suất 0
+Loading weights:   0%|          | 0/201 [00:00<?, ?it/s]Loading weights:   9%|▉         | 18/201 [00:00<00:01, 142.39it/s]Loading weights:  16%|█▋        | 33/201 [00:00<00:01, 132.81it/s]Loading weights:  23%|██▎       | 47/201 [00:00<00:01, 92.92it/s] Loading weights:  34%|███▍      | 68/201 [00:00<00:01, 115.64it/s]Loading weights: 100%|██████████| 201/201 [00:00<00:00, 327.91it/s]

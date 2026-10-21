@@ -1,0 +1,21 @@
+product_id,ten,hang,gia,ram_gb,bo_nho_gb,pin_mah,man_hinh_inch,chip
+samsung-galaxy-f34,Samsung Galaxy F34 5G,Samsung,5450000,6,128,6000,6.46,Exynos 1280
+samsung-galaxy-s24-plus,Samsung Galaxy S24 Plus 12GB 256GB,Samsung,16590000,12,256,4900,6.7,Exynos 2400
+dien-thoai-samsung-galaxy-z-fold-8-ultra-1tb,Samsung Galaxy Z Fold8 Ultra 5G 16GB 1TB,Samsung,63990000,16,1024,5000,8.0,Snapdragon 8 Elite Gen 5
+dien-thoai-oppo-a3-8gb-256gb,OPPO A3 8GB 256GB,OPPO,5780000,8,256,5100,6.67,"Snapdragon 6s 4G Gen1, tối đa 2.1GHz"
+dien-thoai-oppo-find-n6,OPPO Find N6 16GB 512GB,OPPO,64990000,16,512,6000,8.12,Snapdragon 8 Elite Gen 5
+dien-thoai-xiaomi-redmi-a7-pro,Xiaomi Redmi A7 Pro 4GB 128GB NFC,Xiaomi,4390000,4,128,6000,6.9,Unisoc T7250
+dien-thoai-poco-x7-pro-5g,Xiaomi POCO X7 Pro 5G 12GB 256GB,Xiaomi,8490000,12,256,6000,6.67,Dimensity 8400-Ultra
+dien-thoai-xiaomi-17-ultra-16gb-1tb,Xiaomi 17 Ultra 5G 16GB 1TB,Xiaomi,34990000,16,1024,6000,6.9,Qualcomm Snapdragon 8 Elite Gen 5
+iphone-14,iPhone 14 128GB,Apple,17290000,6,128,3279,6.1,Apple A15 Bionic 6 nhân
+iphone-15-256gb,iPhone 15 256GB,Apple,24990000,6,256,3349,6.1,Apple A16 Bionic 6 nhân
+dien-thoai-honor-x7d-8gb-128gb,HONOR X7d 8GB 128GB,HONOR,6290000,8,128,6500,6.77,Qualcomm Snapdragon 685
+dien-thoai-honor-magic-v5,HONOR Magic V5 16GB 512GB,HONOR,35490000,16,512,5820,6.43,Qualcomm Snapdragon 8 Elite
+dien-thoai-nubia-neo-5-5g,Nubia Neo 5 5G 8GB 128GB,Nubia,6190000,8,128,6050,6.8,Unisoc T9300
+dien-thoai-tecno-camon-40-8gb-256gb,TECNO CAMON 40 8GB 256GB,Tecno,5390000,8,256,5200,6.78,Mediatek Helio G100 Ultimate
+dien-thoai-sony-xperia-1-vii,Sony Xperia 1 VII 12GB 256GB,Sony,23990000,12,256,5000,6.5,Snapdragon 8 Elite
+dien-thoai-nothing-phone-3a-pro,Nothing Phone 3A Pro,Nothing Phone,8450000,8,256,5000,6.77,Qualcomm SM7635 Snapdragon 7s Gen 3 (4 nm)
+google-pixel-8-pro,Google Pixel 8 Pro,Google,14990000,8,128,5050,6.7,Google Tensor G3 tiến trình 4nm
+vivo-v7,Vivo V7,vivo,4490000,4,32,3000,5.7,Qualcomm SDM450 Snapdragon 450 (14 nm)
+dien-thoai-realme-c65-8gb-128gb,realme C65 8GB 128GB,realme,4430000,8,128,5000,6.67,MediaTek Helio G85 8 nhân
+masstel-x9,Masstel X9,Masstel,1420000,2,16,2500,5.5,SC9863 8 nhân

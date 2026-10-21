@@ -1,0 +1,27 @@
+Mỗi nhánh lấy Top 10
+q01 ten_may  | đúng: vector  2, BM25  2, chung  2, gộp  2 | chỉ vector  0, chỉ BM25  0
+q02 ten_may  | đúng: vector  2, BM25  2, chung  2, gộp  2 | chỉ vector  0, chỉ BM25  0
+q03 ten_may  | đúng: vector  7, BM25  6, chung  6, gộp  7 | chỉ vector  1, chỉ BM25  0
+q04 ten_may  | đúng: vector  5, BM25  5, chung  5, gộp  5 | chỉ vector  0, chỉ BM25  0
+q05 ten_may  | đúng: vector  2, BM25  2, chung  2, gộp  2 | chỉ vector  0, chỉ BM25  0
+q06 ten_may  | đúng: vector  2, BM25  2, chung  2, gộp  2 | chỉ vector  0, chỉ BM25  0
+q07 ten_may  | đúng: vector  1, BM25  1, chung  1, gộp  1 | chỉ vector  0, chỉ BM25  0
+q08 ten_may  | đúng: vector  3, BM25  3, chung  3, gộp  3 | chỉ vector  0, chỉ BM25  0
+q09 thong_so | đúng: vector 10, BM25  9, chung  1, gộp 18 | chỉ vector  9, chỉ BM25  8
+q10 thong_so | đúng: vector  3, BM25  5, chung  3, gộp  5 | chỉ vector  0, chỉ BM25  2
+q11 thong_so | đúng: vector  6, BM25 10, chung  6, gộp 10 | chỉ vector  0, chỉ BM25  4
+q12 thong_so | đúng: vector 10, BM25 10, chung  8, gộp 12 | chỉ vector  2, chỉ BM25  2
+q13 thong_so | đúng: vector 10, BM25 10, chung  5, gộp 15 | chỉ vector  5, chỉ BM25  5
+q14 thong_so | đúng: vector  0, BM25  2, chung  0, gộp  2 | chỉ vector  0, chỉ BM25  2
+q15 thong_so | đúng: vector  5, BM25  8, chung  3, gộp 10 | chỉ vector  2, chỉ BM25  5
+q16 thong_so | đúng: vector 10, BM25 10, chung  4, gộp 16 | chỉ vector  6, chỉ BM25  6
+q17 nhu_cau  | đúng: vector  8, BM25  3, chung  1, gộp 10 | chỉ vector  7, chỉ BM25  2
+q18 nhu_cau  | đúng: vector  1, BM25  7, chung  0, gộp  8 | chỉ vector  1, chỉ BM25  7
+q19 nhu_cau  | đúng: vector  2, BM25  3, chung  1, gộp  4 | chỉ vector  1, chỉ BM25  2
+q20 nhu_cau  | đúng: vector  6, BM25  0, chung  0, gộp  6 | chỉ vector  6, chỉ BM25  0
+q21 nhu_cau  | đúng: vector  8, BM25  8, chung  6, gộp 10 | chỉ vector  2, chỉ BM25  2
+q22 nhu_cau  | đúng: vector  3, BM25  0, chung  0, gộp  3 | chỉ vector  3, chỉ BM25  0
+q23 nhu_cau  | đúng: vector  4, BM25 10, chung  2, gộp 12 | chỉ vector  2, chỉ BM25  8
+q24 nhu_cau  | đúng: vector  7, BM25  5, chung  4, gộp  8 | chỉ vector  3, chỉ BM25  1
+=== TỔNG TRÊN 24 CÂU HỎI ===
+Đáp án đúng tìm được: vector 117 | BM25 123 | gộp hai nhánh 173

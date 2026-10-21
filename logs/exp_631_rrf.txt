@@ -1,0 +1,14 @@
+=== BƯỚC 1: HAI DANH SÁCH ĐẦU VÀO (MINH HỌA) ===
+Vector: [('A', 0.62), ('B', 0.6), ('C', 0.59), ('D', 0.57)]
+BM25  : [('E', 18.4), ('C', 11.2), ('F', 9.7), ('A', 6.1)]
+=== BƯỚC 2: CỘNG TUYẾN TÍNH alpha = 0.5 TRÊN ĐIỂM GỐC ===
+Tuyến tính: E(9.20000) > C(5.89500) > F(4.85000) > A(3.36000) > B(0.30000) > D(0.28500)
+=== BƯỚC 3: RRF TỰ TÍNH, k = 60 (hạng đếm từ 1 như bài báo gốc) ===
+RRF       : A(0.03202) > C(0.03200) > E(0.01639) > B(0.01613) > F(0.01587) > D(0.01562)
+=== BƯỚC 4: ĐỐI CHIẾU VỚI QueryFusionRetriever(mode='reciprocal_rerank') ===
+Thư viện  : A(0.03254) > C(0.03252) > E(0.01667) > B(0.01639) > F(0.01613) > D(0.01587)
+Cùng thứ tự với RRF tự tính: True
+Điểm C: tự tính 0.03200, thư viện 0.03252 = 1/60 + 1/61 (thư viện đếm hạng từ 0)
+=== BƯỚC 5: CA LỖI (QUÊN ĐẶT mode, DÙNG MẶC ĐỊNH) ===
+mode mặc định: simple
+Mặc định  : E(18.40000) > C(11.20000) > F(9.70000) > A(6.10000) > B(0.60000) > D(0.57000)

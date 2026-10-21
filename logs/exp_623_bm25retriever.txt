@@ -1,0 +1,21 @@
+=== BƯỚC 1: TRUY HỒI THEO TÊN MÁY VÀ MÃ CHIP (Top 3) ===
+Câu hỏi: Galaxy Z Fold7
+   3.03 | Samsung Galaxy Z Fold7 12GB 512GB
+   3.00 | Samsung Galaxy Z Fold7 12GB 256GB
+   1.45 | Samsung Galaxy Tab S10 FE 5G
+Câu hỏi: Redmi Note 14 Pro
+   6.04 | Xiaomi Redmi Note 14 Pro 8GB 128GB
+   6.04 | Xiaomi Redmi Note 14 Pro 8GB 256GB
+   5.99 | Xiaomi Redmi Note 14 Pro 12GB 512GB
+Câu hỏi: chip Dimensity 7300
+   3.08 | OPPO Reno16 F 5G 8GB 256GB
+   2.03 | OPPO Reno12 5G 12GB 256GB
+   1.99 | realme 13+ 5G 8GB 256GB
+=== BƯỚC 2: LỌC METADATA NGAY TRONG BM25 (brand = Samsung) ===
+Node được phép: 94 / 818 | hãng Top 5: ['Samsung', 'Samsung', 'Samsung', 'Samsung', 'Samsung']
+=== BƯỚC 3: CA LỖI 1 (DỰNG BM25 TỪ INDEX PGVECTOR) ===
+Node trong docstore của index: 0
+ValueError - max() iterable argument is empty
+=== BƯỚC 4: CA LỖI 2 (CÂU HỎI NGOÀI PHẠM VI SẢN PHẨM) ===
+xịn sò ghê  -> vẫn trả 3 Node, điểm: [0.0, 0.0, 0.0]
+máy giặt    -> vẫn trả 3 Node, điểm: [1.65, 1.64, 1.6]

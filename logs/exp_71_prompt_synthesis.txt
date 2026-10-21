@@ -1,0 +1,22 @@
+LLM: gemini-3.5-flash-lite
+=== BƯỚC 1: BIẾN CỦA PROMPT TRẢ LỜI ===
+template_vars: ['context_str', 'query_str']
+=== BƯỚC 2: CÙNG CÂU HỎI, BA CHẾ ĐỘ TỔNG HỢP (Top 3 Node sau reranker) ===
+Câu hỏi: So sánh pin và chip của các mẫu Galaxy Z Fold7
+compact        | 1 lần gọi LLM |  1291 token gửi | 4.0 giây
+   -> Dựa trên thông tin của cửa hàng, cả hai mẫu **Samsung Galaxy Z Fold7 12GB 256GB** và **Sam
+refine         | 3 lần gọi LLM |  1531 token gửi | 5.9 giây
+   -> Xin lỗi, dữ liệu của cửa hàng chưa có thông tin cho câu hỏi này.
+tree_summarize | 1 lần gọi LLM |  1280 token gửi | 3.6 giây
+   -> Các mẫu Samsung Galaxy Z Fold7 đều có chung thông số về pin và chip như sau:  * **Chip:** 
+=== BƯỚC 3: QUY TẮC TỪ CHỐI TRONG PROMPT (compact, không đặt ngưỡng) ===
+Galaxy Z Fold7 có pin bao nhiêu mAh? -> Dựa trên thông tin của các sản phẩm **Samsung Galaxy Z Fold7 12GB 256GB** và **S
+Cửa hàng mở cửa lúc mấy giờ? -> Xin lỗi, dữ liệu của cửa hàng chưa có thông tin cho câu hỏi này.
+=== BƯỚC 4: CA LỖI (PROMPT THIẾU BIẾN {context_str}) ===
+Prompt sau khi điền: 'Bạn là nhân viên tư vấn điện thoại. Câu hỏi: ...\nTrả lời: '
+Không báo lỗi, LLM vẫn trả lời (28 token gửi): Dạ, em chào anh/chị ạ!   Hiện tại, dòng **Samsung Galaxy Z Fold7** vẫn chưa được
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading weights:   0%|          | 0/201 [00:00<?, ?it/s]Loading weights:   1%|          | 2/201 [00:01<01:58,  1.68it/s]Loading weights:   5%|▌         | 11/201 [00:01<00:17, 11.09it/s]Loading weights:  12%|█▏        | 24/201 [00:01<00:06, 26.31it/s]Loading weights:  26%|██▋       | 53/201 [00:01<00:02, 66.87it/s]Loading weights:  34%|███▍      | 69/201 [00:01<00:01, 81.08it/s]Loading weights: 100%|██████████| 201/201 [00:01<00:00, 121.89it/s]
+Loading weights:   0%|          | 0/201 [00:00<?, ?it/s]Loading weights:   9%|▉         | 19/201 [00:00<00:00, 188.66it/s]Loading weights:  19%|█▉        | 38/201 [00:00<00:01, 127.98it/s]Loading weights:  26%|██▌       | 52/201 [00:00<00:01, 122.73it/s]Loading weights: 100%|██████████| 201/201 [00:00<00:00, 419.45it/s]
+Loading weights:   0%|          | 0/201 [00:00<?, ?it/s]Loading weights:   5%|▌         | 11/201 [00:00<00:02, 93.82it/s]Loading weights:  12%|█▏        | 24/201 [00:00<00:01, 111.07it/s]Loading weights:  23%|██▎       | 46/201 [00:00<00:01, 150.79it/s]Loading weights:  31%|███       | 62/201 [00:00<00:01, 131.29it/s]Loading weights:  39%|███▉      | 79/201 [00:00<00:00, 142.99it/s]Loading weights: 100%|██████████| 201/201 [00:00<00:00, 341.32it/s]
+Loading weights:   0%|          | 0/201 [00:00<?, ?it/s]Loading weights:   5%|▌         | 11/201 [00:00<00:01, 95.05it/s]Loading weights:  18%|█▊        | 37/201 [00:00<00:00, 182.86it/s]Loading weights:  28%|██▊       | 56/201 [00:00<00:00, 172.30it/s]Loading weights:  37%|███▋      | 74/201 [00:00<00:00, 158.75it/s]Loading weights: 100%|██████████| 201/201 [00:00<00:00, 418.98it/s]

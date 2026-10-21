@@ -1,0 +1,14 @@
+Câu hỏi: điện thoại pin trâu chip Snapdragon chơi game
+=== BƯỚC 1: CHẠY RIÊNG TỪNG NHÁNH ===
+vector: 10 Node | 0.90 giây | Top 1: OnePlus Ace Pro
+bm25  : 10 Node | 0.00 giây | Top 1: OnePlus Ace Pro
+Node xuất hiện ở cả hai nhánh: 4 | tổng khác nhau: 16
+=== BƯỚC 2: TỰ TÍNH RRF TỪ HAI DANH SÁCH TRÊN (k = 60, hạng từ 0 như thư viện) ===
+=== BƯỚC 3: QueryFusionRetriever ===
+Hợp nhất: 10 Node | 0.51 giây (gồm cả hai nhánh)
+1. 0.0333 | OnePlus Ace Pro
+2. 0.0320 | Oneplus Ace 2 Pro
+3. 0.0318 | Nothing Phone 1
+4. 0.0313 | Oneplus Open
+5. 0.0161 | OPPO A3 8GB 256GB
+Thứ tự trùng với RRF tự tính: True

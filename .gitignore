@@ -19,8 +19,10 @@ __pycache__/
 *.py[cod]
 *$py.class
 *.log
-logs/
-log_*.txt
+# Log thí nghiệm trong logs/ được commit làm minh chứng; chỉ bỏ vết truy vết và nhật ký hỏi đáp
+logs/truy_vet/
+logs/hoi_dap.jsonl
+/log_*.txt
 vector_431.json
 data_test/
 _cu/
@@ -48,3 +50,7 @@ Desktop.ini
 
 # Thư mục tạm của Claude
 _claude_lam_viec/
+
+# Cache của công cụ kiểm thử
+.pytest_cache/
+.ruff_cache/

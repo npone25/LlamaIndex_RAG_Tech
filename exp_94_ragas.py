@@ -9,6 +9,8 @@ import sys
 import warnings
 from pathlib import Path
 
+from llama_index.core.schema import MetadataMode
+
 warnings.filterwarnings("ignore")     # Ragas 0.4 báo API evaluate() sắp bỏ, vẫn dùng được
 
 import matplotlib  # noqa: E402
@@ -41,7 +43,9 @@ for muc in bo:
         print("%s | %s | %s" % (muc["id"], "TỪ CHỐI" if tra_loi == CAU_TU_CHOI else "CÓ TRẢ LỜI",
                                 tra_loi.replace("\n", " ")[:70]))
         continue
-    ngu_canh = [n.node.get_content() for n in response.source_nodes]
+    # Đưa ngữ cảnh đúng như LLM trả lời đã thấy (kèm metadata như giá); bản cũ dùng get_content()
+    # mặc định bỏ metadata nên giám khảo không thấy giá và chấm 0 các câu hỏi giá (mục 9.4)
+    ngu_canh = [n.node.get_content(metadata_mode=MetadataMode.LLM) for n in response.source_nodes]
     if len(ngu_canh) == 0:
         tu_choi.append(muc["id"])        # bị ngưỡng loại hết Node, không có gì để chấm
         continue

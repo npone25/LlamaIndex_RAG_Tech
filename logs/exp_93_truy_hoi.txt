@@ -1,0 +1,44 @@
+=== BƯỚC 1: TỪNG CÂU (hạng của đáp án đúng đầu tiên trong Top 3, 0 = không có) ===
+TS01 | 1 đáp án | cơ sở 2 | nâng cao 1 | Galaxy Z Fold7 dùng chip gì?
+TS02 | 1 đáp án | cơ sở 3 | nâng cao 0 | Màn hình iPhone 17 Pro Max rộng bao nhiêu inc
+TS03 | 1 đáp án | cơ sở 1 | nâng cao 2 | Galaxy S25 Ultra pin bao nhiêu mAh?
+TS04 | 1 đáp án | cơ sở 1 | nâng cao 1 | Xiaomi 15T Pro chạy chip nào?
+TS05 | 1 đáp án | cơ sở 1 | nâng cao 1 | OPPO Reno13 F có pin dung lượng bao nhiêu?
+TS06 | 1 đáp án | cơ sở 1 | nâng cao 1 | Galaxy A56 dùng vi xử lý gì?
+TS07 | 1 đáp án | cơ sở 1 | nâng cao 1 | HONOR Magic V5 pin bao nhiêu?
+TS08 | 1 đáp án | cơ sở 1 | nâng cao 1 | Pixel 9 Pro dùng chip gì?
+TS09 | 1 đáp án | cơ sở 1 | nâng cao 1 | TECNO CAMON 40 bản 8GB 128GB giá bao nhiêu?
+TS10 | 1 đáp án | cơ sở 2 | nâng cao 2 | realme 13+ dùng chip gì?
+TS11 | 1 đáp án | cơ sở 1 | nâng cao 1 | Galaxy Z Flip7 bản 512GB giá bao nhiêu?
+TS12 | 1 đáp án | cơ sở 1 | nâng cao 1 | Galaxy S24 FE dùng chip gì?
+TS13 | 1 đáp án | cơ sở 1 | nâng cao 1 | iPhone 16 Pro Max chạy chip nào?
+TS14 | 2 đáp án | cơ sở 1 | nâng cao 1 | So sánh dung lượng pin của Galaxy S25 Ultra v
+TS15 | 2 đáp án | cơ sở 1 | nâng cao 1 | Galaxy Z Fold7 và Galaxy Z Flip7 khác nhau về
+CS01 | 1 đáp án | cơ sở 1 | nâng cao 1 | Điện thoại mua ở đây được bảo hành bao lâu?
+CS02 | 1 đáp án | cơ sở 1 | nâng cao 1 | Em lỡ làm rơi móp máy thì có được bảo hành kh
+CS03 | 1 đáp án | cơ sở 2 | nâng cao 1 | Pin với cục sạc theo máy được bảo hành mấy th
+CS04 | 1 đáp án | cơ sở 2 | nâng cao 0 | Gửi bảo hành thì bao lâu mới lấy lại máy?
+CS05 | 1 đáp án | cơ sở 1 | nâng cao 3 | Máy em đi mưa bị vô nước thì shop có bảo hành
+CS06 | 1 đáp án | cơ sở 3 | nâng cao 2 | Máy lỗi ngay tháng đầu có được đổi máy mới kh
+CS07 | 1 đáp án | cơ sở 2 | nâng cao 3 | Mua về không ưng thì trả lại có mất phí không
+CS08 | 1 đáp án | cơ sở 1 | nâng cao 3 | Máy đã sửa ở tiệm ngoài thì còn bảo hành được
+CS09 | 1 đáp án | cơ sở 1 | nâng cao 1 | Mua trả góp cần mang theo giấy tờ gì?
+CS10 | 1 đáp án | cơ sở 1 | nâng cao 3 | Đặt máy giao tận nhà có tốn tiền ship không?
+CS11 | 1 đáp án | cơ sở 1 | nâng cao 1 | Máy cũ quên đăng xuất iCloud thì shop có thu 
+CS12 | 1 đáp án | cơ sở 1 | nâng cao 0 | Chụp ảnh buổi tối bằng điện thoại sao cho đỡ 
+CS13 | 1 đáp án | cơ sở 2 | nâng cao 1 | Chơi game được một lúc thì bị giật, phải làm 
+CS14 | 1 đáp án | cơ sở 1 | nâng cao 1 | Chuẩn IP68 nghĩa là gì, có mang đi bơi được k
+CS15 | 1 đáp án | cơ sở 1 | nâng cao 1 | Máy có RAM ảo 8GB thì có mạnh hơn không?
+NG01 | ngoài tài liệu | điểm reranker cao nhất 0.008 | Cửa hàng có giảm giá riêng cho sinh viên khôn
+NG02 | ngoài tài liệu | điểm reranker cao nhất 0.000 | Số hotline chăm sóc khách hàng của cửa hàng l
+NG03 | ngoài tài liệu | điểm reranker cao nhất 0.015 | Cửa hàng mở cửa từ mấy giờ đến mấy giờ?
+NG04 | ngoài tài liệu | điểm reranker cao nhất 0.001 | Galaxy S30 Ultra giá bao nhiêu?
+NG05 | ngoài tài liệu | điểm reranker cao nhất 0.001 | Cửa hàng có chi nhánh ở Đà Nẵng không?
+=== BƯỚC 2: TỔNG HỢP Hit Rate@3 / MRR@3 ===
+TS     (15 câu) | cơ sở Hit 1.00 MRR 0.89 | nâng cao Hit 0.93 MRR 0.87
+CS     (15 câu) | cơ sở Hit 1.00 MRR 0.82 | nâng cao Hit 0.87 MRR 0.66
+Tất cả (30 câu) | cơ sở Hit 1.00 MRR 0.86 | nâng cao Hit 0.90 MRR 0.76
+Đã lưu biểu đồ hinh/fig_retrieval.png
+Matplotlib is building the font cache; this may take a moment.
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading weights:   0%|          | 0/201 [00:00<?, ?it/s]Loading weights:   1%|▏         | 3/201 [00:00<00:07, 25.80it/s]Loading weights:  15%|█▌        | 31/201 [00:00<00:01, 148.22it/s]Loading weights:  27%|██▋       | 54/201 [00:00<00:00, 180.91it/s]Loading weights:  36%|███▋      | 73/201 [00:00<00:01, 74.86it/s] Loading weights:  43%|████▎     | 86/201 [00:01<00:01, 74.72it/s]Loading weights:  48%|████▊     | 97/201 [00:01<00:01, 78.78it/s]Loading weights:  65%|██████▍   | 130/201 [00:01<00:00, 125.36it/s]Loading weights: 100%|██████████| 201/201 [00:01<00:00, 160.08it/s]

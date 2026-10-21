@@ -1,0 +1,14 @@
+=== BƯỚC 0: PHIÊN BẢN ===
+Python 3.13.16 | llama-index-core 0.14.25
+=== BƯỚC 1: CHUỖI BIẾN ĐỔI (CHƯA GHI XUỐNG CSDL) ===
+Các bước: SentenceSplitter -> VectorGia
+Document vào: 818 | Node ra: 818 | Node có vector: 818 | số chiều: 768
+Node đầu: ref_doc_id = iphone-18-pro | metadata giữ nguyên: True
+=== BƯỚC 2: NẠP THẲNG VÀO PGVECTORSTORE (BẢNG SẢN PHẨM) ===
+SELECT count(*) FROM data_exp441_sp -> 818 | thời gian: 2.2 giây
+=== BƯỚC 3: PIPELINE CHO TÀI LIỆU CHÍNH SÁCH (256 / 30) ===
+SELECT count(*) FROM data_exp441_kt -> 13 | doc_type: chinh_sach
+=== BƯỚC 4: CA LỖI (NHÚNG TRƯỚC, CẮT SAU) ===
+Thứ tự đúng | Node: 13 | số lần nhúng: 13 | số vector khác nhau: 13
+Thứ tự sai | Node: 13 | số lần nhúng: 1 | số vector khác nhau: 1
+Đã xóa hai bảng thử

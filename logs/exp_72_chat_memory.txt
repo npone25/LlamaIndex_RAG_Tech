@@ -1,0 +1,32 @@
+=== BƯỚC 1: BA LƯỢT HỎI, token_limit = 3000 ===
+Lượt 1 | Khách: Tư vấn giúp mình điện thoại màn hình gập của Samsung
+   Viết lại: Tư vấn giúp mình điện thoại màn hình gập của Samsung
+   Nguồn 1 : dien_thoai_gap.md tr.1
+   Trả lời : Dạ, cửa hàng xin tư vấn cho anh/chị hai mẫu điện thoại màn hình gập của Samsung hiện 
+Lượt 2 | Khách: Máy đó pin bao nhiêu mAh?
+   Viết lại: Dung lượng pin của Samsung Galaxy Z Fold8 5G là bao nhiêu mAh?
+   Nguồn 1 : Samsung Galaxy Z Fold8 5G 12GB 256GB
+   Trả lời : Dạ, theo thông tin của sản phẩm Samsung Galaxy Z Fold8 5G (gồm các phiên bản 12GB 256
+Lượt 3 | Khách: Nếu máy bị lỗi thì được đổi trả trong bao lâu?
+   Viết lại: Dung lượng pin của Samsung Galaxy Z Fold8 5G là bao nhiêu mAh?
+   Nguồn 1 : Samsung Galaxy Z Fold8 5G 12GB 256GB
+   Trả lời : Dạ, điện thoại Samsung Galaxy Z Fold8 5G có dung lượng pin là 4800 mAh (theo tài liệu
+=== BƯỚC 2: TRẠNG THÁI BỘ NHỚ ===
+Tin nhắn đang lưu: 6 | tin nhắn đưa vào lần viết lại kế tiếp: 6
+=== BƯỚC 3: CA LỖI (token_limit = 40, BỘ NHỚ QUÁ NHỎ) ===
+Lượt 1 | Khách: Tư vấn giúp mình điện thoại màn hình gập của Samsung
+   Viết lại: Tư vấn giúp mình điện thoại màn hình gập của Samsung
+   Nguồn 1 : dien_thoai_gap.md tr.1
+   Trả lời : Dạ, cửa hàng xin tư vấn cho anh/chị hai mẫu điện thoại màn hình gập của Samsung hiện 
+Lượt 2 | Khách: Máy đó pin bao nhiêu mAh?
+   Viết lại: Dung lượng pin của Samsung Galaxy Z Fold8 5G là bao nhiêu mAh?
+   Nguồn 1 : Samsung Galaxy Z Fold8 5G 12GB 256GB
+   Trả lời : Dạ, điện thoại Samsung Galaxy Z Fold8 5G có dung lượng pin là 4800 mAh (theo tài liệu
+Lượt 3 | Khách: Nếu máy bị lỗi thì được đổi trả trong bao lâu?
+   Viết lại: Nếu điện thoại Samsung Galaxy Z Fold8 5G bị lỗi thì được đổi trả trong bao lâu?
+   Nguồn 1 : chinh_sach_bao_hanh_doi_tra.md tr.1
+   Trả lời : Xin lỗi, dữ liệu của cửa hàng chưa có thông tin cho câu hỏi này.
+Tin nhắn đưa vào lần viết lại kế tiếp: 2
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading weights:   0%|          | 0/201 [00:00<?, ?it/s]Loading weights:   7%|▋         | 14/201 [00:00<00:01, 129.21it/s]Loading weights:  19%|█▉        | 39/201 [00:00<00:00, 179.91it/s]Loading weights: 100%|██████████| 201/201 [00:00<00:00, 621.39it/s]
+Loading weights:   0%|          | 0/201 [00:00<?, ?it/s]Loading weights:   7%|▋         | 15/201 [00:00<00:01, 143.03it/s]Loading weights:  21%|██▏       | 43/201 [00:00<00:00, 214.93it/s]Loading weights:  33%|███▎      | 66/201 [00:00<00:00, 217.09it/s]Loading weights: 100%|██████████| 201/201 [00:00<00:00, 585.46it/s]

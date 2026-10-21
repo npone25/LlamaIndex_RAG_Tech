@@ -21,3 +21,9 @@ def tao_llm_giam_khao():
     if os.environ.get("GEMINI_JUDGE_MODEL"):
         return tao_llm("GEMINI_JUDGE_MODEL")
     return tao_llm()
+
+
+def tao_llm_theo_ten(ten_model: str):
+    """Tạo mô hình LLM Gemini theo tên cụ thể với temperature=0 (phục vụ chuỗi dự phòng)."""
+    return GoogleGenAI(model=ten_model, temperature=0)
+

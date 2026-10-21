@@ -1,0 +1,35 @@
+=== BƯỚC 1: SINH CÂU TRẢ LỜI BẰNG QUERY ENGINE CỦA CHƯƠNG 7 ===
+NG01 | TỪ CHỐI | Xin lỗi, dữ liệu của cửa hàng chưa có thông tin cho câu hỏi này.
+NG02 | TỪ CHỐI | Xin lỗi, dữ liệu của cửa hàng chưa có thông tin cho câu hỏi này.
+NG03 | TỪ CHỐI | Xin lỗi, dữ liệu của cửa hàng chưa có thông tin cho câu hỏi này.
+NG04 | TỪ CHỐI | Xin lỗi, dữ liệu của cửa hàng chưa có thông tin cho câu hỏi này.
+NG05 | TỪ CHỐI | Xin lỗi, dữ liệu của cửa hàng chưa có thông tin cho câu hỏi này.
+Câu ngoài tài liệu được từ chối: 5 / 5
+Có ngữ cảnh để chấm: 28 câu | câu trong tài liệu bị từ chối: ['TS06', 'CS10']
+=== BƯỚC 2: RAGAS CHẤM 3 LẦN ===
+Lần 1: Faithfulness 0.833 | Context Precision 0.690 | số ô không chấm được: 0
+Lần 2: Faithfulness 0.833 | Context Precision 0.690 | số ô không chấm được: 0
+Lần 3: Faithfulness 0.833 | Context Precision 0.690 | số ô không chấm được: 0
+=== BƯỚC 3: TỔNG HỢP THEO NHÓM (trung bình các lần chấm) ===
+TS     | Faithfulness 0.857 ± 0.000 | Context Precision 0.714 ± 0.000
+CS     | Faithfulness 0.810 ± 0.000 | Context Precision 0.667 ± 0.000
+Tất cả | Faithfulness 0.833 ± 0.000 | Context Precision 0.690 ± 0.000
+=== BƯỚC 4: CÁC CÂU ĐIỂM THẤP (Faithfulness hoặc Context Precision < 0.7, lần 1) ===
+TS09 | F 0.00 | CP 0.00 | Dạ, theo thông tin từ cửa hàng, điện thoại TECNO CAMON 40 8GB 128GB có
+TS11 | F 0.00 | CP 0.00 | Dạ, điện thoại Samsung Galaxy Z Flip7 12GB 512GB có giá là 24.990.000 
+TS14 | F 1.00 | CP 0.00 | Dựa trên thông tin của cửa hàng:  - **Samsung Galaxy S25 Ultra 12GB 25
+TS15 | F 1.00 | CP 0.00 | Dựa trên thông tin của cửa hàng:  - **Samsung Galaxy Z Fold7** (các ph
+CS03 | F 0.50 | CP 1.00 | Dựa vào tài liệu chính (doc_type: chinh_sach, trang 1), pin và bộ sạc 
+CS04 | F 0.00 | CP 0.00 | Xin lỗi, dữ liệu của cửa hàng chưa có thông tin cho câu hỏi này.
+CS07 | F 0.00 | CP 0.00 | Xin lỗi, dữ liệu của cửa hàng chưa có thông tin cho câu hỏi này.
+CS08 | F 1.00 | CP 0.33 | Theo tài liệu chính, sản phẩm bị can thiệp phần cứng, tự ý tháo máy ho
+CS09 | F 1.00 | CP 0.00 | Dạ, tùy thuộc vào hình thức trả góp ạ: - **Trả góp qua thẻ tín dụng:**
+CS12 | F 1.00 | CP 0.00 | Dựa theo tài liệu "Mẹo chụp ảnh đẹp bằng điện thoại", để chụp ảnh buổi
+Đã lưu logs/ket_qua_ch9.json và hinh/fig_generation.png
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading weights:   0%|          | 0/201 [00:00<?, ?it/s]Loading weights:   8%|▊         | 16/201 [00:00<00:01, 148.49it/s]Loading weights:  15%|█▌        | 31/201 [00:00<00:01, 112.44it/s]Loading weights:  21%|██▏       | 43/201 [00:00<00:01, 107.83it/s]Loading weights:  27%|██▋       | 54/201 [00:00<00:01, 95.86it/s] Loading weights:  32%|███▏      | 64/201 [00:00<00:01, 90.28it/s]Loading weights:  37%|███▋      | 74/201 [00:00<00:01, 92.86it/s]Loading weights:  56%|█████▌    | 112/201 [00:00<00:00, 175.47it/s]Loading weights: 100%|██████████| 201/201 [00:00<00:00, 232.11it/s]
+Exception ignored in: <function BaseApiClient._get_aiohttp_session.<locals>.AiohttpTCPConnector.__del__ at 0x00000187BBE3F600>
+Traceback (most recent call last):
+  File "C:\Users\Acer\OneDrive\Desktop\Tai_lieu_hoc\Các công nghệ lập trình hiện đại\Code cho đồ án\LlamaIndex_RAG_Tech\.venv\Lib\site-packages\google\genai\_api_client.py", line 1123, in __del__
+  File "C:\Users\Acer\OneDrive\Desktop\Tai_lieu_hoc\Các công nghệ lập trình hiện đại\Code cho đồ án\LlamaIndex_RAG_Tech\.venv\Lib\site-packages\aiohttp\connector.py", line 1061, in _close
+AttributeError: 'NoneType' object has no attribute 'from_iterable'

@@ -1,0 +1,18 @@
+=== BƯỚC 0: PHIÊN BẢN ===
+Python 3.13.16 | llama-index-core 0.14.25
+=== BƯỚC 1: LẦN NẠP ĐẦU ===
+Node mới: 818 | văn bản phải nhúng: 818 | số dòng trong bảng: 818
+=== BƯỚC 2: CHẠY LẠI, DỮ LIỆU KHÔNG ĐỔI ===
+Node mới: 0 | văn bản phải nhúng: 0 | số dòng trong bảng: 818
+=== BƯỚC 3: GIẢM GIÁ 1 MÁY (iphone-18-pro) ===
+Hash Document đổi: True
+Node mới: 1 | văn bản phải nhúng: 1 | số dòng trong bảng: 818
+node_id của máy này: 68dbf4af -> b16ab976 (dòng cũ bị xóa, ghi dòng mới)
+=== BƯỚC 4: DOCSTORE TRONG POSTGRESQL (bảng data_docstore) ===
+   exp442/data : 818 dòng
+   exp442/metadata : 818 dòng
+Hash lưu trong docstore khớp hash Document: True
+=== BƯỚC 5: CA LỖI (KHÔNG CÓ DOCSTORE, CHẠY 2 LẦN) ===
+Lần 1 -> Node mới: 818 | văn bản phải nhúng: 818 | số dòng: 818
+Lần 2 -> Node mới: 818 | văn bản phải nhúng: 818 | số dòng: 1636
+Đã xóa bảng thử và docstore thử

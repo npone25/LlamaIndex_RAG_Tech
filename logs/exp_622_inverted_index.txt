@@ -1,0 +1,16 @@
+=== BƯỚC 1: ĐỌC NODE TỪ BẢNG data_san_pham ===
+Số Node: 818
+=== BƯỚC 2: DỰNG BM25Retriever (TÁCH TỪ + LẬP CHỈ MỤC) ===
+Thời gian dựng: 0.40 giây
+Số từ khác nhau: 2441 | số ô khác 0: 55756 | mật độ: 2.79%
+Bộ nhớ của ma trận điểm: 455 KB
+=== BƯỚC 3: TÁCH TỪ MỘT TÊN MÁY ===
+Samsung Galaxy Z Fold7 12GB 256GB, sạc 25W -> ['samsung', 'galaxy', 'fold7', '12gb', '256gb', 'sạc', '25w']
+=== BƯỚC 4: DANH SÁCH NODE CỦA MỘT SỐ TỪ (POSTING LIST) ===
+fold7     ->   2 Node, ví dụ: ['Samsung Galaxy Z Fold7 12GB 256GB', 'Samsung Galaxy Z Fold7 12GB 512GB']
+s24fe     ->   1 Node, ví dụ: ['Samsung Galaxy S24FE 5G 8GB 256GB']
+dimensity -> 127 Node, ví dụ: ['OPPO Reno16 F 5G 8GB 256GB', 'POCO X8 Pro Max 12GB 256GB']
+gập       ->  22 Node, ví dụ: ['Samsung Galaxy Z Fold8 Ultra 5G 12GB 256GB', 'Samsung Galaxy Z Fold8 5G 12GB 256GB']
+=== BƯỚC 5: CA LỖI (TÊN VIẾT KHÁC CÁCH TÁCH TỪ) ===
+Galaxy S24FE   -> Top 1: Samsung Galaxy S24FE 5G 8GB 256GB (2.76)
+Galaxy S24 FE  -> Top 1: Samsung Galaxy Tab S10 FE 5G (4.70)

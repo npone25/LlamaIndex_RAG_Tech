@@ -1,0 +1,12 @@
+=== BƯỚC 1: SỐ NODE THỎA TỪNG ĐIỀU KIỆN (ĐẾM BẰNG SQL) ===
+brand = Samsung : 94 Node
+price < 15tr    : 202 Node
+cả hai (AND)    : 30 Node
+=== BƯỚC: TRUY HỒI VỚI condition = AND (Top 3) ===
+1. 0.6735 | Samsung  | Samsung Galaxy A07 4GB 128GB   | giá 4,190,000
+2. 0.6696 | Samsung  | Samsung Galaxy S24 8GB 512GB   | giá 14,990,000
+3. 0.6679 | Samsung  | Samsung Galaxy S25 FE 8GB 128G | giá 13,590,000
+=== BƯỚC: TRUY HỒI VỚI condition = OR (Top 3) ===
+1. 0.6944 | Nothing Phone | Nothing Phone 2                | giá 6,790,000
+2. 0.6857 | Xiaomi   | Xiaomi Redmi Note 12 Turbo     | giá 5,390,000
+3. 0.6856 | HONOR    | HONOR X9d 5G 8GB 256GB         | giá 11,240,000

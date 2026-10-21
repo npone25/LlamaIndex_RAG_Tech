@@ -1,8 +1,6 @@
 # Trợ lý tư vấn: prompt trả lời, ngưỡng từ chối, query engine và chat engine (chương 7)
 # Dùng lại các khối truy hồi của chương 6 (truy_hoi.py)
 
-import os
-
 from llama_index.core import PromptTemplate
 from llama_index.core.chat_engine import CondenseQuestionChatEngine
 from llama_index.core.memory import Memory
@@ -11,10 +9,10 @@ from llama_index.core.query_engine import RetrieverQueryEngine
 
 from truy_hoi import tao_bo_truy_hoi_tat_ca, tao_reranker, ten_ngan
 
-CAU_TU_CHOI = "Xin lỗi, dữ liệu của cửa hàng chưa có thông tin cho câu hỏi này."
+from he_thong.cau_hinh import CAU_TU_CHOI, lay_nguong_tu_choi
 # Điểm reranker thấp nhất để một Node được đưa cho LLM; chọn theo thí nghiệm 7.3:
 # nhóm câu trong phạm vi thấp nhất 0.153, nhóm ngoài phạm vi cao nhất 0.039, nên lấy 0.10 (nằm giữa)
-NGUONG_TU_CHOI = float(os.environ.get("NGUONG_TU_CHOI", "0.10"))
+NGUONG_TU_CHOI = lay_nguong_tu_choi()
 
 PROMPT_TRA_LOI = PromptTemplate(
     "Bạn là nhân viên tư vấn điện thoại của cửa hàng.\n"
@@ -41,15 +39,29 @@ PROMPT_VIET_LAI = PromptTemplate(
 )
 
 
-def tao_query_engine(llm, embed_model, response_mode="compact", nguong=NGUONG_TU_CHOI):
-    hau_xu_ly = [tao_reranker()]
-    if nguong is not None:
-        # Bỏ các Node có điểm reranker dưới ngưỡng; không còn Node nào -> không gọi LLM
-        hau_xu_ly.append(SimilarityPostprocessor(similarity_cutoff=nguong))
-    return RetrieverQueryEngine.from_args(tao_bo_truy_hoi_tat_ca(embed_model), llm=llm,
-                                          node_postprocessors=hau_xu_ly,
-                                          text_qa_template=PROMPT_TRA_LOI,
-                                          response_mode=response_mode)
+def tao_query_engine(
+    llm,
+    embed_model,
+    response_mode="compact",
+    nguong=NGUONG_TU_CHOI,
+    retriever=None,
+    hau_xu_ly=None,
+    nodes_theo_bang=None,
+):
+    if retriever is None:
+        retriever = tao_bo_truy_hoi_tat_ca(embed_model, nodes_theo_bang=nodes_theo_bang)
+    if hau_xu_ly is None:
+        hau_xu_ly = [tao_reranker()]
+        if nguong is not None:
+            # Bỏ các Node có điểm reranker dưới ngưỡng; không còn Node nào -> không gọi LLM
+            hau_xu_ly.append(SimilarityPostprocessor(similarity_cutoff=nguong))
+    return RetrieverQueryEngine.from_args(
+        retriever,
+        llm=llm,
+        node_postprocessors=hau_xu_ly,
+        text_qa_template=PROMPT_TRA_LOI,
+        response_mode=response_mode,
+    )
 
 
 def tao_chat_engine(llm, embed_model, token_limit=3000):
@@ -69,8 +81,23 @@ def van_ban_tra_loi(response):
 
 
 def trich_nguon(response):
-    """Danh sách nguồn để hiển thị: tên, loại, điểm reranker, đoạn văn gốc."""
+    """Danh sách nguồn để hiển thị: tên, loại, điểm reranker, đoạn văn gốc và thông tin định danh của node."""
     nguon = []
+    metadata_phan_hoi = getattr(response, "metadata", None)
+
+    # Nhánh tra cứu số liệu (NLSQL) không có node truy hồi và không có điểm reranker
+    if isinstance(metadata_phan_hoi, dict) and metadata_phan_hoi.get("sql_query"):
+        ket_qua_sql = "\n".join(nws.node.get_content() for nws in response.source_nodes)
+        nguon.append({
+            "ten": "Bảng products (PostgreSQL)",
+            "loai": "cơ sở dữ liệu",
+            "diem": None,
+            "gia": None,
+            "doan_goc": ket_qua_sql,
+            "cau_sql": metadata_phan_hoi["sql_query"],
+        })
+        return nguon
+
     for nws in response.source_nodes:
         m = nws.node.metadata
         nguon.append({
@@ -79,5 +106,10 @@ def trich_nguon(response):
             "diem": round(float(nws.score or 0), 3),
             "gia": m.get("price"),
             "doan_goc": nws.node.get_content(),
+            "ma_node": nws.node.node_id,
+            "tep": m.get("file_name"),
+            "trang": m.get("page_label"),
+            "ma_san_pham": m.get("product_id"),
+            "url": m.get("url"),
         })
     return nguon

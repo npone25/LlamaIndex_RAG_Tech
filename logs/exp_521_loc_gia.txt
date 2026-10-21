@@ -1,0 +1,9 @@
+=== BƯỚC 1: SỐ NODE THỎA BỘ LỌC (ĐẾM BẰNG SQL) ===
+Tổng Node: 818 | thỏa price < 15.000.000: 202
+=== BƯỚC 2: TRUY HỒI VECTOR CÓ BỘ LỌC (Top 3) ===
+1. 0.7041 | OPPO Reno15 5G 12GB 256GB          | giá 14,990,000
+2. 0.7000 | OPPO Reno15 F 5G 8GB 256GB         | giá 11,990,000
+3. 0.6928 | Xiaomi 15T 5G 12GB 512GB           | giá 12,390,000
+Valid Rate = 3/3 = 100%
+=== BƯỚC 3: CA LỖI (LỌC THEO TRƯỜNG KHÔNG CÓ TRONG METADATA) ===
+Bộ lọc year >= 2024 -> số kết quả: 0 (không có thông báo lỗi)

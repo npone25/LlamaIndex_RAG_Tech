@@ -1,0 +1,18 @@
+# Bản rút gọn cho CI (bỏ torch, sentence-transformers, ragas, langchain-community, matplotlib)
+llama-index-core==0.14.25
+llama-index-embeddings-google-genai==0.6.0
+llama-index-vector-stores-postgres
+llama-index-readers-file
+pandas
+openpyxl
+python-dotenv
+numpy
+sqlalchemy
+psycopg2-binary
+llama-index-storage-docstore-postgres==0.5.0
+llama-index-storage-kvstore-postgres==0.4.3
+llama-index-retrievers-bm25==0.8.0
+llama-index-llms-google-genai==0.11.2
+streamlit==1.66.0
+# Giao diện truy vết (he_thong/giao_dien.py) cần plotly; thiếu dòng này thì pytest lỗi khi thu thập test
+plotly

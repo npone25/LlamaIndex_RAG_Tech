@@ -1,0 +1,30 @@
+=== BƯỚC 0: PHIÊN BẢN ===
+Python 3.13.5 | llama-index-core 0.14.25
+=== BƯỚC 1: DỮ LIỆU THỬ ===
+Bản ghi điện thoại: 818
+Bản ghi dài nhất  : iphone-18-pro | 679 token
+Văn bản chính sách: 2439 token
+=== BƯỚC 2: SỐ NODE THEO chunk_size ===
+chunk_size 128
+   bản ghi   : 10 Node [88, 74, 46, 67, 58, 41, 94, 85, 77, 49]
+   chính sách: 33 Node, mỗi Node 40 - 104 token
+chunk_size 256
+   bản ghi   : 4 Node [208, 67, 220, 184]
+   chính sách: 13 Node, mỗi Node 55 - 226 token
+chunk_size 512
+   bản ghi   : 2 Node [275, 404]
+   chính sách: 6 Node, mỗi Node 154 - 474 token
+chunk_size 1024
+   bản ghi   : 1 Node [679]
+   chính sách: 3 Node, mỗi Node 595 - 922 token
+=== BƯỚC 3: BẢN GHI BỊ CẮT TRÊN TOÀN BẢNG ===
+chunk_size 128 | Node: 2786 | bị cắt: 622 / 818
+chunk_size 256 | Node: 1277 | bị cắt: 332 / 818
+chunk_size 512 | Node: 844 | bị cắt: 26 / 818
+chunk_size 1024 | Node: 818 | bị cắt: 0 / 818
+=== BƯỚC 4: METADATA CHIẾM CHỖ TRONG chunk_size ===
+Metadata khi nhúng: 3 token
+Metadata gửi LLM  : 34 token
+chunk_size 256 -> text dài nhất một Node: 220 token
+=== BƯỚC 5: CA LỖI (chunk_size = 20) ===
+ValueError - Metadata length (34) is longer than chunk size (20)

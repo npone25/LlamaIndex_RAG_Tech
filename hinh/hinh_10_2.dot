@@ -1,0 +1,12 @@
+digraph G {
+  rankdir=TB; nodesep=0.35; ranksep=0.3;
+  node [shape=box, style="rounded,filled", fillcolor="#eef3fb", color="#4a6fa5", fontname="Liberation Sans", fontsize=11];
+  edge [color="#555555", fontname="Liberation Sans", fontsize=10];
+  q [label="Kết quả của lần gọi kiểm duyệt (KiemTraCauHoi)\nví dụ câu \"Cách nấu phở bò?\"", shape=ellipse, fillcolor="#e6f4ea", color="#3b8b55"];
+  d [label="trong_pham_vi?", shape=diamond, fillcolor="#fff7d6", color="#b39b2d"];
+  y [label="Cho đi tiếp: lop = \"qua\"\nchuyển sang RouterQueryEngine (chương 8)"];
+  n [label="Chặn: lop = \"llm-pham-vi\"\nphan_hoi_ngoai_pham_vi(chu_de):\nxin lỗi + 3 câu hỏi gợi ý (GOI_Y)\nkhông gọi thêm LLM", fillcolor="#f2f2f2", color="#888888"];
+  q -> d;
+  d -> y [label="True"];
+  d -> n [label="False (chu_de = \"nấu ăn\")"];
+}

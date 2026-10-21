@@ -1,0 +1,17 @@
+=== BƯỚC 1: PHIÊN BẢN ===
+Python 3.13.5
+llama-index-core                     0.14.25
+llama-index-vector-stores-postgres   0.9.0
+streamlit                            1.66.0
+=== BƯỚC 2: BIẾN MÔI TRƯỜNG TRONG .env (chỉ kiểm tra có hay không) ===
+GOOGLE_API_KEY : có
+PG_DSN         : có
+PG_PASSWORD    : có
+=== BƯỚC 3: KẾT NỐI POSTGRESQL VÀ DỮ LIỆU ĐÃ NẠP ===
+PostgreSQL 16.15 | pgvector 0.8.7
+products       :  818 dòng
+data_san_pham  :  818 dòng | chỉ mục data_san_pham_embedding_idx
+data_kien_thuc :  204 dòng | chỉ mục data_kien_thuc_embedding_idx
+data_docstore  : 1676 dòng
+=== BƯỚC 4: GỌI THỬ GEMINI EMBEDDING ===
+gemini-embedding-2 trả về vector 768 chiều

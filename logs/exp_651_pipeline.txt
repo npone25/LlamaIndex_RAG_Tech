@@ -1,0 +1,13 @@
+=== BƯỚC 1: DỰNG ĐƯỜNG ỐNG ===
+Dựng xong: 2.29 giây
+=== BƯỚC 2: retrieve() - CHỈ TRUY HỒI, KHÔNG SINH CÂU TRẢ LỜI ===
+Câu hỏi: điện thoại chụp ảnh đẹp | bộ lọc: brand = Samsung
+Thời gian: 4.28 giây | 2 nhánh x Top 10 -> RRF Top 10 -> reranker Top 3
+1. 0.970 | Samsung | Samsung Galaxy S24FE 5G 8GB 256GB
+2. 0.969 | Samsung | Samsung Galaxy A15 5G
+3. 0.960 | Samsung | Samsung Galaxy M55 12GB 256GB
+=== BƯỚC 3: CA LỖI (BỘ LỌC CHỈ ĐẶT Ở NHÁNH VECTOR) ===
+lọc một nhánh   : 3/10 kết quả không phải Samsung ['Oneplus Open', 'iPhone 15 Pro Max 2TB']
+lọc cả hai nhánh: 0/10 kết quả không phải Samsung []
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading weights:   0%|          | 0/201 [00:00<?, ?it/s]Loading weights:   3%|▎         | 7/201 [00:00<00:03, 56.25it/s]Loading weights:   8%|▊         | 17/201 [00:00<00:02, 74.02it/s]Loading weights:  20%|█▉        | 40/201 [00:00<00:01, 132.58it/s]Loading weights: 100%|██████████| 201/201 [00:00<00:00, 491.54it/s]

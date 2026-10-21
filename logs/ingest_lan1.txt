@@ -1,0 +1,30 @@
+Mô hình nhúng: gemini-embedding-2 | 768 chiều
+  san_pham: xong 100 / 818 Document
+  san_pham: xong 200 / 818 Document
+  san_pham: xong 300 / 818 Document
+  san_pham: xong 400 / 818 Document
+  san_pham: xong 500 / 818 Document
+  san_pham: xong 600 / 818 Document
+  san_pham: xong 700 / 818 Document
+  san_pham: xong 800 / 818 Document
+  san_pham: xong 818 / 818 Document
+san_pham | Document: 818 | Node mới nhúng: 0 | dòng trong data_san_pham : 818 | thời gian: 5.8 giây
+  kien_thuc: xong 4 / 20 Document
+  kien_thuc: xong 8 / 20 Document
+  Đã gửi 74 văn bản trong 1 phút, đợi 56 giây
+  kien_thuc: xong 12 / 20 Document
+  kien_thuc: xong 16 / 20 Document
+  Đã gửi 86 văn bản trong 1 phút, đợi 56 giây
+  kien_thuc: xong 20 / 20 Document
+kien_thuc | Document: 20 | Node mới nhúng: 204 | dòng trong data_kien_thuc : 204 | thời gian: 131.4 giây
+pgvector 0.8.7 | quét lặp HNSW khi có bộ lọc: bật (strict_order)
+Kiểm chứng SQL:
+   data_san_pham | số dòng: 818 | số chiều: 768 | số Document: 818
+     chỉ mục HNSW: data_san_pham_embedding_idx
+   data_kien_thuc | số dòng: 204 | số chiều: 768 | số Document: 20
+     chỉ mục HNSW: data_kien_thuc_embedding_idx
+2026-10-14 19:59:32,788 - INFO - HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-2:batchEmbedContents "HTTP/1.1 200 OK"
+2026-10-14 19:59:35,383 - INFO - HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-2:batchEmbedContents "HTTP/1.1 200 OK"
+2026-10-14 20:00:33,851 - INFO - HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-2:batchEmbedContents "HTTP/1.1 200 OK"
+2026-10-14 20:00:36,310 - INFO - HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-2:batchEmbedContents "HTTP/1.1 200 OK"
+2026-10-14 20:01:34,911 - INFO - HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-2:batchEmbedContents "HTTP/1.1 200 OK"

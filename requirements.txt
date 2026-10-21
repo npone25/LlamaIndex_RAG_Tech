@@ -22,3 +22,7 @@ llama-index-llms-google-genai==0.11.2
 ragas==0.4.3
 langchain-community==0.3.31
 matplotlib
+streamlit==1.66.0
+
+# Giao diện truy vết: sơ đồ Sankey, biểu đồ thời gian và điểm rerank
+plotly

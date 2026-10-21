@@ -12,7 +12,8 @@ from google.genai.errors import ClientError
 from llama_index.embeddings.google_genai import GoogleGenAIEmbedding
 
 TEN_MODEL = "gemini-embedding-2"
-SO_CHIEU = 768  # HNSW của pgvector chỉ nhận tối đa 2000 chiều, nên không dùng mức mặc định 3072
+# HNSW của pgvector chỉ nhận tối đa 2000 chiều, nên không dùng mức mặc định 3072 (khai báo ở he_thong/cau_hinh.py)
+from he_thong.cau_hinh import SO_CHIEU_VECTOR as SO_CHIEU  # noqa: E402
 
 
 # Gói miễn phí của Gemini chỉ cho tối đa 100 lần nhúng mỗi phút (mỗi văn bản tính một lần).

@@ -16,10 +16,12 @@ from sqlalchemy import text
 
 from kho_du_lieu import BANG_SAN_PHAM, tao_engine, tao_vector_store
 
-sys.stdout.reconfigure(encoding="utf-8")  # để in được tiếng Việt trên Windows
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")  # để in được tiếng Việt trên Windows
 
-TOP_K = 10      # số ứng viên mỗi nhánh và sau khi hợp nhất
-TOP_N = 3       # số Node giữ lại sau tái xếp hạng, đưa vào prompt
+# TOP_K: số ứng viên mỗi nhánh và sau khi hợp nhất; TOP_N: số Node giữ lại sau tái xếp hạng.
+# Hai hằng này khai báo một lần trong he_thong/cau_hinh.py
+from he_thong.cau_hinh import TOP_K, TOP_N  # noqa: E402
 TEN_RERANKER = os.environ.get("RERANKER_MODEL", "BAAI/bge-reranker-base")
 
 
@@ -90,12 +92,40 @@ def la_dap_an(nws, muc):
     return nws.node.metadata.get("product_id") in muc["dap_an"]
 
 
-def tao_bo_truy_hoi_tat_ca(embed_model):
+def tao_bo_truy_hoi_tat_ca(embed_model, nodes_theo_bang=None):
     """Truy hồi trên cả sản phẩm và tài liệu chính sách: 4 nhánh, hợp nhất bằng RRF (chương 7)."""
     from kho_du_lieu import BANG_KIEN_THUC
     nhanh = []
     for ten_bang in [BANG_SAN_PHAM, BANG_KIEN_THUC]:
         nhanh.append(tao_vector(embed_model, ten_bang))
-        nhanh.append(tao_bm25(lay_nodes(ten_bang)))
+        if nodes_theo_bang and ten_bang in nodes_theo_bang:
+            cac_node = nodes_theo_bang[ten_bang]
+        else:
+            cac_node = lay_nodes(ten_bang)
+        nhanh.append(tao_bm25(cac_node))
     return QueryFusionRetriever(nhanh, mode="reciprocal_rerank", num_queries=1,
                                 similarity_top_k=TOP_K, use_async=False, llm=MockLLM())
+
+
+def tao_bo_truy_hoi_bm25_tat_ca(nodes_theo_bang=None, top_k=TOP_K):
+    """Truy hồi chỉ bằng BM25 trên cả 2 bảng sản phẩm và kiến thức, hợp nhất bằng RRF.
+
+    Chạy hoàn toàn trên máy nội bộ, không cần gọi API nhúng của Gemini khi API gặp sự cố.
+    """
+    from kho_du_lieu import BANG_KIEN_THUC
+    nhanh = []
+    for ten_bang in [BANG_SAN_PHAM, BANG_KIEN_THUC]:
+        if nodes_theo_bang and ten_bang in nodes_theo_bang:
+            cac_node = nodes_theo_bang[ten_bang]
+        else:
+            cac_node = lay_nodes(ten_bang)
+        nhanh.append(tao_bm25(cac_node, top_k=top_k))
+    return QueryFusionRetriever(
+        nhanh,
+        mode="reciprocal_rerank",
+        num_queries=1,
+        similarity_top_k=top_k,
+        use_async=False,
+        llm=MockLLM(),
+    )
+

@@ -1,0 +1,21 @@
+=== BƯỚC 1: BẢNG SẢN PHẨM (phones.xlsx) ===
+Số sản phẩm: 818 | số cột: 24 | số hãng: 40
+Có giá hợp lệ (sau khi bỏ giá giữ chỗ): 299 / 818
+Thiếu rating      : 616 / 818
+Thiếu ram_gb      : 89 / 818
+Thiếu chipset     : 104 / 818
+Thiếu battery_mah : 115 / 818
+Tồn kho: InStock 180 | OutOfStock 637 | trống 1
+Thuộc mục 'Tin đồn - Mới ra': 370
+=== BƯỚC 2: ĐỘ DÀI VĂN BẢN NHÚNG CỦA MỖI SẢN PHẨM (số từ) ===
+Ngắn nhất: 9 | trung vị: 77 | dài nhất: 308
+Dưới 20 từ: 38 sản phẩm
+Dưới 40 từ: 124 sản phẩm
+Ví dụ ngắn nhất: brand: OnePlus  Điện thoại OnePlus 10R của hãng OnePlus.
+Văn bản nhúng trùng nhau hoàn toàn: [['huawei-nova-9-se-46952', 'huawei-nova-9-se']]
+=== BƯỚC 3: KHO KIẾN THỨC (data_kien_thuc) ===
+chinh_sach    4 tệp |  19.9 KB
+kien_thuc     7 tệp |  35.0 KB
+meo_su_dung   7 tệp |  41.6 KB
+tu_van        2 tệp |  11.5 KB
+Tổng: 20 tệp | 108.1 KB

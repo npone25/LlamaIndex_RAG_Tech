@@ -1,0 +1,13 @@
+digraph G {
+  rankdir=TB; nodesep=0.3; ranksep=0.3;
+  node [shape=box, style="rounded,filled", fillcolor="#eef3fb", color="#4a6fa5", fontname="Liberation Sans", fontsize=11];
+  edge [color="#555555", fontname="Liberation Sans", fontsize=10];
+  q [label="Câu hỏi số liệu\n(ví dụ: 3 máy Samsung còn hàng rẻ nhất)", shape=ellipse, fillcolor="#e6f4ea", color="#3b8b55"];
+  s [label="Lấy schema bảng products\n(SQLDatabase, include_tables=[\"products\"])\n+ mô tả cột MO_TA_BANG"];
+  g [label="LLM sinh câu SQL\n(SELECT, WHERE, ORDER BY, AVG, COUNT)"];
+  x [label="PostgreSQL thực thi trên kết nối chỉ đọc\n(default_transaction_read_only=on)"];
+  e [label="Lệnh ghi (DELETE, DROP)\nbị từ chối: ReadOnlySqlTransaction", fillcolor="#f2f2f2", color="#888888"];
+  a [label="LLM tổng hợp câu trả lời\ntừ kết quả SQL\n(metadata giữ sql_query)"];
+  q -> s -> g -> x -> a;
+  x -> e [label="nếu là lệnh ghi"];
+}

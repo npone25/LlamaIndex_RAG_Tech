@@ -1,0 +1,20 @@
+=== BƯỚC 0: CHỈ MỤC TRÊN BẢNG data_san_pham ===
+pgvector 0.8.7 | số dòng: 818
+hnsw (embedding vector_cosine_ops) WITH (m='16', ef_construction='64')
+hnsw.iterative_scan = strict_order
+=== BƯỚC 1: KẾ HOẠCH TRUY VẤN (EXPLAIN) ===
+mặc định     : Limit (chi phí 209.69) -> Sort (chi phí 211.69) -> Seq Scan on data_san_pham (chi phí 192.14)
+tắt seq scan : Limit (chi phí 212.08) -> Index Scan using data_san_pham_embedding_idx on data_san_pham (chi phí 2384.22)
+=== BƯỚC 2: ĐỘ PHỦ (RECALL@10) VÀ THỜI GIAN, 52 CÂU HỎI THỬ ===
+Duyệt cạn       : recall 1.000 (chuẩn so sánh) | 5.13 ms/câu
+HNSW ef_search=10 : recall 0.998 | 6.38 ms/câu
+HNSW ef_search=40 : recall 0.998 | 4.86 ms/câu
+HNSW ef_search=100: recall 0.998 | 5.81 ms/câu
+(Ở bảng 818 dòng, thời gian chủ yếu là chi phí kết nối, không phản ánh quy mô lớn)
+=== BƯỚC 3: CA LỖI - BỘ LỌC CHẶT (brand = Nokia) VỚI HNSW ===
+Số Node thỏa bộ lọc: 15 | cần lấy: 10
+Duyệt cạn                      : 10 kết quả
+HNSW ef_search=40, không quét lặp: 0 kết quả
+HNSW ef_search=40, quét lặp      : 10 kết quả
+=== BƯỚC 4: CÙNG BỘ LỌC, TRUY HỒI QUA PGVECTORSTORE CỦA LLAMAINDEX ===
+PGVectorStore trả về: 10 Node | hãng: ['Nokia']

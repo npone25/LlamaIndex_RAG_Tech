@@ -1,0 +1,217 @@
+{
+ "exp_425_metadata": {
+  "ket_qua": "xong",
+  "chu_ky": "-",
+  "luc": "14/10/2026 13:53"
+ },
+ "exp_434_hnsw": {
+  "ket_qua": "xong",
+  "chu_ky": "-",
+  "luc": "14/10/2026 13:53"
+ },
+ "tao_bo_danh_gia": {
+  "ket_qua": "xong",
+  "chu_ky": "-",
+  "luc": "14/10/2026 13:02"
+ },
+ "exp_611_gioi_han": {
+  "ket_qua": "xong",
+  "chu_ky": "-",
+  "luc": "14/10/2026 13:02"
+ },
+ "exp_612_bu_tru": {
+  "ket_qua": "xong",
+  "chu_ky": "-",
+  "luc": "14/10/2026 13:03"
+ },
+ "exp_613_hybrid": {
+  "ket_qua": "xong",
+  "chu_ky": "-",
+  "luc": "14/10/2026 13:03"
+ },
+ "exp_621_bm25_toan_hoc": {
+  "ket_qua": "xong",
+  "chu_ky": "-",
+  "luc": "14/10/2026 13:03"
+ },
+ "exp_622_inverted_index": {
+  "ket_qua": "xong",
+  "chu_ky": "-",
+  "luc": "14/10/2026 13:03"
+ },
+ "exp_623_bm25retriever": {
+  "ket_qua": "xong",
+  "chu_ky": "-",
+  "luc": "14/10/2026 13:04"
+ },
+ "exp_631_rrf": {
+  "ket_qua": "xong",
+  "chu_ky": "-",
+  "luc": "14/10/2026 13:04"
+ },
+ "exp_632_query_fusion": {
+  "ket_qua": "xong",
+  "chu_ky": "-",
+  "luc": "14/10/2026 13:04"
+ },
+ "exp_641_cross_encoder": {
+  "ket_qua": "xong",
+  "chu_ky": "-",
+  "luc": "14/10/2026 13:09"
+ },
+ "exp_642_reranker": {
+  "ket_qua": "xong",
+  "chu_ky": "-",
+  "luc": "14/10/2026 13:09"
+ },
+ "exp_651_pipeline": {
+  "ket_qua": "xong",
+  "chu_ky": "-",
+  "luc": "14/10/2026 13:10"
+ },
+ "exp_652_danh_gia": {
+  "ket_qua": "xong",
+  "chu_ky": "-",
+  "luc": "14/10/2026 13:13"
+ },
+ "bo_cau_hoi_ch9": {
+  "ket_qua": "xong",
+  "chu_ky": "-",
+  "luc": "13/10/2026 11:08"
+ },
+ "thong_ke_du_lieu": {
+  "ket_qua": "xong",
+  "chu_ky": "-",
+  "luc": "14/10/2026 04:08"
+ },
+ "exp_71_prompt_synthesis": {
+  "ket_qua": "xong",
+  "chu_ky": "gemini-3.5-flash-lite|-|02c5e4",
+  "luc": "16/10/2026 20:12"
+ },
+ "exp_72_chat_memory": {
+  "ket_qua": "xong",
+  "chu_ky": "gemini-3.5-flash-lite|-|02c5e4",
+  "luc": "16/10/2026 20:13"
+ },
+ "exp_73_grounding": {
+  "ket_qua": "xong",
+  "chu_ky": "gemini-3.5-flash-lite|-|02c5e4",
+  "luc": "16/10/2026 20:14"
+ },
+ "exp_511_vector": {
+  "ket_qua": "xong",
+  "chu_ky": "-",
+  "luc": "15/10/2026 00:04"
+ },
+ "exp_521_loc_gia": {
+  "ket_qua": "xong",
+  "chu_ky": "-",
+  "luc": "15/10/2026 00:04"
+ },
+ "exp_522_loc_ket_hop": {
+  "ket_qua": "xong",
+  "chu_ky": "-",
+  "luc": "15/10/2026 00:04"
+ },
+ "exp_531_schema": {
+  "ket_qua": "xong",
+  "chu_ky": "-",
+  "luc": "15/10/2026 00:04"
+ },
+ "exp_532_auto_retriever": {
+  "ket_qua": "xong",
+  "chu_ky": "gemini-3.5-flash-lite|-|02c5e4",
+  "luc": "16/10/2026 20:14"
+ },
+ "exp_533_bien": {
+  "ket_qua": "xong",
+  "chu_ky": "gemini-3.5-flash-lite|-|02c5e4",
+  "luc": "16/10/2026 20:15"
+ },
+ "kiem_tra_moi_truong": {
+  "ket_qua": "xong",
+  "chu_ky": "-",
+  "luc": "15/10/2026 00:05"
+ },
+ "kiem_tra_module": {
+  "ket_qua": "xong",
+  "chu_ky": "gemini-3.5-flash-lite|-|02c5e4",
+  "luc": "16/10/2026 20:15"
+ },
+ "hello_world": {
+  "ket_qua": "xong",
+  "chu_ky": "gemini-3.5-flash-lite|gemini-3.6-flash|02c5e4",
+  "luc": "15/10/2026 00:05"
+ },
+ "kiem_tra_gia": {
+  "ket_qua": "xong",
+  "chu_ky": "-",
+  "luc": "15/10/2026 00:05"
+ },
+ "exp_811_ba_lop": {
+  "ket_qua": "xong",
+  "chu_ky": "-",
+  "luc": "15/10/2026 00:05"
+ },
+ "exp_821_nlsql": {
+  "ket_qua": "xong",
+  "chu_ky": "gemini-3.5-flash-lite|gemini-3.6-flash|02c5e4",
+  "luc": "15/10/2026 00:05"
+ },
+ "exp_822_sql_chi_doc": {
+  "ket_qua": "xong",
+  "chu_ky": "-",
+  "luc": "15/10/2026 00:05"
+ },
+ "exp_831_tra_gop": {
+  "ket_qua": "xong",
+  "chu_ky": "-",
+  "luc": "15/10/2026 00:05"
+ },
+ "exp_841_router": {
+  "ket_qua": "xong",
+  "chu_ky": "gemini-3.5-flash-lite|gemini-3.6-flash|02c5e4",
+  "luc": "15/10/2026 02:14"
+ },
+ "do_tre_chi_phi": {
+  "ket_qua": "xong",
+  "chu_ky": "gemini-3.5-flash-lite|gemini-3.6-flash|02c5e4",
+  "luc": "15/10/2026 02:16"
+ },
+ "exp_91_cau_hinh": {
+  "ket_qua": "xong",
+  "chu_ky": "gemini-3.5-flash-lite|gemini-3.1-flash-lite|02c5e4",
+  "luc": "15/10/2026 09:17"
+ },
+ "exp_93_truy_hoi": {
+  "ket_qua": "xong",
+  "chu_ky": "-",
+  "luc": "15/10/2026 02:20"
+ },
+ "exp_94_ragas": {
+  "ket_qua": "xong",
+  "chu_ky": "gemini-3.5-flash-lite|gemini-3.1-flash-lite|02c5e4",
+  "luc": "15/10/2026 09:56"
+ },
+ "exp_101a_regex": {
+  "ket_qua": "xong",
+  "chu_ky": "-",
+  "luc": "15/10/2026 09:56"
+ },
+ "exp_101b_llm": {
+  "ket_qua": "xong",
+  "chu_ky": "gemini-3.5-flash-lite|-|02c5e4",
+  "luc": "15/10/2026 09:58"
+ },
+ "exp_102_pham_vi": {
+  "ket_qua": "xong",
+  "chu_ky": "gemini-3.5-flash-lite|-|02c5e4",
+  "luc": "15/10/2026 09:58"
+ },
+ "exp_103_tich_hop": {
+  "ket_qua": "xong",
+  "chu_ky": "gemini-3.5-flash-lite|-|02c5e4",
+  "luc": "15/10/2026 10:00"
+ }
+}

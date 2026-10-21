@@ -1,0 +1,31 @@
+=== BƯỚC 0: PHIÊN BẢN ===
+Python 3.13.5 | llama-index-core 0.14.25
+=== BƯỚC 1: DỮ LIỆU BẢNG ===
+Số dòng: 818 | số cột: 24
+Ô trống: price 411 | ram_gb 89 | battery_mah 115 | chipset 104 | screen_tech 151 | 
+         charging 786 | camera_rear 108 | needs 562 | key_features 505 | rating 616 | 
+product_id duy nhất: True
+=== BƯỚC 2: GHÉP THÔ VÀ ROW-TO-TEXT ===
+Ghép thô: Samsung Galaxy S26 Ultra 5G 12GB 256GB,Snapdragon 8 Elite Gen 5,12.0,2...
+Row-to-Text (900 ký tự), 5 câu đầu:
+   Điện thoại Samsung Galaxy S26 Ultra 5G 12GB 256GB của hãng Samsung
+   Chip Snapdragon 8 Elite Gen 5
+   RAM 12 GB
+   Bộ nhớ trong 256 GB
+   Màn hình 6.9 inch, Dynamic AMOLED 2X, độ phân giải 3120 x 1440 pixels ...
+=== BƯỚC 3: DOCUMENT ===
+doc_id : dien-thoai-samsung-galaxy-s26-ultra
+Khóa metadata: product_id, product_name, brand, price, ram_gb, rating, stock_status
+Metadata khi nhúng: brand: Samsung
+Metadata gửi LLM  : product_name: Samsung Galaxy S26 Ultra 5G 12GB 256GB brand: Samsung pr...
+=== BƯỚC 4: ĐỔI GIÁ 30990000 -> 29990000 ===
+Văn bản nhúng giống nhau: True
+Hash giống nhau        : False
+=== BƯỚC 5: TOÀN BỘ BẢNG ===
+Số Document: 818 | không có giá: 411
+Token văn bản nhúng: ngắn nhất 18 | trung vị 189 | dài nhất 683
+=== BƯỚC 6: CA LỖI (Ô TRỐNG) === realme-gt-neo-3
+Cách sai : ValueError - cannot convert float NaN to integer
+Cách đúng: 'price' có trong metadata? False
+=== BƯỚC 7: CA LỖI (FILE KHÔNG TỒN TẠI) ===
+FileNotFoundError - [Errno 2] No such file or directory: 'c:\\Users\\Acer\\OneDrive\\Desktop\\Tai_lieu_hoc\\Các công nghệ lập trình hiện đại\\Code cho đồ án\\LlamaIndex_RAG_Tech\\data_phones_v2\\khong_ton_tai.xlsx'

@@ -1,0 +1,14 @@
+=== BƯỚC 1: TỔNG QUAN CỘT GIÁ ===
+Số máy: 818 | có giá: 407 | có bảng giá theo màu: 227
+=== BƯỚC 2: CÁC MỨC GIÁ LẶP LẠI NHIỀU NHẤT Ở MÁY KHÔNG CÓ BẢNG GIÁ THEO MÀU ===
+    650000 đồng | 41 máy | ví dụ: ['HONOR Win RT', 'Honor Magic 5']
+    500000 đồng | 32 máy | ví dụ: ['Redmi Turbo 5 Max', 'Xiaomi POCO F8 Ultra 12GB 256GB']
+    520000 đồng | 18 máy | ví dụ: ['realme GT Neo 5', 'vivo X90 Pro']
+    820000 đồng |  9 máy | ví dụ: ['Samsung Galaxy A75', 'Xiaomi Mi 10T']
+    840000 đồng |  8 máy | ví dụ: ['OPPO Find X8 Pro 5G 16GB 512GB', 'OPPO Reno12 F 4G 8GB 256GB']
+   8490000 đồng |  2 máy | ví dụ: ['Xiaomi Redmi K70e', 'Xiaomi Redmi Note 11T 5G']
+=== BƯỚC 3: ÁP DỤNG QUY TẮC LOẠI GIÁ GIỮ CHỖ ===
+Danh sách giá giữ chỗ: [500000, 520000, 650000, 820000, 840000]
+Số giá bị loại: 108 | tình trạng: {'OutOfStock': 108}
+Giá hợp lệ còn lại: 299 | thấp nhất: 530000 đồng
+Máy dưới 15 triệu: trước khi loại 310 | sau khi loại 202

@@ -1,0 +1,25 @@
+=== BƯỚC 0: PHIÊN BẢN VÀ TRẠNG THÁI TRƯỚC KHI CHẠY ===
+Python 3.13.16 | llama-index-core 0.14.25
+PostgreSQL 16.15 | pgvector 0.6.0
+Bảng data_exp433 : chưa có (lần chạy đầu)
+=== BƯỚC 1: INDEX MẶC ĐỊNH (RAM) ===
+vector store: SimpleVectorStore | stores_text = False
+Số vector trong dict: 20 | số Node trong docstore: 20
+=== BƯỚC 2: INDEX VỚI PGVECTORSTORE ===
+Nạp 20 Document vào data_exp433
+Số văn bản phải nhúng ở bước này: 20
+vector store: PGVectorStore | stores_text = True | Node trong docstore: 0
+=== BƯỚC 3: CẤU TRÚC BẢNG data_exp433 ===
+   id : int8
+   text : varchar
+   metadata_ : jsonb
+   node_id : varchar
+   embedding : vector
+Một dòng: node_id 42346e04 | product_id iphone-18-pro | số chiều 768 | text 1477 ký tự
+=== BƯỚC 4: TRUY HỒI QUA LLAMAINDEX VÀ QUA SQL ===
+LlamaIndex: ['dien-thoai-oppo-reno16-f', 'dien-thoai-samsung-galaxy-s25-ultra', 'dien-thoai-samsung-galaxy-a57']
+SQL <=>   : ['dien-thoai-oppo-reno16-f', 'dien-thoai-samsung-galaxy-s25-ultra', 'dien-thoai-samsung-galaxy-a57']
+Cùng thứ tự: True
+=== BƯỚC 5: CA LỖI (GHI VECTOR 3072 CHIỀU VÀO BẢNG 768 CHIỀU) ===
+DataError - (psycopg2.errors.DataException) expected 768 dimensions, not 3072
+Số dòng sau ca lỗi: 20

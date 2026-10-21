@@ -1,0 +1,35 @@
+=== BƯỚC 0: CẤU HÌNH ===
+Mô hình nhúng: gemini-embedding-2 | LLM: gemini-3.5-flash-lite | temperature: 0.0
+Truy hồi: 4 nhánh (vector + BM25 trên 2 bảng), RRF Top 10 -> rerank Top 3 | ngưỡng từ chối: 0.1
+Khởi động (một lần): dựng vector + BM25 1750 ms | tải reranker 47823 ms
+=== BƯỚC 1: TỪNG CÂU HỎI (ms; token vào / ra của LLM) ===
+TS01 | nhúng  683 | vector  158 | bm25  16 | rrf  1 | rerank 3441 | llm   949 | tổng  5247 | token 1287 /  49 | Dựa trên thông tin của sản phẩm Samsung 
+TS04 | nhúng  464 | vector   32 | bm25   3 | rrf  1 | rerank 3429 | llm  1131 | tổng  5059 | token 1204 /  33 | Điện thoại Xiaomi 15T Pro 5G 12GB 512GB 
+TS09 | nhúng  512 | vector   35 | bm25   5 | rrf  1 | rerank 2772 | llm  1692 | tổng  5016 | token  949 /  42 | Dạ, theo thông tin cửa hàng, điện thoại 
+TS14 | nhúng  513 | vector   29 | bm25   5 | rrf  1 | rerank 3285 | llm  3738 | tổng  7570 | token 1041 /  92 | Dựa trên thông tin của cửa hàng:  - **Sa
+CS01 | nhúng  623 | vector   28 | bm25   3 | rrf  1 | rerank 4269 | llm 21408 | tổng 26331 | token  525 /  43 | Dạ, theo tài liệu "Chính sách bảo hành v
+CS05 | nhúng  533 | vector   30 | bm25   3 | rrf  1 | rerank 3662 | llm   820 | tổng  5047 | token  412 /  35 | Dạ, theo tài liệu hướng dẫn và chính sác
+CS09 | nhúng  427 | vector   29 | bm25   4 | rrf  1 | rerank 2482 | llm   890 | tổng  3833 | token  474 /  96 | Dạ, tùy thuộc vào hình thức trả góp ạ: -
+CS13 | nhúng  535 | vector   28 | bm25   6 | rrf  1 | rerank 2878 | llm  5771 | tổng  9218 | token  522 / 179 | Theo tài liệu mẹo sử dụng, khi máy bị gi
+NG02 | nhúng  616 | vector   32 | bm25   3 | rrf  1 | rerank 2662 | llm     0 | tổng  3314 | token    0 /   0 | Xin lỗi, dữ liệu của cửa hàng chưa có th
+NG04 | nhúng  495 | vector   37 | bm25   5 | rrf  1 | rerank 3240 | llm     0 | tổng  3779 | token    0 /   0 | Xin lỗi, dữ liệu của cửa hàng chưa có th
+=== BƯỚC 2: TỔNG HỢP ĐỘ TRỄ (trung bình / trung vị / lớn nhất, ms) ===
+nhung  : TB    540 | trung vị    523 | lớn nhất    683 | chiếm  7.3% tổng thời gian
+vector : TB     44 | trung vị     31 | lớn nhất    158 | chiếm  0.6% tổng thời gian
+bm25   : TB      5 | trung vị      4 | lớn nhất     16 | chiếm  0.1% tổng thời gian
+rrf    : TB      1 | trung vị      1 | lớn nhất      1 | chiếm  0.0% tổng thời gian
+rerank : TB   3212 | trung vị   3262 | lớn nhất   4269 | chiếm 43.2% tổng thời gian
+llm    : TB   4550 | trung vị   1411 | lớn nhất  21408 | chiếm 48.9% tổng thời gian
+Tổng mỗi câu: TB 7441 ms | trung vị 5053 ms | lớn nhất 26331 ms
+Khâu chậm nhất: llm
+=== BƯỚC 3: TOKEN VÀ CHI PHÍ MỖI CÂU HỎI ===
+Số lần gọi API: 10 lần nhúng, 8 lần LLM cho 10 câu (câu bị từ chối không gọi LLM)
+Token LLM trung bình mỗi câu có gọi LLM: vào 802 | ra 71
+Model gemini-3.5-flash-lite chưa có trong bảng giá GIA -> chỉ báo số token
+Gói miễn phí: 0 đồng, giới hạn bởi hạn mức (nhúng: 100 lần/phút, 1.000 lần/ngày)
+=== BƯỚC 4: CHI PHÍ NẠP DỮ LIỆU MỘT LẦN (ĐẾM TOKEN BẰNG count_tokens) ===
+Sản phẩm  |  818 Node |  155663 token (tokenizer của gemini-embedding-2)
+Kiến thức |  204 Node |   28747 token (tokenizer của gemini-embedding-2)
+Nạp toàn bộ một lần nếu dùng gói trả phí: 0.0369 USD (khoảng 959 đồng)
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading weights:   0%|          | 0/201 [00:00<?, ?it/s]Loading weights:   5%|▌         | 11/201 [00:00<00:02, 68.91it/s]Loading weights:  13%|█▎        | 27/201 [00:00<00:01, 108.26it/s]Loading weights:  23%|██▎       | 47/201 [00:00<00:01, 137.22it/s]Loading weights:  31%|███       | 62/201 [00:00<00:01, 129.90it/s]Loading weights:  46%|████▌     | 92/201 [00:00<00:00, 178.84it/s]Loading weights: 100%|██████████| 201/201 [00:00<00:00, 310.57it/s]

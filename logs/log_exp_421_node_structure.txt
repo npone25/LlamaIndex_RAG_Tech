@@ -1,0 +1,72 @@
+=== BƯỚC 0: PHIÊN BẢN ===
+
+Python 3.13.5 | llama-index-core 0.14.25
+
+=== BƯỚC 1: DOCUMENT -> NODE (chunk_size 256, overlap 30) ===
+
+doc_id: Data_for_exp_42/chinh_sach_bao_hanh_doi_tra.md | 5358 ký tự -> 13 TextNode
+
+=== BƯỚC 2: BỐN THÀNH PHẦN CỦA NODE ĐẦU ===
+
+text         : # Chính sách bảo hành và đổi trả điện thoại  Tài liệu này mô...
+
+metadata     : {'file_name': 'chinh_sach_bao_hanh_doi_tra.md', 'doc_type': 'chinh_sach'}
+
+relationships: ['SOURCE', 'NEXT']
+
+embedding    : None
+
+=== BƯỚC 3: VỊ TRÍ VÀ LIÊN KẾT TỪNG NODE ===
+
+Node 0 | 97189326 | ký tự 0 -> 398 | prev None | next cc71bfdd
+
+Node 1 | cc71bfdd | ký tự 399 -> 833 | prev 97189326 | next 594fc7f8
+
+Node 2 | 594fc7f8 | ký tự 834 -> 1294 | prev cc71bfdd | next 02266703
+
+Node 3 | 02266703 | ký tự 1295 -> 1710 | prev 594fc7f8 | next 40dfa645
+
+Node 4 | 40dfa645 | ký tự 1705 -> 2152 | prev 02266703 | next d27a951d
+
+Node 5 | d27a951d | ký tự 2154 -> 2547 | prev 40dfa645 | next b426d2b0
+
+Node 6 | b426d2b0 | ký tự 2549 -> 3083 | prev d27a951d | next 2b04ea61
+
+Node 7 | 2b04ea61 | ký tự 3084 -> 3577 | prev b426d2b0 | next d4e94c52
+
+Node 8 | d4e94c52 | ký tự 3578 -> 4117 | prev 2b04ea61 | next 7e8e2044
+
+Node 9 | 7e8e2044 | ký tự 4112 -> 4458 | prev d4e94c52 | next 23139483
+
+Node 10 | 23139483 | ký tự 4459 -> 4842 | prev 7e8e2044 | next 2b461c27
+
+Node 11 | 2b461c27 | ký tự 4843 -> 5241 | prev 23139483 | next 120bac92
+
+Node 12 | 120bac92 | ký tự 5242 -> 5357 | prev 2b461c27 | next None
+
+=== BƯỚC 4: ĐỐI CHIẾU VỚI DOCUMENT GỐC ===
+
+text khớp vị trí ký tự      : 13 / 13
+
+ref_doc_id và SOURCE đúng    : 13 / 13
+
+metadata giống Document gốc  : 13 / 13
+
+=== BƯỚC 5: MỞ RỘNG NGỮ CẢNH QUA PREVIOUS / NEXT ===
+
+Trước: Sản phẩm bị can thiệp phần cứng, tự ý tháo máy hoặc sửa chữa...
+
+Giữa : Các hao mòn tự nhiên trong quá trình sử dụng như trầy xước v...
+
+Sau  : Trường hợp hết hàng cùng model, khách hàng được đổi sang mod...
+
+=== BƯỚC 6: NODE SẢN PHẨM ===
+
+Document: 818 | Node: 818 | ref_doc_id = product_id: 818
+
+=== BƯỚC 7: CA LỖI (PREVIOUS CỦA NODE ĐẦU) ===
+
+Cách sai : KeyError - <NodeRelationship.PREVIOUS: '2'>
+
+Cách đúng: nodes[0].prev_node = None
+

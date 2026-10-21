@@ -1,0 +1,25 @@
+q01 | ten_may  |   2 đáp án | iPhone 16 Pro Max
+q02 | ten_may  |   2 đáp án | Galaxy S25 Ultra
+q03 | ten_may  |   7 đáp án | Redmi Note 14 Pro
+q04 | ten_may  |   5 đáp án | OPPO Reno13 F
+q05 | ten_may  |   2 đáp án | Xiaomi 15T Pro
+q06 | ten_may  |   2 đáp án | Galaxy Z Fold7
+q07 | ten_may  |   1 đáp án | Galaxy S24 FE
+q08 | ten_may  |   3 đáp án | Poco F7
+q09 | thong_so |  36 đáp án | điện thoại dùng chip Snapdragon 8 Elite
+q10 | thong_so |   5 đáp án | máy chạy chip Dimensity 7300
+q11 | thong_so |  12 đáp án | điện thoại chip Helio G99
+q12 | thong_so |  12 đáp án | điện thoại dùng chip Google Tensor
+q13 | thong_so |  41 đáp án | điện thoại chip Exynos
+q14 | thong_so |   3 đáp án | điện thoại sạc nhanh 100W
+q15 | thong_so |  18 đáp án | điện thoại pin 7000 mAh
+q16 | thong_so |  48 đáp án | điện thoại chip Unisoc
+q17 | nhu_cau  | 102 đáp án | máy chiến game mượt, không giật lag
+q18 | nhu_cau  | 110 đáp án | điện thoại dùng cả ngày dài không lo hết pin
+q19 | nhu_cau  |  76 đáp án | máy chụp hình sống ảo lung linh
+q20 | nhu_cau  |  17 đáp án | điện thoại màn hình gấp lại được
+q21 | nhu_cau  |  15 đáp án | điện thoại đơn giản cho người lớn tuổi nghe gọi
+q22 | nhu_cau  |  41 đáp án | máy có trợ lý trí tuệ nhân tạo
+q23 | nhu_cau  |  31 đáp án | Samsung chụp hình đẹp
+q24 | nhu_cau  |  10 đáp án | Xiaomi chiến game
+Đã ghi 24 câu hỏi vào danh_gia_truy_hoi.json

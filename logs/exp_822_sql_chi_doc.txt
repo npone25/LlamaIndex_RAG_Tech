@@ -1,0 +1,8 @@
+=== BƯỚC 1: THÔNG TIN SCHEMA MÀ NLSQL ĐƯA CHO LLM (rút gọn) ===
+Table 'products' has columns: product_id (TEXT), product_name (TEXT), brand (TEXT), price (BIGINT), ram_gb (INTEGER), storage_gb (INTEGER), battery_mah (INTEGER), screen_size_inch (NUMERIC(4, 2)), rating (NUMERIC(3, 1)), rating_count (INTEGER), stock_status (TEXT), category_path (TEXT), needs (TEXT) ...
+=== BƯỚC 2: CÂU ĐỌC DỮ LIỆU CHẠY BÌNH THƯỜNG ===
+SELECT count(*) ... -> [(299,)]
+=== BƯỚC 3: CA LỖI GIẢ LẬP - LLM SINH CÂU XÓA DỮ LIỆU ===
+DELETE FROM products WHERE brand = 'Nokia' -> ReadOnlySqlTransaction - cannot execute DELETE in a read-only transaction
+DROP TABLE products -> ReadOnlySqlTransaction - cannot execute DROP TABLE in a read-only transaction
+Số dòng sau hai câu trên: [(818,)]

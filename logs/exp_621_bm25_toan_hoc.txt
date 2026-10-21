@@ -1,0 +1,28 @@
+=== BƯỚC 0: PHIÊN BẢN ===
+bm25s 0.3.13 | retrievers-bm25 0.8.0
+=== BƯỚC 1: IDF TRÊN 818 SẢN PHẨM - TỪ CÀNG HIẾM CÀNG CÓ TRỌNG SỐ ===
+điện        có trong 818/818 Node -> IDF = 0.001
+5g          có trong 281/818 Node -> IDF = 1.068
+snapdragon  có trong 315/818 Node -> IDF = 0.954
+dimensity   có trong 127/818 Node -> IDF = 1.860
+s24fe       có trong   1/818 Node -> IDF = 6.303
+=== BƯỚC 2: BÃO HÒA TẦN SUẤT (độ dài = trung bình) ===
+Từ xuất hiện  1 lần -> TF = 1.000 (trần k1+1 = 2.5)
+Từ xuất hiện  2 lần -> TF = 1.429 (trần k1+1 = 2.5)
+Từ xuất hiện  5 lần -> TF = 1.923 (trần k1+1 = 2.5)
+Từ xuất hiện 10 lần -> TF = 2.174 (trần k1+1 = 2.5)
+Từ xuất hiện 20 lần -> TF = 2.326 (trần k1+1 = 2.5)
+=== BƯỚC 3: PHẠT ĐỘ DÀI (từ xuất hiện 1 lần) ===
+Node dài  25 token (tb 50) -> TF = 1.290
+Node dài  50 token (tb 50) -> TF = 1.000
+Node dài 100 token (tb 50) -> TF = 0.690
+Node dài 200 token (tb 50) -> TF = 0.426
+=== BƯỚC 4: ĐỐI CHIẾU CÔNG THỨC TỰ TÍNH VỚI bm25s ===
+Node 0 | tự tính 1.7150 | chia (k1+1) 0.6860 | bm25s 0.6860
+Node 1 | tự tính 0.3710 | chia (k1+1) 0.1484 | bm25s 0.1484
+Node 2 | tự tính 0.0000 | chia (k1+1) 0.0000 | bm25s 0.0000
+Node 3 | tự tính 0.6027 | chia (k1+1) 0.2411 | bm25s 0.2411
+bm25s (biến thể Lucene) bỏ thừa số (k1+1) ở tử số. Khớp sau khi chia: True
+=== BƯỚC 5: CA LỖI (TRUYỀN k1, b THẲNG VÀO BM25Retriever) ===
+TypeError - BM25Retriever.from_defaults() got an unexpected keyword argument 'k1'
+Cách đúng: dựng bm25s.BM25(k1=1.2, b=0.5) rồi đưa vào BM25Retriever(existing_bm25=...)

@@ -1,0 +1,44 @@
+Tóm tắt lần chạy lúc 15/10/2026 10:00
+  đã xong từ trước : exp_425_metadata
+  đã xong từ trước : exp_434_hnsw
+  đã xong từ trước : tao_bo_danh_gia
+  đã xong từ trước : exp_611_gioi_han
+  đã xong từ trước : exp_612_bu_tru
+  đã xong từ trước : exp_613_hybrid
+  đã xong từ trước : exp_621_bm25_toan_hoc
+  đã xong từ trước : exp_622_inverted_index
+  đã xong từ trước : exp_623_bm25retriever
+  đã xong từ trước : exp_631_rrf
+  đã xong từ trước : exp_632_query_fusion
+  đã xong từ trước : exp_641_cross_encoder
+  đã xong từ trước : exp_642_reranker
+  đã xong từ trước : exp_651_pipeline
+  đã xong từ trước : exp_652_danh_gia
+  đã xong từ trước : exp_71_prompt_synthesis
+  đã xong từ trước : exp_72_chat_memory
+  đã xong từ trước : exp_73_grounding
+  đã xong từ trước : exp_511_vector
+  đã xong từ trước : exp_521_loc_gia
+  đã xong từ trước : exp_522_loc_ket_hop
+  đã xong từ trước : exp_531_schema
+  đã xong từ trước : exp_532_auto_retriever
+  đã xong từ trước : exp_533_bien
+  đã xong từ trước : kiem_tra_moi_truong
+  đã xong từ trước : kiem_tra_module
+  đã xong từ trước : hello_world
+  đã xong từ trước : thong_ke_du_lieu
+  đã xong từ trước : kiem_tra_gia
+  đã xong từ trước : exp_811_ba_lop
+  đã xong từ trước : exp_821_nlsql
+  đã xong từ trước : exp_822_sql_chi_doc
+  đã xong từ trước : exp_831_tra_gop
+  đã xong từ trước : exp_841_router
+  đã xong từ trước : do_tre_chi_phi
+  đã xong từ trước : bo_cau_hoi_ch9
+  xong : exp_91_cau_hinh
+  đã xong từ trước : exp_93_truy_hoi
+  xong : exp_94_ragas
+  xong : exp_101a_regex
+  xong : exp_101b_llm
+  xong : exp_102_pham_vi
+  xong : exp_103_tich_hop

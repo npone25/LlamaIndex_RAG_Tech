@@ -1,0 +1,16 @@
+digraph G {
+  rankdir=TB; nodesep=0.3; ranksep=0.3;
+  node [shape=box, style="rounded,filled", fillcolor="#eef3fb", color="#4a6fa5", fontname="Liberation Sans", fontsize=11];
+  edge [color="#555555", fontname="Liberation Sans", fontsize=10];
+  q [label="Câu hỏi trả góp\n(ví dụ: iPhone 17 Pro Max 256GB, trả trước 30%, 12 tháng)", shape=ellipse, fillcolor="#e6f4ea", color="#3b8b55"];
+  t [label="LLM trích tham số (structured_predict -> YeuCauTraGop)\nten_may, gia_san_pham, ty_le_tra_truoc, ky_han_thang, lai_suat"];
+  c [label="Có giá trong câu hỏi?", shape=diamond, fillcolor="#fff7d6", color="#b39b2d"];
+  p [label="Tra giá trong bảng products\n(kết nối chỉ đọc, ILIKE theo tên máy)"];
+  f [label="FunctionTool tinh_tra_gop (Python)\nkiểm tra điều kiện biên, công thức niên kim,\ntháng cuối trả phần còn lại"];
+  r [label="Câu trả lời ghép bằng chuỗi định dạng\n(không qua LLM)"];
+  q -> t -> c;
+  c -> f [label="có"];
+  c -> p [label="không"];
+  p -> f;
+  f -> r;
+}

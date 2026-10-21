@@ -1,0 +1,17 @@
+=== BƯỚC 0: PHIÊN BẢN ===
+Python 3.13.5 | llama-index-core 0.14.25
+=== BƯỚC 1: METADATA THEO TỪNG CHẾ ĐỘ (iphone-18-pro) ===
+Khóa metadata: product_id, product_name, brand, price, rating, stock_status
+EMBED: brand: Apple
+LLM  : product_name: iPhone 18 Pro 256GB brand: Apple price: 38790000 rating:...
+=== BƯỚC 2: KẾ THỪA SANG NODE ===
+Chính sách: Node giống metadata Document: 13 / 13
+Sản phẩm  : Node giống metadata và khóa loại trừ: 818 / 818
+=== BƯỚC 3: BỔ SUNG METADATA CHO NODE ===
+Node 1  : {'file_name': 'chinh_sach_bao_hanh_doi_tra.md', 'doc_type': 'chinh_sac...
+Document: {'file_name': 'chinh_sach_bao_hanh_doi_tra.md', 'doc_type': 'chinh_sac...
+=== BƯỚC 4: METADATA TRONG POSTGRESQL ===
+Chưa có PG_DSN nên bỏ qua bước này
+=== BƯỚC 5: CA LỖI (GÕ SAI 'prise') ===
+Khóa đúng: giá trong văn bản nhúng? False
+Khóa sai : giá trong văn bản nhúng? True

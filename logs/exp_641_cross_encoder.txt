@@ -1,0 +1,17 @@
+Bi-Encoder: gemini-embedding-2 | Cross-Encoder: BAAI/bge-reranker-base
+Câu hỏi: điện thoại màn hình gập của Samsung
+=== BƯỚC 1: BI-ENCODER - NHÚNG RIÊNG RỒI SO COSINE ===
+cosine 0.739 | Samsung Galaxy Z Fold7 12GB 256GB
+cosine 0.667 | Samsung Galaxy S25 Ultra 12GB 256GB
+cosine 0.667 | Samsung Galaxy A56 5G 8GB 128GB
+cosine 0.642 | HONOR Magic V5 16GB 512GB
+=== BƯỚC 2: CROSS-ENCODER - ĐỌC CHUNG TỪNG CẶP (câu hỏi, Node) ===
+điểm 0.951 | Samsung Galaxy Z Fold7 12GB 256GB
+điểm 0.441 | Samsung Galaxy S25 Ultra 12GB 256GB
+điểm 0.396 | Samsung Galaxy A56 5G 8GB 128GB
+điểm 0.377 | HONOR Magic V5 16GB 512GB
+Chấm 4 cặp: 0.96 giây (239 ms/cặp)
+=== BƯỚC 3: CA LỖI (DÙNG CROSS-ENCODER QUÉT TOÀN BỘ KHO) ===
+100 cặp: 28.86 giây -> ước tính cả 818 Node: 236 giây cho MỘT câu hỏi
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading weights:   0%|          | 0/201 [00:00<?, ?it/s]Loading weights:   7%|▋         | 14/201 [00:00<00:01, 107.95it/s]Loading weights:  12%|█▏        | 25/201 [00:00<00:01, 104.16it/s]Loading weights: 100%|██████████| 201/201 [00:00<00:00, 602.19it/s]

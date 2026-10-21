@@ -1,0 +1,11 @@
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = [".", "he_thong", "nap_du_lieu", "thi_nghiem"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 120
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
+exclude = ["thi_nghiem", "_cu", ".venv"]

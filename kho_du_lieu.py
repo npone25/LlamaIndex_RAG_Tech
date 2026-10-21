@@ -17,9 +17,7 @@ BANG_SAN_PHAM = "san_pham"     # PGVectorStore thêm tiền tố data_ -> data_s
 BANG_KIEN_THUC = "kien_thuc"   # -> data_kien_thuc
 
 # Tham số chỉ mục HNSW (giá trị mặc định của pgvector, xem 4.3.4); độ đo cosine
-HNSW_M = 16
-HNSW_EF_CONSTRUCTION = 64
-HNSW_EF_SEARCH = 40
+from he_thong.cau_hinh import HNSW_EF_CONSTRUCTION, HNSW_EF_SEARCH, HNSW_M  # noqa: E402,F401
 
 
 def lay_dsn():
@@ -90,3 +88,38 @@ def tao_cache(collection, ten_bang_cache="cache"):
     # của Node đọc ra khác lúc ghi vào và cache không bao giờ trúng (xem thí nghiệm 4.4.3)
     kvstore = PostgresKVStore.from_uri(uri=lay_dsn(), table_name=ten_bang_cache, use_jsonb=False)
     return IngestionCache(cache=kvstore, collection=collection)
+
+
+def kiem_tra_ket_noi(engine=None) -> tuple[bool, str]:
+    """Kiểm tra kết nối PostgreSQL bằng SELECT 1; trả về (True, '') hoặc (False, mô tả lỗi an toàn)."""
+    try:
+        eng = engine or tao_engine()
+        with eng.connect() as conn:
+            conn.execute(text("SELECT 1"))
+        return True, ""
+    except Exception:
+        # Thông báo ngắn gọn bằng tiếng Việt, tuyệt đối không in DSN hay thông tin tài khoản
+        return False, "Không thể kết nối tới cơ sở dữ liệu PostgreSQL"
+
+
+def dem_dong_cac_bang(engine=None) -> dict:
+    """Đếm số dòng của products, data_san_pham, data_kien_thuc; None nếu bảng chưa tồn tại."""
+    ket_qua = {"products": None, "data_san_pham": None, "data_kien_thuc": None}
+    try:
+        eng = engine or tao_engine()
+        with eng.connect() as conn:
+            for bang in ket_qua.keys():
+                try:
+                    ton_tai = conn.execute(text("SELECT to_regclass(:b)"), {"b": bang}).scalar()
+                    if ton_tai is not None:
+                        so_dong = conn.execute(text(f"SELECT count(*) FROM {bang}")).scalar()
+                        ket_qua[bang] = int(so_dong) if so_dong is not None else 0
+                except Exception:
+                    try:
+                        so_dong = conn.execute(text(f"SELECT count(*) FROM {bang}")).scalar()
+                        ket_qua[bang] = int(so_dong) if so_dong is not None else 0
+                    except Exception:
+                        ket_qua[bang] = None
+    except Exception:
+        pass
+    return ket_qua

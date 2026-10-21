@@ -14,25 +14,38 @@ from llama_index.core.node_parser import SentenceSplitter
 from sqlalchemy import text
 
 from chuyen_doi_san_pham import doc_bang_dien_thoai
-from kho_du_lieu import (BANG_KIEN_THUC, BANG_SAN_PHAM, bat_quet_lap_hnsw, dam_bao_chi_muc_hnsw,
-                         tao_cache, tao_docstore, tao_engine, tao_vector_store)
+from kho_du_lieu import (
+    BANG_KIEN_THUC,
+    BANG_SAN_PHAM,
+    bat_quet_lap_hnsw,
+    dam_bao_chi_muc_hnsw,
+    tao_cache,
+    tao_docstore,
+    tao_engine,
+    tao_vector_store,
+)
 
-sys.stdout.reconfigure(encoding="utf-8")  # để in được tiếng Việt trên Windows
+from he_thong.cau_hinh import (  # noqa: E402
+    CHUNK_OVERLAP_KIEN_THUC,
+    CHUNK_OVERLAP_SAN_PHAM,
+    KICH_THUOC_CHUNK_KIEN_THUC,
+    KICH_THUOC_CHUNK_SAN_PHAM,
+)
 
 FOLDER = Path(__file__).parent
 THU_MUC_KIEN_THUC = FOLDER / "data_kien_thuc"
-engine = tao_engine()
 
 
-def doc_kien_thuc():
+def doc_kien_thuc(thu_muc=None):
     """Đọc tài liệu kiến thức; doc_id là đường dẫn tương đối (giống nhau trên Windows và Docker)."""
+    thu_muc_doc = Path(thu_muc) if thu_muc else THU_MUC_KIEN_THUC
     documents = SimpleDirectoryReader(
-        input_dir=str(THU_MUC_KIEN_THUC), recursive=True,
+        input_dir=str(thu_muc_doc), recursive=True,
         required_exts=[".md", ".txt", ".pdf", ".docx"],
     ).load_data()
     dem_trang = {}
     for doc in documents:
-        duong_dan = Path(doc.metadata["file_path"]).resolve().relative_to(THU_MUC_KIEN_THUC.resolve())
+        duong_dan = Path(doc.metadata["file_path"]).resolve().relative_to(thu_muc_doc.resolve())
         ten = duong_dan.as_posix()
         dem_trang[ten] = dem_trang.get(ten, 0) + 1
         doc.id_ = ten + "#" + str(dem_trang[ten])        # mỗi trang PDF một doc_id riêng
@@ -44,8 +57,10 @@ def doc_kien_thuc():
     return documents
 
 
-def xoa_het():
-    with engine.begin() as conn:
+def xoa_het(engine=None):
+    """Xóa các bảng vector, docstore và cache trong PostgreSQL."""
+    eng = engine or tao_engine()
+    with eng.begin() as conn:
         for bang in ["data_" + BANG_SAN_PHAM, "data_" + BANG_KIEN_THUC]:
             conn.execute(text("DROP TABLE IF EXISTS " + bang))
         for bang, cot in [("data_docstore", "namespace"), ("data_cache", "namespace")]:
@@ -55,7 +70,9 @@ def xoa_het():
     print("Đã xóa bảng vector, docstore và cache của sản phẩm và kiến thức")
 
 
-def nap(ten, documents, splitter, embed_model, ten_bang, co_lo=100):
+def nap(ten, documents, splitter, embed_model, ten_bang, co_lo=100, engine=None):
+    """Nạp danh sách Document vào PostgreSQL thông qua IngestionPipeline theo từng lô."""
+    eng = engine or tao_engine()
     pipeline = IngestionPipeline(
         transformations=[splitter, embed_model],
         vector_store=tao_vector_store(ten_bang),
@@ -64,26 +81,33 @@ def nap(ten, documents, splitter, embed_model, ten_bang, co_lo=100):
         cache=tao_cache(ten),
     )
     bat_dau = time.perf_counter()
-    # Chạy theo từng lô co_lo Document: lô nào xong thì đã ghi vào PostgreSQL,
-    # nếu giữa chừng bị lỗi (hết hạn mức API) thì lần chạy sau docstore bỏ qua các lô đã nạp
+    # Chạy theo từng lô co_lo Document: lô nào xong thì đã ghi vào PostgreSQL
     nodes = []
     for i in range(0, len(documents), co_lo):
         lo = documents[i:i + co_lo]
         nodes = nodes + pipeline.run(documents=lo, show_progress=False)
         print("  " + ten + ": xong", min(i + co_lo, len(documents)), "/", len(documents), "Document",
               flush=True)
-    dam_bao_chi_muc_hnsw(engine, ten_bang)
-    with engine.connect() as conn:
+    dam_bao_chi_muc_hnsw(eng, ten_bang)
+    with eng.connect() as conn:
         so_dong = conn.execute(text("SELECT count(*) FROM data_" + ten_bang)).scalar()
     print(ten, "| Document:", len(documents), "| Node mới nhúng:", len(nodes), "| dòng trong data_" + ten_bang,
           ":", so_dong, "| thời gian:", round(time.perf_counter() - bat_dau, 1), "giây")
 
 
-if __name__ == "__main__":
-    if "--xoa" in sys.argv:
-        xoa_het()
-        sys.exit()
-    if "--gia" in sys.argv:
+def main(args=None):
+    """Hàm chạy chính của tiến trình nạp dữ liệu."""
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")  # để in được tiếng Việt trên Windows
+    if args is None:
+        args = sys.argv[1:]
+
+    eng = tao_engine()
+    if "--xoa" in args:
+        xoa_het(eng)
+        return
+
+    if "--gia" in args:
         from vector_gia import VectorGia
         embed_model = VectorGia()
         print("Mô hình nhúng: VECTOR GIẢ (chỉ để thử luồng)")
@@ -93,16 +117,19 @@ if __name__ == "__main__":
         embed_model.embed_batch_size = 50   # gửi 50 văn bản một lần để giảm số lần gọi API
         print("Mô hình nhúng:", TEN_MODEL, "|", SO_CHIEU, "chiều")
 
-    nap("san_pham", doc_bang_dien_thoai(), SentenceSplitter(chunk_size=1024, chunk_overlap=0),
-        embed_model, BANG_SAN_PHAM)
-    # Kho kiến thức chỉ có 20 tệp (khoảng 204 Node): chia lô 4 tệp để nếu hết hạn mức giữa chừng thì phần đã nhúng vẫn được giữ
-    nap("kien_thuc", doc_kien_thuc(), SentenceSplitter(chunk_size=256, chunk_overlap=30),
-        embed_model, BANG_KIEN_THUC, co_lo=4)
+    if "--chi-kien-thuc" not in args:
+        nap("san_pham", doc_bang_dien_thoai(), SentenceSplitter(chunk_size=KICH_THUOC_CHUNK_SAN_PHAM, chunk_overlap=CHUNK_OVERLAP_SAN_PHAM),
+            embed_model, BANG_SAN_PHAM, engine=eng)
 
-    ban, da_bat = bat_quet_lap_hnsw(engine)
+    if "--chi-san-pham" not in args:
+        # Kho kiến thức chỉ có 20 tệp (~204 Node): chia lô 4 tệp để nếu hết hạn mức thì phần nạp vẫn được giữ
+        nap("kien_thuc", doc_kien_thuc(), SentenceSplitter(chunk_size=KICH_THUOC_CHUNK_KIEN_THUC, chunk_overlap=CHUNK_OVERLAP_KIEN_THUC),
+            embed_model, BANG_KIEN_THUC, co_lo=4, engine=eng)
+
+    ban, da_bat = bat_quet_lap_hnsw(eng)
     print("pgvector", ban, "| quét lặp HNSW khi có bộ lọc:", "bật (strict_order)" if da_bat
           else "không hỗ trợ (cần pgvector >= 0.8)")
-    with engine.connect() as conn:
+    with eng.connect() as conn:
         print("Kiểm chứng SQL:")
         for bang in ["data_" + BANG_SAN_PHAM, "data_" + BANG_KIEN_THUC]:
             dong = conn.execute(text("SELECT count(*), min(vector_dims(embedding)), "
@@ -111,3 +138,7 @@ if __name__ == "__main__":
             chi_muc = conn.execute(text("SELECT indexname FROM pg_indexes WHERE tablename = :b "
                                         "AND indexdef LIKE '%hnsw%'"), {"b": bang}).scalar()
             print("     chỉ mục HNSW:", chi_muc)
+
+
+if __name__ == "__main__":
+    main()

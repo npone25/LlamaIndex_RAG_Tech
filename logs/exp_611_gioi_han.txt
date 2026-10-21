@@ -1,0 +1,12 @@
+=== q06 [ten_may] Galaxy Z Fold7 ===
+Vector: 2/3 đúng | Top 1: Samsung Galaxy Z Fold7 12GB 512GB (0.828)
+BM25  : 2/3 đúng | Top 1: Samsung Galaxy Z Fold7 12GB 512GB (3.030)
+=== q07 [ten_may] Galaxy S24 FE ===
+Vector: 1/3 đúng | Top 1: Samsung Galaxy S24FE 5G 8GB 256GB (0.807)
+BM25  : 1/3 đúng | Top 1: Samsung Galaxy Tab S10 FE 5G (4.700)
+=== q20 [nhu_cau] điện thoại màn hình gấp lại được ===
+Vector: 2/3 đúng | Top 1: Samsung Galaxy Z Fold8 5G 12GB 512GB (0.719)
+BM25  : 0/3 đúng | Top 1: Mobell M539 4G (2.897)
+=== q21 [nhu_cau] điện thoại đơn giản cho người lớn tuổi nghe gọi ===
+Vector: 3/3 đúng | Top 1: Masstel Izi S8 (0.716)
+BM25  : 3/3 đúng | Top 1: Masstel Izi S8 (9.275)

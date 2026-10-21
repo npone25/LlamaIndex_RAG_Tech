@@ -1,0 +1,10 @@
+=== Điện thoại RAM từ 8GB trở lên, pin trâu ===
+Truy vấn ngữ nghĩa: pin trâu | bộ lọc: [('ram_gb', '>=', 8)]
+Mong đợi: [('ram_gb', '>=', 8)] -> PASS | số kết quả: 3
+=== Điện thoại chơi game giá không quá 10 triệu ===
+Truy vấn ngữ nghĩa: Điện thoại chơi game | bộ lọc: [('price', '<=', 10000000)]
+Mong đợi: [('price', '<=', 10000000)] -> PASS | số kết quả: 3
+=== Điện thoại RAM trên 8GB chụp ảnh đẹp ===
+Truy vấn ngữ nghĩa: chụp ảnh đẹp | bộ lọc: [('ram_gb', '>', 8)]
+Mong đợi: [('ram_gb', '>', 8)] -> PASS | số kết quả: 3
+Tổng: 3/3 PASS

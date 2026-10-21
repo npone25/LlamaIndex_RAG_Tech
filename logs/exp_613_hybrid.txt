@@ -1,0 +1,16 @@
+=== BƯỚC 1: CẤU HÌNH BỘ TRUY HỒI LAI GHÉP ===
+mode: reciprocal_rerank | số nhánh: 2 | num_queries: 1 | top_k: 10
+=== BƯỚC 2: VỊ TRÍ CỦA TỪNG KẾT QUẢ TRONG HAI NHÁNH ===
+Câu hỏi: Samsung màn hình gập chụp ảnh đẹp
+ 1. RRF 0.0331 | hạng vector  1 | hạng BM25  2 | Samsung Galaxy Z Fold7 12GB 512GB
+ 2. RRF 0.0331 | hạng vector  2 | hạng BM25  1 | Samsung Galaxy Z Flip7 12GB 512GB
+ 3. RRF 0.0320 | hạng vector  4 | hạng BM25  3 | Samsung Galaxy Z Fold7 12GB 256GB
+ 4. RRF 0.0306 | hạng vector  9 | hạng BM25  4 | Samsung Galaxy Z Fold8 5G 12GB 256GB
+ 5. RRF 0.0305 | hạng vector  6 | hạng BM25  7 | Samsung Galaxy Z Flip8 5G 12GB 256GB
+ 6. RRF 0.0305 | hạng vector  7 | hạng BM25  6 | Samsung Galaxy Z Fold8 5G 12GB 512GB
+ 7. RRF 0.0296 | hạng vector  8 | hạng BM25  9 | Samsung Galaxy Z Fold8 Ultra 5G 12GB 512GB
+ 8. RRF 0.0294 | hạng vector 10 | hạng BM25  8 | Samsung Galaxy Z Fold8 Ultra 5G 16GB 1TB
+ 9. RRF 0.0161 | hạng vector  3 | hạng BM25  - | Samsung Galaxy Fold5
+10. RRF 0.0156 | hạng vector  5 | hạng BM25  - | Samsung Galaxy Z Fold 6 12GB 256GB
+=== BƯỚC 3: CA LỖI (KHÔNG TRUYỀN llm KHI KHỞI TẠO) ===
+ValueError - 

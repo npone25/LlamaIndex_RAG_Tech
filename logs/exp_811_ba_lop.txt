@@ -1,0 +1,16 @@
+=== BƯỚC 1: SỐ BẢN GHI Ở MỖI LỚP ===
+Lớp (a) products: 818 dòng | lớp (b)+(c) data_san_pham: 818 Node | nối được qua product_id: 818
+=== BƯỚC 2: LỚP (a) - MỘT DÒNG TRONG BẢNG products ===
+   product_id = dien-thoai-samsung-galaxy-z-fold-7
+   product_name = Samsung Galaxy Z Fold7 12GB 256GB
+   brand = Samsung
+   price = 39990000
+   ram_gb = 12
+   battery_mah = 4400
+   stock_status = InStock
+=== BƯỚC 3: LỚP (b) VÀ (c) - NODE CÙNG product_id ===
+Lớp (b) văn bản được nhúng: brand: Samsung  Điện thoại Samsung Galaxy Z Fold7 12GB 256GB của hãng Samsung. Chip Qualcomm Snapdragon 8 Elite For Galaxy. RAM 12 GB. Bộ nh ...
+Lớp (c) metadata: {'product_id': 'dien-thoai-samsung-galaxy-z-fold-7', 'product_name': 'Samsung Galaxy Z Fold7 12GB 256GB', 'brand': 'Samsung', 'price': 39990000, 'ram_gb': 12, 'rating': 5.0, 'stock_status': 'InStock'}
+Khóa không đưa vào văn bản nhúng: ['product_id', 'product_name', 'price', 'ram_gb', 'rating', 'stock_status']
+=== BƯỚC 4: GIÁ Ở LỚP (a) VÀ (c) CÓ KHỚP NHAU KHÔNG ===
+Số sản phẩm có giá ở bảng SQL khác giá trong metadata: 0

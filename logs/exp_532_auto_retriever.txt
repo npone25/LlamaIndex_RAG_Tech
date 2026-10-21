@@ -1,0 +1,9 @@
+LLM: gemini-3.5-flash-lite
+=== BƯỚC 1: ĐẶC TẢ TRUY HỒI DO LLM SINH ===
+Câu hỏi: Tôi muốn điện thoại Xiaomi giá dưới 10 triệu, camera chụp thiếu sáng tốt
+Truy vấn ngữ nghĩa: camera chụp thiếu sáng tốt
+Bộ lọc          : [('brand', '==', 'Xiaomi'), ('price', '<', 10000000)]
+=== BƯỚC 2: KẾT QUẢ VÀ KIỂM TRA ===
+1. 0.6602 | Xiaomi Redmi Note 12 Turbo       | giá 5,390,000 | đúng
+2. 0.6555 | Xiaomi Redmi Note 14 5G 8GB 256G | giá 6,490,000 | đúng
+3. 0.6462 | Xiaomi Redmi K70e                | giá 8,490,000 | đúng

@@ -1,0 +1,8 @@
+=== BƯỚC 1: TRUY HỒI VECTOR, KHÔNG CÓ BỘ LỌC (Top 3) ===
+Câu hỏi: Điện thoại chụp ảnh đêm tốt dưới 15 triệu
+1. 0.7041 | OPPO Reno15 5G 12GB 256GB          | giá 14,990,000 | hợp lệ
+2. 0.7000 | OPPO Reno15 F 5G 8GB 256GB         | giá 11,990,000 | hợp lệ
+3. 0.6931 | Xiaomi 15 5G 12GB 512GB            | giá 18,990,000 | VI PHẠM
+=== BƯỚC 2: KIỂM TRA RÀNG BUỘC GIÁ SAU KHI TRUY HỒI ===
+Kết quả vi phạm: 1/3 | Error Rate = 33.33%
+Văn bản được nhúng có chứa giá không: False

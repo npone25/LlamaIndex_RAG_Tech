@@ -1,5 +1,5 @@
 # PostgreSQL 16 + pgvector cho đồ án. Mật khẩu đọc từ file .env (không ghi trong file này)
-# Chạy: docker compose up -d     | Dừng: docker compose down
+# Chạy toàn bộ: docker compose up -d     | Dừng: docker compose down
 
 services:
   db:
@@ -19,6 +19,19 @@ services:
       interval: 5s
       timeout: 3s
       retries: 10
+    restart: unless-stopped
+
+  app:
+    build: .
+    container_name: phone_rag_app
+    ports:
+      - "8501:8501"
+    env_file: .env
+    environment:
+      - PG_DSN=postgresql://${PG_USER:-postgres}:${PG_PASSWORD}@db:5432/${PG_DB:-phone_rag_db}
+    depends_on:
+      db:
+        condition: service_healthy
     restart: unless-stopped
 
   # Giao diện web xem dữ liệu (tùy chọn): docker compose --profile tools up -d
