@@ -10,6 +10,11 @@ import pandas as pd
 from dotenv import load_dotenv
 from sqlalchemy import create_engine, text
 
+# Lõi RAG nằm trong loi_rag/: thêm thư mục này vào đường dẫn tìm module
+THU_MUC_LOI_RAG = Path(__file__).resolve().parent / "loi_rag"
+if str(THU_MUC_LOI_RAG) not in sys.path:
+    sys.path.insert(0, str(THU_MUC_LOI_RAG))
+
 from chuyen_doi_san_pham import PHONE_FILE, lay_gia
 
 load_dotenv()

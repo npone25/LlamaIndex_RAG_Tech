@@ -1,10 +1,12 @@
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-pythonpath = [".", "he_thong", "nap_du_lieu", "thi_nghiem"]
+pythonpath = [".", "loi_rag", "he_thong", "thi_nghiem"]
 addopts = "-q"
 
 [tool.ruff]
 line-length = 120
+# Module của dự án nằm ở thư mục gốc, loi_rag/ và thi_nghiem/ (để sắp xếp import đúng nhóm)
+src = [".", "loi_rag", "thi_nghiem"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I"]

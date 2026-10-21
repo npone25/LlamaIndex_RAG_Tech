@@ -6,8 +6,9 @@ from pathlib import Path
 
 # Trang con chạy từ thư mục pages/, thêm thư mục dự án vào đường dẫn tìm module
 THU_MUC_DU_AN = Path(__file__).resolve().parent.parent
-if str(THU_MUC_DU_AN) not in sys.path:
-    sys.path.insert(0, str(THU_MUC_DU_AN))
+for thu_muc in [THU_MUC_DU_AN, THU_MUC_DU_AN / "loi_rag"]:
+    if str(thu_muc) not in sys.path:
+        sys.path.insert(0, str(thu_muc))
 
 import pandas as pd
 import plotly.graph_objects as go

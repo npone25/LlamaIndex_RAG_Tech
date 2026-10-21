@@ -70,6 +70,7 @@ def tao_bo_tim(nodes, che_do, top_k, filters=None):
         return BM25Retriever.from_defaults(nodes=nodes, similarity_top_k=min(top_k, len(nodes)),
                                            skip_stemming=True, filters=filters)
     sys.path.insert(0, str(FOLDER.parent))
+    sys.path.insert(0, str(FOLDER.parent / "loi_rag"))
     from dotenv import load_dotenv
 
     from nhung_gemini import tao_model_nhung

@@ -84,48 +84,61 @@ Bộ kiểm thử (102 ca) chạy không cần mạng, không cần khóa Gemini
 
 ## 6. Thí nghiệm của báo cáo
 
-Mỗi mục trong báo cáo có một script `exp_<số mục>_<tên>.py` và một log tương ứng trong `logs/`. Ví dụ `exp_642_reranker.py` → `logs/exp_642_reranker.txt` (mục 6.4.2).
+Mọi thí nghiệm nằm trong `thi_nghiem/` và được chạy từ thư mục gốc. Mỗi mục trong báo cáo có một script `exp_<số mục>_<tên>.py` và một log tương ứng trong `logs/`. Ví dụ `thi_nghiem/exp_642_reranker.py` → `logs/exp_642_reranker.txt` (mục 6.4.2).
 
-| Chương | Script | Ghi chú |
+| Chương | Script trong `thi_nghiem/` | Ghi chú |
 |---|---|---|
+| 3. Môi trường | `kiem_tra_moi_truong`, `kiem_tra_module`, `hello_world`, `thong_ke_du_lieu` | |
 | 4. Nạp và lập chỉ mục | `exp_411` … `exp_443` | 4.3.3 và 4.4 cần PostgreSQL |
 | 5. Truy hồi theo metadata | `exp_511` … `exp_533` | `exp_532` là thí nghiệm độc lập, không nằm trong luồng chính |
 | 6. Truy hồi nâng cao | `exp_611` … `exp_652` | reranker tải mô hình lần đầu (~1 GB) |
 | 7. Tổng hợp câu trả lời | `exp_71`, `exp_72`, `exp_73` | |
-| 8. Định tuyến công cụ | `exp_811` … `exp_841` | |
-| 9. Đánh giá | `exp_91`, `exp_93`, `exp_94`, `exp_94b`, `so_sanh_tham_so.py` | bộ câu hỏi `golden_set_ch9.json` (35 câu) |
+| 8. Định tuyến công cụ | `kiem_tra_gia`, `exp_811` … `exp_841` | |
+| 9. Đánh giá | `exp_91`, `exp_93`, `exp_94`, `exp_94b`, `so_sanh_tham_so` | bộ câu hỏi `thi_nghiem/golden_set_ch9.json` (35 câu) |
 | 10. Lớp bảo vệ | `exp_101a` … `exp_103` | |
+| 12. Độ trễ, chi phí | `do_tre_chi_phi`, `kiem_tra_truy_vet`, `chay_6_cau_demo` | |
 
-Thí nghiệm 4.1.2 và 4.2 (không cần cơ sở dữ liệu): `python chay_tat_ca.py`. Các chương cần dữ liệu đã nạp: `python chay_thi_nghiem.py 5 8` (chỉ chương 5 và 8); không truyền số chương thì chạy tất cả, tốn nhiều lượt gọi API. Thêm `--qua-dem` để tự đợi rồi thử lại khi gặp 503 hoặc hết hạn mức. Xem đầu file `chay_thi_nghiem.py` cho các tùy chọn khác.
+Chạy một thí nghiệm: `python thi_nghiem/exp_93_truy_hoi.py`.
+
+Chạy hàng loạt và tự ghi log:
+- 4.1.2 và 4.2 (không cần cơ sở dữ liệu, không gọi API): `python thi_nghiem/chay_tat_ca.py`.
+- Các chương cần dữ liệu đã nạp: `python thi_nghiem/chay_thi_nghiem.py 5 8` (chỉ chương 5 và 8), hoặc liệt kê tên file: `python thi_nghiem/chay_thi_nghiem.py exp_91_cau_hinh exp_93_truy_hoi`. Thêm `--qua-dem` để tự đợi rồi thử lại khi gặp 503 hoặc hết hạn mức.
+- Không chạy lại `bo_cau_hoi_ch9.py` và `tao_bo_danh_gia.py` nếu không định đổi bộ câu hỏi: hai script này ghi đè bộ câu hỏi đã khóa.
 
 `so_sanh_tham_so.py` so sánh `top_k` (1, 3, 5, 10) trên 30 câu có đáp án; thêm `--chunk` để so sánh `chunk_size` (128, 256, 512), phần này tốn khoảng 787 lượt nhúng.
+
+Mỗi script trong `thi_nghiem/` có dòng `import _duong_dan` ở đầu: dòng này thêm thư mục gốc và `loi_rag/` vào đường dẫn tìm module, nhờ đó script vẫn viết `from truy_hoi import ...` như khi mọi file còn nằm chung một thư mục.
 
 ## 7. Cấu trúc thư mục
 
 ```
-├── app.py, pages/            Giao diện Streamlit (trang chat và trang Kho dữ liệu)
-├── he_thong/                 Phần dùng chung của ứng dụng
-│   ├── cau_hinh.py           đọc .env và các hằng số cấu hình (chunk, top_k, ngưỡng)
-│   ├── dich_vu.py            lớp TroLy: luồng xử lý một câu hỏi
-│   ├── mo_hinh_du_phong.py   ChuoiMoHinh
-│   ├── nhat_ky.py            nhật ký hỏi đáp JSONL (bật bằng NHAT_KY_HOI_DAP=1)
-│   ├── truy_vet.py           ghi vết từng bước để xem trên giao diện
-│   └── giao_dien.py, .css    thành phần hiển thị
-├── kho_du_lieu.py            kết nối PostgreSQL, PGVectorStore, docstore, cache
-├── nhung_gemini.py, llm_gemini.py   khởi tạo Gemini
-├── truy_hoi.py               Vector + BM25 + RRF + reranker
-├── tro_ly.py                 prompt tổng hợp, ngưỡng từ chối, trích nguồn
-├── dinh_tuyen.py, tra_gop.py Router, Text-to-SQL, tính trả góp
-├── bao_ve.py                 hai lớp bảo vệ
-├── ingest.py, seed_sql.py    nạp dữ liệu
-├── exp_*.py                  thí nghiệm theo mục báo cáo
-├── logs/                     log thí nghiệm (minh chứng, được commit)
-├── tests/                    kiểm thử pytest
-├── hinh/                     sơ đồ dùng trong báo cáo (nguồn .dot và ảnh .png)
-├── hands_on_lab/             bài thực hành 30–45 phút cho buổi báo cáo
-├── data_phones_v2/, data_kien_thuc/  dữ liệu
-├── db/init.sql               bật extension vector khi tạo container
-└── docker-compose.yml, Dockerfile, .env.example
+├── app.py, pages/, .streamlit/   Giao diện Streamlit (trang chat và trang Kho dữ liệu)
+├── ingest.py, seed_sql.py        Nạp dữ liệu vào PostgreSQL
+├── loi_rag/                      Lõi RAG dùng chung
+│   ├── chuyen_doi_san_pham.py    đọc bảng điện thoại, tạo Document
+│   ├── kho_du_lieu.py            kết nối PostgreSQL, PGVectorStore, docstore, cache
+│   ├── nhung_gemini.py, llm_gemini.py, vector_gia.py   mô hình nhúng và LLM (vector_gia: vector giả để thử)
+│   ├── truy_hoi.py               Vector + BM25 + RRF + reranker
+│   ├── loc_metadata.py           lọc metadata, Auto-Retriever
+│   ├── tro_ly.py                 prompt tổng hợp, ngưỡng từ chối, trích nguồn
+│   ├── dinh_tuyen.py, tra_gop.py Router, Text-to-SQL, tính trả góp
+│   └── bao_ve.py                 hai lớp bảo vệ
+├── he_thong/                     Lớp ứng dụng
+│   ├── cau_hinh.py               đọc .env và các hằng số cấu hình (chunk, top_k, ngưỡng)
+│   ├── dich_vu.py                lớp TroLy: luồng xử lý một câu hỏi
+│   ├── mo_hinh_du_phong.py       ChuoiMoHinh
+│   ├── nhat_ky.py, truy_vet.py   nhật ký hỏi đáp, ghi vết từng bước
+│   └── giao_dien.py, .css        thành phần hiển thị
+├── thi_nghiem/                   Thí nghiệm theo mục báo cáo, bộ câu hỏi đánh giá, dữ liệu mẫu chương 4
+├── logs/                         Log thí nghiệm (minh chứng, được commit)
+├── tests/                        Kiểm thử pytest (102 ca)
+├── hands_on_lab/                 Bài thực hành 30–45 phút
+├── hinh/                         Sơ đồ dùng trong báo cáo (nguồn .dot và ảnh .png)
+├── data_phones_v2/, data_kien_thuc/   Dữ liệu sản phẩm và kho kiến thức
+├── docs/                         Hướng dẫn thành viên, ghi chú làm việc, ảnh dùng trong báo cáo
+├── cong_cu/                      Công cụ phụ: cào dữ liệu, tạo dữ liệu mẫu, chụp code thành ảnh
+├── db/init.sql                   Bật extension vector khi tạo container
+└── docker-compose.yml, Dockerfile, requirements*.txt, pyproject.toml, .env.example
 ```
 
 ## 8. Hạn mức Gemini miễn phí
