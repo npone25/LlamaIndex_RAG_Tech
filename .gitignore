@@ -45,3 +45,6 @@ data_phones_v2/debug_html/
 .DS_Store
 Thumbs.db
 Desktop.ini
+
+# Thư mục tạm của Claude
+_claude_lam_viec/

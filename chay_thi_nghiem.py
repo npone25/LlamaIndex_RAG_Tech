@@ -33,7 +33,7 @@ THI_NGHIEM = {
     "7": ["exp_71_prompt_synthesis", "exp_72_chat_memory", "exp_73_grounding"],
     "8": ["kiem_tra_gia", "exp_811_ba_lop", "exp_821_nlsql", "exp_822_sql_chi_doc",
           "exp_831_tra_gop", "exp_841_router"],
-    "9": ["bo_cau_hoi_ch9", "exp_91_cau_hinh", "exp_93_truy_hoi", "exp_94_ragas"],
+    "9": ["bo_cau_hoi_ch9", "exp_91_cau_hinh", "exp_93_truy_hoi", "exp_94_ragas", "exp_94b_answer_relevancy"],
     "10": ["exp_101a_regex", "exp_101b_llm", "exp_102_pham_vi", "exp_103_tich_hop"],
     "12": ["do_tre_chi_phi"],
 }
@@ -52,9 +52,9 @@ THU_TU_TIEP_TUC = ["4", "6", "7", "5", "3", "8", "12", "9", "10"]
 # File gọi LLM: kết quả phụ thuộc mô hình và code truy hồi/bảo vệ, nên đổi mô hình hoặc code thì phải chạy lại
 CAC_FILE_DUNG_LLM = ["kiem_tra_module", "hello_world", "exp_532_auto_retriever", "exp_533_bien",
                      "exp_71_prompt_synthesis", "exp_72_chat_memory", "exp_73_grounding", "exp_821_nlsql",
-                     "exp_841_router", "exp_91_cau_hinh", "exp_94_ragas", "exp_101b_llm", "exp_102_pham_vi",
+                     "exp_841_router", "exp_91_cau_hinh", "exp_94_ragas", "exp_94b_answer_relevancy", "exp_101b_llm", "exp_102_pham_vi",
                      "exp_103_tich_hop", "do_tre_chi_phi"]
-CAC_FILE_DUNG_JUDGE = ["exp_91_cau_hinh", "exp_94_ragas"]
+CAC_FILE_DUNG_JUDGE = ["exp_91_cau_hinh", "exp_94_ragas", "exp_94b_answer_relevancy"]
 FILE_TRANG_THAI = FOLDER / "logs" / "_trang_thai.json"
 
 
