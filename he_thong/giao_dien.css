@@ -13,6 +13,8 @@ code, pre, .mono { font-family: 'JetBrains Mono', ui-monospace, monospace !impor
 
 /* Ẩn menu, footer mặc định */
 #MainMenu, footer, header [data-testid="stToolbar"] { visibility: hidden; }
+/* Nút mở lại thanh bên nằm trong thanh công cụ đang ẩn: phải hiện riêng nút này, nếu không thu gọn thanh bên rồi sẽ không mở lại được */
+header [data-testid="stExpandSidebarButton"] { visibility: visible; }
 
 /* Tiêu đề trang */
 h1 { font-weight: 800 !important; letter-spacing: -0.02em; color: #0F172A; }
