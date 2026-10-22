@@ -15,5 +15,5 @@ data_kien_thuc   204 dòng | 768 chiều | chỉ mục HNSW: có
 Cơ sở  : chỉ vector trên bảng sản phẩm và bảng chính sách, lấy Top 3
 Nâng cao: vector + BM25 trên hai bảng, RRF Top 10 -> BAAI/bge-reranker-base Top 3
 === BƯỚC 4: CA LỖI - API METRIC MỚI CỦA RAGAS VỚI CLIENT GEMINI ===
-ValueError - Failed to initialize google client with instructor adapter. Ensure you've created a valid 
+TypeError - Cannot use agenerate() with a synchronous client. Use generate() instead.
 -> Đồ án dùng API evaluate() với LlamaIndexLLMWrapper (xem exp_94_ragas.py)

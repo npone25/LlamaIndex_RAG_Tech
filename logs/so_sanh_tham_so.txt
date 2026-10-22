@@ -1,0 +1,6 @@
+=== PHẦN A: ĐỔI top_k CỦA NHÁNH VECTOR (30 câu có đáp án) ===
+top_k =  1 | Hit Rate@1 = 0.73 | MRR@1 = 0.73
+top_k =  3 | Hit Rate@3 = 1.00 | MRR@3 = 0.86
+top_k =  5 | Hit Rate@5 = 1.00 | MRR@5 = 0.86
+top_k = 10 | Hit Rate@10 = 1.00 | MRR@10 = 0.86
+Bỏ qua phần B (thêm --chunk để chạy).

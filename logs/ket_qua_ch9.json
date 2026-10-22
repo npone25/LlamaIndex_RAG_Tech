@@ -2,84 +2,84 @@
  {
   "id": "TS01",
   "user_input": "Galaxy Z Fold7 dùng chip gì?",
-  "response": "Dạ, điện thoại Samsung Galaxy Z Fold7 12GB 256GB và Samsung Galaxy Z Fold7 12GB 512GB dùng chip Qualcomm Snapdragon 8 Elite For Galaxy.",
+  "response": "Theo tài liệu Samsung Galaxy Z Fold7 12GB 256GB và Samsung Galaxy Z Fold7 12GB 512GB, máy dùng chip Qualcomm Snapdragon 8 Elite For Galaxy.",
   "faithfulness": 1.0,
   "llm_context_precision_with_reference": 0.99999999995
  },
  {
   "id": "TS02",
   "user_input": "Màn hình iPhone 17 Pro Max rộng bao nhiêu inch?",
-  "response": "Dạ, theo thông tin của các dòng iPhone 17 Pro Max (512GB, 1TB, 2TB) tại cửa hàng, màn hình của máy có kích thước rộng **6.9 inch**.",
+  "response": "Dựa theo thông tin của các sản phẩm (iPhone 17 Pro Max 2TB, iPhone 17 Pro Max 512GB, iPhone 17 Pro Max 1TB), màn hình của iPhone 17 Pro Max rộng **6.9 inch**.",
   "faithfulness": 1.0,
   "llm_context_precision_with_reference": 0.9999999999666667
  },
  {
   "id": "TS03",
   "user_input": "Galaxy S25 Ultra pin bao nhiêu mAh?",
-  "response": "Dựa trên thông tin của cửa hàng, các dòng sản phẩm Samsung Galaxy S25 Ultra (gồm phiên bản 512GB và phiên bản 12GB 256GB) đều có dung lượng pin là **5000 mAh**.",
+  "response": "Theo thông tin từ cửa hàng, cả hai phiên bản **Samsung Galaxy S25 Ultra 512GB** và **Samsung Galaxy S25 Ultra 12GB 256GB** đều có dung lượng pin là 5000 mAh.",
   "faithfulness": 1.0,
   "llm_context_precision_with_reference": 0.99999999995
  },
  {
   "id": "TS04",
   "user_input": "Xiaomi 15T Pro chạy chip nào?",
-  "response": "Điện thoại Xiaomi 15T Pro 5G 12GB 512GB chạy chip MediaTek Dimensity 9400+.",
+  "response": "Dạ, điện thoại Xiaomi 15T Pro 5G 12GB 512GB chạy chip MediaTek Dimensity 9400+.",
   "faithfulness": 1.0,
   "llm_context_precision_with_reference": 0.9999999999
  },
  {
   "id": "TS05",
   "user_input": "OPPO Reno13 F có pin dung lượng bao nhiêu?",
-  "response": "Dạ, theo thông tin sản phẩm **OPPO Reno13 F 5G 12GB 256GB**, điện thoại này có dung lượng pin là 5800 mAh ạ.",
+  "response": "Dạ, theo thông tin sản phẩm OPPO Reno13 F 5G 12GB 256GB, điện thoại này có dung lượng pin là 5800 mAh ạ.",
   "faithfulness": 1.0,
   "llm_context_precision_with_reference": 0.9999999999
  },
  {
   "id": "TS07",
   "user_input": "HONOR Magic V5 pin bao nhiêu?",
-  "response": "Dạ, điện thoại HONOR Magic V5 16GB 512GB có dung lượng pin là 5820 mAh ạ.",
+  "response": "Dạ, điện thoại HONOR Magic V5 16GB 512GB có dung lượng pin là 5820 mAh.",
   "faithfulness": 1.0,
   "llm_context_precision_with_reference": 0.9999999999
  },
  {
   "id": "TS08",
   "user_input": "Pixel 9 Pro dùng chip gì?",
-  "response": "Dựa trên thông tin về Google Pixel 9 Pro, máy dùng chip Google Tensor G4.",
+  "response": "Dạ, điện thoại Google Pixel 9 Pro dùng chip Google Tensor G4.",
   "faithfulness": 1.0,
   "llm_context_precision_with_reference": 0.9999999999
  },
  {
   "id": "TS09",
   "user_input": "TECNO CAMON 40 bản 8GB 128GB giá bao nhiêu?",
-  "response": "Dạ, theo thông tin từ cửa hàng, điện thoại TECNO CAMON 40 8GB 128GB có giá là 5.190.000 đồng.",
-  "faithfulness": 0.0,
-  "llm_context_precision_with_reference": 0.0
+  "response": "Dựa theo thông tin sản phẩm TECNO CAMON 40 8GB 128GB, giá của máy là 5.190.000 đồng.",
+  "faithfulness": 1.0,
+  "llm_context_precision_with_reference": 0.9999999999
  },
  {
   "id": "TS10",
   "user_input": "realme 13+ dùng chip gì?",
-  "response": "Dựa trên thông tin của các sản phẩm **realme 13+ 5G 12GB 256GB** và **realme 13+ 5G 8GB 256GB**, điện thoại realme 13+ dùng chip Dimensity 7300 Energy 5G.",
+  "response": "Điện thoại realme 13+ 5G (gồm các phiên bản 12GB 256GB và 8GB 256GB) sử dụng chip Dimensity 7300 Energy 5G.",
   "faithfulness": 1.0,
   "llm_context_precision_with_reference": 0.99999999995
  },
  {
   "id": "TS11",
   "user_input": "Galaxy Z Flip7 bản 512GB giá bao nhiêu?",
-  "response": "Dạ, điện thoại Samsung Galaxy Z Flip7 12GB 512GB có giá là 24.990.000 đồng ạ.",
-  "faithfulness": 0.0,
-  "llm_context_precision_with_reference": 0.0
+  "response": "Dạ, sản phẩm Samsung Galaxy Z Flip7 12GB 512GB có giá 24.990.000 đồng ạ.",
+  "faithfulness": 1.0,
+  "llm_context_precision_with_reference": 0.9999999999
  },
  {
   "id": "TS12",
   "user_input": "Galaxy S24 FE dùng chip gì?",
-  "response": "Dựa trên thông tin sản phẩm Samsung Galaxy S24FE 5G 8GB 256GB, điện thoại này dùng chip Exynos 2400e (4nm).",
+  "response": "Điện thoại Samsung Galaxy S24FE 5G 8GB 256GB dùng chip Exynos 2400e (4nm).",
   "faithfulness": 1.0,
   "llm_context_precision_with_reference": 0.9999999999
  },
  {
   "id": "TS13",
   "user_input": "iPhone 16 Pro Max chạy chip nào?",
-  "response": "Theo tài liệu về **Điện thoại iPhone 16 Pro Max 256GB** và **iPhone 16 Pro Max 512GB**, máy chạy chip Apple A18 Pro.",
+  "response": "Dạ, theo thông tin sản phẩm **Điện thoại iPhone 16 Pro Max 256GB** và **iPhone 16 Pro Max 512GB**, máy chạy chip **Apple A18 Pro** ạ.",
   "faithfulness": 1.0,
   "llm_context_precision_with_reference": 0.99999999995
  },
@@ -93,29 +93,29 @@
  {
   "id": "TS15",
   "user_input": "Galaxy Z Fold7 và Galaxy Z Flip7 khác nhau về chip thế nào?",
-  "response": "Dựa trên thông tin của cửa hàng:\n\n- **Samsung Galaxy Z Fold7** (các phiên bản 12GB 256GB và 12GB 512GB) sử dụng chip: **Qualcomm Snapdragon 8 Elite For Galaxy**.\n- **Samsung Galaxy Z Flip7 12GB 512GB** sử dụng chip: **Exynos 2500**.",
+  "response": "Dạ, theo thông tin của cửa hàng, sự khác biệt về chip giữa hai dòng máy là:\n\n- **Samsung Galaxy Z Fold7** (gồm các phiên bản 12GB 256GB và 12GB 512GB): Sử dụng chip **Qualcomm Snapdragon 8 Elite For Galaxy**.\n- **Samsung Galaxy Z Flip7 12GB 512GB**: Sử dụng chip **Exynos 2500**.",
   "faithfulness": 1.0,
   "llm_context_precision_with_reference": 0.0
  },
  {
   "id": "CS01",
   "user_input": "Điện thoại mua ở đây được bảo hành bao lâu?",
-  "response": "Dựa vào tài liệu \"Chính sách bảo hành và đổi trả điện thoại\", thời gian bảo hành tiêu chuẩn của điện thoại là 12 tháng kể từ ngày kích hoạt bảo hành điện tử.",
+  "response": "Dựa trên tài liệu \"Chính sách bảo hành và đổi trả điện thoại\", thời gian bảo hành tiêu chuẩn của điện thoại là 12 tháng kể từ ngày kích hoạt bảo hành điện tử.",
   "faithfulness": 1.0,
-  "llm_context_precision_with_reference": 0.9999999999
+  "llm_context_precision_with_reference": 0.0
  },
  {
   "id": "CS02",
   "user_input": "Em lỡ làm rơi móp máy thì có được bảo hành không ạ?",
-  "response": "Theo chính sách của cửa hàng, sản phẩm bị rơi vỡ, cong vênh hoặc móp méo do tác động bên ngoài sẽ không được bảo hành ạ.",
+  "response": "Theo tài liệu chính sách, sản phẩm không được bảo hành khi bị rơi vỡ, cong vênh, móp méo hoặc nứt màn hình do tác động bên ngoài.",
   "faithfulness": 1.0,
   "llm_context_precision_with_reference": 0.9999999999
  },
  {
   "id": "CS03",
   "user_input": "Pin với cục sạc theo máy được bảo hành mấy tháng?",
-  "response": "Dựa vào tài liệu chính (doc_type: chinh_sach, trang 1), pin và bộ sạc đi kèm trong hộp được bảo hành 6 tháng kể từ ngày mua.",
-  "faithfulness": 0.5,
+  "response": "Dựa vào tài liệu chính (doc_type: chinh_sach), pin và bộ sạc đi kèm trong hộp được bảo hành 6 tháng kể từ ngày mua.",
+  "faithfulness": 1.0,
   "llm_context_precision_with_reference": 0.9999999999
  },
  {
@@ -128,7 +128,7 @@
  {
   "id": "CS05",
   "user_input": "Máy em đi mưa bị vô nước thì shop có bảo hành không?",
-  "response": "Dạ, theo tài liệu hướng dẫn và chính sách của cửa hàng, máy bị vào nước sẽ không được bảo hành kể cả khi máy có chứng nhận kháng nước ạ.",
+  "response": "Theo tài liệu kien_thuc (trang 1) và meo_su_dung (trang 1), máy bị vào nước không được bảo hành kể cả khi có chứng nhận kháng nước IP67 hoặc IP68.",
   "faithfulness": 1.0,
   "llm_context_precision_with_reference": 0.99999999995
  },
@@ -149,50 +149,50 @@
  {
   "id": "CS08",
   "user_input": "Máy đã sửa ở tiệm ngoài thì còn bảo hành được không?",
-  "response": "Theo tài liệu chính, sản phẩm bị can thiệp phần cứng, tự ý tháo máy hoặc sửa chữa tại cơ sở không được ủy quyền sẽ bị từ chối bảo hành. Do đó, máy đã sửa ở tiệm ngoài sẽ không được bảo hành.",
+  "response": "Theo tài liệu \"chính sách\", sản phẩm bị can thiệp phần cứng, tự ý tháo máy hoặc sửa chữa tại cơ sở không được ủy quyền sẽ bị từ chối bảo hành.",
   "faithfulness": 1.0,
   "llm_context_precision_with_reference": 0.3333333333
  },
  {
   "id": "CS09",
   "user_input": "Mua trả góp cần mang theo giấy tờ gì?",
-  "response": "Dạ, tùy thuộc vào hình thức trả góp ạ:\n- **Trả góp qua thẻ tín dụng:** Không cần hồ sơ giấy tờ.\n- **Trả góp qua công ty tài chính:** Cần có Căn cước công dân gắn chip còn hiệu lực. Ngoài ra, với khoản vay giá trị lớn, công ty tài chính có thể yêu cầu thêm giấy phép lái xe, hóa đơn điện nước hoặc giấy tờ chứng minh thu nhập như sao kê lương ạ.",
+  "response": "Trả lời: Tùy theo hình thức trả góp:\n- Nếu trả góp qua thẻ tín dụng: Không cần hồ sơ giấy tờ.\n- Nếu trả góp qua công ty tài chính: Cần có Căn cước công dân gắn chip còn hiệu lực và số điện thoại chính chủ. Với khoản vay giá trị lớn, có thể cần thêm giấy phép lái xe, hóa đơn điện nước hoặc giấy tờ chứng minh thu nhập (như sao kê lương).",
   "faithfulness": 1.0,
   "llm_context_precision_with_reference": 0.0
  },
  {
   "id": "CS11",
   "user_input": "Máy cũ quên đăng xuất iCloud thì shop có thu không?",
-  "response": "Theo tài liệu chính sách, máy còn đăng nhập tài khoản iCloud sẽ bị khóa kích hoạt và cửa hàng không thể thu.",
+  "response": "Theo tài liệu chính sách (trang 1), máy còn đăng nhập tài khoản sẽ bị khóa kích hoạt và không thể thu.",
   "faithfulness": 1.0,
   "llm_context_precision_with_reference": 0.9999999999
  },
  {
   "id": "CS12",
   "user_input": "Chụp ảnh buổi tối bằng điện thoại sao cho đỡ mờ?",
-  "response": "Dựa theo tài liệu \"Mẹo chụp ảnh đẹp bằng điện thoại\", để chụp ảnh buổi tối (hoặc chụp ảnh nói chung) đỡ bị mờ, bạn cần chuẩn bị trước khi chụp bằng cách: **Lau sạch ống kính camera bằng khăn mềm trước khi chụp**, vì dấu vân tay và bụi trên ống kính là nguyên nhân phổ biến nhất khiến ảnh bị mờ, nhòe và lóa sáng.",
+  "response": "Dựa vào tài liệu \"Mẹo chụp ảnh đẹp bằng điện thoại\", để chụp ảnh không bị mờ, bạn cần chuẩn bị trước khi chụp: **Lau sạch ống kính camera bằng khăn mềm** trước khi chụp, vì dấu vân tay và bụi trên ống kính là nguyên nhân phổ biến nhất khiến ảnh bị mờ, nhòe và lóa sáng.",
   "faithfulness": 1.0,
   "llm_context_precision_with_reference": 0.0
  },
  {
   "id": "CS13",
   "user_input": "Chơi game được một lúc thì bị giật, phải làm sao?",
-  "response": "Theo tài liệu hướng dẫn sử dụng, khi chơi game được một lúc mà bị giật (do máy nóng), bạn có thể xử lý như sau:\n\n- Hạ chất lượng đồ họa hoặc tắt các hiệu ứng như bóng đổ, khử răng cưa và hiệu ứng hậu kỳ.\n- Tháo ốp lưng dày khi chơi lâu; chơi ở nơi thoáng mát, tránh chơi dưới nắng hoặc trên chăn nệm; giảm độ sáng màn hình nếu không cần thiết; không chơi game nặng khi đang sạc nhanh.\n- Có thể dùng quạt tản nhiệt gắn lưng điện thoại để giữ hiệu năng ổn định, nhưng lưu ý loại dùng sò lạnh có thể làm đọng hơi nước nếu làm lạnh quá mức trong môi trường ẩm.",
+  "response": "Dạ, theo tài liệu \"Mẹo sử dụng\", khi chơi game một lúc bị giật (do máy nóng), bạn có thể khắc phục bằng các cách sau:\n- Hạ chất lượng đồ họa hoặc tắt các hiệu ứng như bóng đổ, khử răng cưa và hiệu ứng hậu kỳ.\n- Tạm dừng tải ứng dụng, đồng bộ ảnh lên đám mây và cập nhật ứng dụng.\n- Đóng các ứng dụng nặng chạy nền (trình duyệt nhiều tab, ứng dụng chỉnh sửa video hoặc đang tải dữ liệu).\n- Giữ bộ nhớ trong trống ít nhất 10 đến 15%.\n- Làm mát máy: tháo ốp lưng dày khi chơi lâu, chơi ở nơi thoáng mát (tránh nắng hoặc chăn nệm), giảm độ sáng màn hình, không chơi game nặng khi đang sạc nhanh, hoặc dùng quạt tản nhiệt gắn lưng điện thoại.",
   "faithfulness": 1.0,
   "llm_context_precision_with_reference": 0.9999999999666667
  },
  {
   "id": "CS14",
   "user_input": "Chuẩn IP68 nghĩa là gì, có mang đi bơi được không?",
-  "response": "Dựa trên tài liệu \"6. Chuẩn kháng nước, kháng bụi IP\", chuẩn IP68 nghĩa là thiết bị chịu được ngâm nước sâu hơn 1 mét; độ sâu và thời gian cụ thể do nhà sản xuất công bố (ví dụ 1,5 mét hoặc 6 mét trong 30 phút). \n\nThông tin tham khảo không đề cập đến việc có mang đi bơi được hay không, nên tôi xin phép không trả lời ý này.",
-  "faithfulness": 0.8333333333333334,
+  "response": "Dựa vào tài liệu \"6. Chuẩn kháng nước, kháng bụi IP\", chuẩn IP68 nghĩa là thiết bị chịu được ngâm nước sâu hơn 1 mét; độ sâu và thời gian cụ thể do nhà sản xuất công bố (ví dụ 1,5 mét hoặc 6 mét trong 30 phút). Tài liệu không có thông tin về việc có mang đi bơi được hay không.",
+  "faithfulness": 1.0,
   "llm_context_precision_with_reference": 0.9999999999
  },
  {
   "id": "CS15",
   "user_input": "Máy có RAM ảo 8GB thì có mạnh hơn không?",
-  "response": "Theo tài liệu kiến thức, bộ nhớ trong chậm hơn RAM thật nhiều lần, nên RAM ảo chỉ giúp giữ thêm ứng dụng chạy nền chứ không làm máy mạnh hơn hay chơi game mượt hơn. Khi so sánh cấu hình, bạn nên nhìn dung lượng RAM thật nhé!",
-  "faithfulness": 1.0,
+  "response": "Dạ, theo tài liệu hướng dẫn, bộ nhớ trong chậm hơn RAM thật nhiều lần nên RAM ảo chỉ giúp giữ thêm ứng dụng chạy nền chứ không làm máy mạnh hơn hay chơi game mượt hơn anh/chị nhé!",
+  "faithfulness": 0.75,
   "llm_context_precision_with_reference": 0.99999999995
  }
 ]

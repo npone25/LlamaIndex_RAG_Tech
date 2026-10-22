@@ -2,7 +2,7 @@
  {
   "id": "TS01",
   "user_input": "Galaxy Z Fold7 dùng chip gì?",
-  "answer_relevancy": 0.8907248021757855
+  "answer_relevancy": 0.9095723153793368
  },
  {
   "id": "TS02",
@@ -12,7 +12,7 @@
  {
   "id": "TS03",
   "user_input": "Galaxy S25 Ultra pin bao nhiêu mAh?",
-  "answer_relevancy": 0.8984714614497316
+  "answer_relevancy": 0.8848731202336934
  },
  {
   "id": "TS04",
@@ -32,27 +32,27 @@
  {
   "id": "TS08",
   "user_input": "Pixel 9 Pro dùng chip gì?",
-  "answer_relevancy": NaN
+  "answer_relevancy": 0.9389692102823215
  },
  {
   "id": "TS09",
   "user_input": "TECNO CAMON 40 bản 8GB 128GB giá bao nhiêu?",
-  "answer_relevancy": NaN
+  "answer_relevancy": 0.9353680225313082
  },
  {
   "id": "TS10",
   "user_input": "realme 13+ dùng chip gì?",
-  "answer_relevancy": NaN
+  "answer_relevancy": 0.8950000022206273
  },
  {
   "id": "TS11",
   "user_input": "Galaxy Z Flip7 bản 512GB giá bao nhiêu?",
-  "answer_relevancy": 0.9230316230652853
+  "answer_relevancy": 0.911664209578671
  },
  {
   "id": "TS12",
   "user_input": "Galaxy S24 FE dùng chip gì?",
-  "answer_relevancy": 0.9040313818947413
+  "answer_relevancy": 0.8780502297097997
  },
  {
   "id": "TS13",
@@ -67,7 +67,7 @@
  {
   "id": "TS15",
   "user_input": "Galaxy Z Fold7 và Galaxy Z Flip7 khác nhau về chip thế nào?",
-  "answer_relevancy": 0.9099429474052226
+  "answer_relevancy": 0.9472658723514042
  },
  {
   "id": "CS01",
@@ -77,12 +77,12 @@
  {
   "id": "CS02",
   "user_input": "Em lỡ làm rơi móp máy thì có được bảo hành không ạ?",
-  "answer_relevancy": 0.8955530610970189
+  "answer_relevancy": 0.7320839661870744
  },
  {
   "id": "CS03",
   "user_input": "Pin với cục sạc theo máy được bảo hành mấy tháng?",
-  "answer_relevancy": NaN
+  "answer_relevancy": 0.8945015126587813
  },
  {
   "id": "CS04",
@@ -92,51 +92,51 @@
  {
   "id": "CS05",
   "user_input": "Máy em đi mưa bị vô nước thì shop có bảo hành không?",
-  "answer_relevancy": NaN
+  "answer_relevancy": 0.8463113425920024
  },
  {
   "id": "CS06",
   "user_input": "Máy lỗi ngay tháng đầu có được đổi máy mới không?",
-  "answer_relevancy": NaN
+  "answer_relevancy": 0.8405960198519662
  },
  {
   "id": "CS07",
   "user_input": "Mua về không ưng thì trả lại có mất phí không?",
-  "answer_relevancy": NaN
+  "answer_relevancy": 0.0
  },
  {
   "id": "CS08",
   "user_input": "Máy đã sửa ở tiệm ngoài thì còn bảo hành được không?",
-  "answer_relevancy": NaN
+  "answer_relevancy": 0.7758475538359333
  },
  {
   "id": "CS09",
   "user_input": "Mua trả góp cần mang theo giấy tờ gì?",
-  "answer_relevancy": NaN
+  "answer_relevancy": 0.9042110586921034
  },
  {
   "id": "CS11",
   "user_input": "Máy cũ quên đăng xuất iCloud thì shop có thu không?",
-  "answer_relevancy": NaN
+  "answer_relevancy": 0.7196701752856844
  },
  {
   "id": "CS12",
   "user_input": "Chụp ảnh buổi tối bằng điện thoại sao cho đỡ mờ?",
-  "answer_relevancy": NaN
+  "answer_relevancy": 0.8592464898935531
  },
  {
   "id": "CS13",
   "user_input": "Chơi game được một lúc thì bị giật, phải làm sao?",
-  "answer_relevancy": NaN
+  "answer_relevancy": 0.8388386795142242
  },
  {
   "id": "CS14",
   "user_input": "Chuẩn IP68 nghĩa là gì, có mang đi bơi được không?",
-  "answer_relevancy": NaN
+  "answer_relevancy": 0.9354798328850246
  },
  {
   "id": "CS15",
   "user_input": "Máy có RAM ảo 8GB thì có mạnh hơn không?",
-  "answer_relevancy": NaN
+  "answer_relevancy": 0.8566431010432003
  }
 ]

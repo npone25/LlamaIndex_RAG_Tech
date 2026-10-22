@@ -39,6 +39,6 @@ TS     (15 câu) | cơ sở Hit 1.00 MRR 0.89 | nâng cao Hit 0.93 MRR 0.87
 CS     (15 câu) | cơ sở Hit 1.00 MRR 0.82 | nâng cao Hit 0.87 MRR 0.66
 Tất cả (30 câu) | cơ sở Hit 1.00 MRR 0.86 | nâng cao Hit 0.90 MRR 0.76
 Đã lưu biểu đồ hinh/fig_retrieval.png
-Matplotlib is building the font cache; this may take a moment.
-Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
-Loading weights:   0%|          | 0/201 [00:00<?, ?it/s]Loading weights:   1%|▏         | 3/201 [00:00<00:07, 25.80it/s]Loading weights:  15%|█▌        | 31/201 [00:00<00:01, 148.22it/s]Loading weights:  27%|██▋       | 54/201 [00:00<00:00, 180.91it/s]Loading weights:  36%|███▋      | 73/201 [00:00<00:01, 74.86it/s] Loading weights:  43%|████▎     | 86/201 [00:01<00:01, 74.72it/s]Loading weights:  48%|████▊     | 97/201 [00:01<00:01, 78.78it/s]Loading weights:  65%|██████▍   | 130/201 [00:01<00:00, 125.36it/s]Loading weights: 100%|██████████| 201/201 [00:01<00:00, 160.08it/s]
+'[WinError 10054] An existing connection was forcibly closed by the remote host' thrown while requesting HEAD https://huggingface.co/BAAI/bge-reranker-base/resolve/main/./modules.json
+Retrying in 1s [Retry 1/5].
+Loading weights:   0%|          | 0/201 [00:00<?, ?it/s]Loading weights:   1%|          | 2/201 [00:00<00:10, 18.96it/s]Loading weights:   2%|▏         | 4/201 [00:00<00:12, 15.94it/s]Loading weights:   3%|▎         | 6/201 [00:00<00:12, 15.43it/s]Loading weights:   4%|▍         | 9/201 [00:00<00:10, 19.12it/s]Loading weights:   6%|▌         | 12/201 [00:00<00:09, 20.92it/s]Loading weights:   7%|▋         | 15/201 [00:00<00:08, 21.43it/s]Loading weights:   9%|▉         | 18/201 [00:00<00:08, 22.57it/s]Loading weights: 100%|██████████| 201/201 [00:00<00:00, 226.56it/s]

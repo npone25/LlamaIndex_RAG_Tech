@@ -1,0 +1,39 @@
+=== BƯỚC 1: CÁC CÂU CÒN Ô TRỐNG TRONG logs/ket_qua_ch9.json ===
+Số câu: 5 | CS01, CS02, CS03, CS08, CS09
+=== BƯỚC 2: HỎI LẠI CÁC CÂU NÀY (cùng query engine với exp_94_ragas.py) ===
+Loading weights:   0%|          | 0/201 [00:00<?, ?it/s]Loading weights:   3%|2         | 6/201 [00:00<00:04, 47.87it/s]Loading weights:   5%|5         | 11/201 [00:00<00:04, 38.93it/s]Loading weights:   8%|8         | 17/201 [00:00<00:04, 38.52it/s]Loading weights:  10%|#         | 21/201 [00:00<00:04, 38.44it/s]Loading weights: 100%|##########| 201/201 [00:00<00:00, 359.24it/s]
+Retrying llama_index.llms.google_genai.base.GoogleGenAI._achat in 1.0 seconds as it raised ServerError: 503 UNAVAILABLE. {'error': {'code': 503, 'message': 'This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.', 'status': 'UNAVAILABLE'}}.
+Retrying llama_index.llms.google_genai.base.GoogleGenAI._achat in 1.8217751129370812 seconds as it raised ServerError: 503 UNAVAILABLE. {'error': {'code': 503, 'message': 'This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.', 'status': 'UNAVAILABLE'}}.
+Retrying llama_index.llms.google_genai.base.GoogleGenAI._achat in 1.0 seconds as it raised ServerError: 503 UNAVAILABLE. {'error': {'code': 503, 'message': 'This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.', 'status': 'UNAVAILABLE'}}.
+Retrying llama_index.llms.google_genai.base.GoogleGenAI._achat in 1.0 seconds as it raised ServerError: 503 UNAVAILABLE. {'error': {'code': 503, 'message': 'This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.', 'status': 'UNAVAILABLE'}}.
+Retrying llama_index.llms.google_genai.base.GoogleGenAI._achat in 1.0 seconds as it raised ServerError: 503 UNAVAILABLE. {'error': {'code': 503, 'message': 'This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.', 'status': 'UNAVAILABLE'}}.
+Retrying llama_index.llms.google_genai.base.GoogleGenAI._achat in 1.0 seconds as it raised ServerError: 503 UNAVAILABLE. {'error': {'code': 503, 'message': 'This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.', 'status': 'UNAVAILABLE'}}.
+Retrying llama_index.llms.google_genai.base.GoogleGenAI._achat in 1.0 seconds as it raised ServerError: 503 UNAVAILABLE. {'error': {'code': 503, 'message': 'This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.', 'status': 'UNAVAILABLE'}}.
+Retrying llama_index.llms.google_genai.base.GoogleGenAI._achat in 1.0 seconds as it raised ServerError: 503 UNAVAILABLE. {'error': {'code': 503, 'message': 'This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.', 'status': 'UNAVAILABLE'}}.
+Retrying llama_index.llms.google_genai.base.GoogleGenAI._achat in 1.0 seconds as it raised ServerError: 503 UNAVAILABLE. {'error': {'code': 503, 'message': 'This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.', 'status': 'UNAVAILABLE'}}.
+Retrying llama_index.llms.google_genai.base.GoogleGenAI._achat in 1.0 seconds as it raised ServerError: 503 UNAVAILABLE. {'error': {'code': 503, 'message': 'This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.', 'status': 'UNAVAILABLE'}}.
+Retrying llama_index.llms.google_genai.base.GoogleGenAI._achat in 1.0 seconds as it raised ServerError: 503 UNAVAILABLE. {'error': {'code': 503, 'message': 'This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.', 'status': 'UNAVAILABLE'}}.
+CS01 | 3 đoạn ngữ cảnh | câu trả lời KHÁC lần chạy trước
+CS02 | 3 đoạn ngữ cảnh | câu trả lời KHÁC lần chạy trước
+CS03 | 2 đoạn ngữ cảnh | câu trả lời GIỐNG lần chạy trước
+CS08 | 3 đoạn ngữ cảnh | câu trả lời KHÁC lần chạy trước
+CS09 | 3 đoạn ngữ cảnh | câu trả lời KHÁC lần chạy trước
+=== BƯỚC 3: CHẤM BÙ, TỐI ĐA 3 LƯỢT CHO CÁC Ô CÒN TRỐNG ===
+Lượt 1: còn 5 câu có ô trống
+Lượt 2: còn 0 câu có ô trống
+=== BƯỚC 4: ĐIỂM SAU KHI CHẤM BÙ ===
+CS01 | Faithfulness 1.00 | Context Precision 0.00
+CS02 | Faithfulness 1.00 | Context Precision 1.00
+CS03 | Faithfulness 1.00 | Context Precision 1.00
+CS08 | Faithfulness 1.00 | Context Precision 0.33
+CS09 | Faithfulness 1.00 | Context Precision 0.00
+=== BƯỚC 5: TRUNG BÌNH THEO NHÓM (chỉ tính ô có điểm) ===
+TS     | Faithfulness 1.000 (14/14 câu) | Context Precision 0.857 (14/14 câu)
+CS     | Faithfulness 0.839 (14/14 câu) | Context Precision 0.595 (14/14 câu)
+Tất cả | Faithfulness 0.920 (28/28 câu) | Context Precision 0.726 (28/28 câu)
+Đã cập nhật logs/ket_qua_ch9.json
+Exception ignored in: <function BaseApiClient._get_aiohttp_session.<locals>.AiohttpTCPConnector.__del__ at 0x00000229813153A0>
+Traceback (most recent call last):
+  File "C:\ProgramData\Anaconda3\Lib\site-packages\google\genai\_api_client.py", line 1053, in __del__
+  File "C:\ProgramData\Anaconda3\Lib\site-packages\aiohttp\connector.py", line 1061, in _close
+AttributeError: 'NoneType' object has no attribute 'from_iterable'

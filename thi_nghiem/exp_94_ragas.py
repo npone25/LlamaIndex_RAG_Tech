@@ -5,6 +5,7 @@
 
 import _duong_dan  # noqa: F401  (thêm thư mục gốc và loi_rag/ vào đường dẫn tìm module)
 import json
+import math
 import statistics
 import sys
 import warnings
@@ -73,6 +74,14 @@ for lan in range(1, SO_LAN + 1):
           % (lan, bang["faithfulness"].mean(), bang["llm_context_precision_with_reference"].mean(),
              int(bang[["faithfulness", "llm_context_precision_with_reference"]].isna().sum().sum())))
 
+# Giám khảo không chấm được ô nào (thường do hết hạn mức Gemini): dừng, không ghi đè kết quả cũ
+so_o_co_diem = 0
+for bang in cac_lan:
+    so_o_co_diem = so_o_co_diem + int(bang[["faithfulness", "llm_context_precision_with_reference"]].notna().sum().sum())
+if so_o_co_diem == 0:
+    print("Giám khảo không chấm được ô nào (xem lỗi 429/503 ở trên). Dừng, không ghi đè logs/ket_qua_ch9.json.")
+    sys.exit(1)
+
 print("=== BƯỚC 3: TỔNG HỢP THEO NHÓM (trung bình các lần chấm) ===")
 COT = {"faithfulness": "Faithfulness", "llm_context_precision_with_reference": "Context Precision"}
 tong_hop = {}
@@ -82,7 +91,14 @@ for nhom in ["TS", "CS", "Tất cả"]:
         moi_lan = []
         for bang in cac_lan:
             chon = bang if nhom == "Tất cả" else bang[bang["id"].str.startswith(nhom)]
-            moi_lan.append(chon[cot].mean())
+            gia_tri = chon[cot].mean()
+            # Lần chấm mà cả nhóm đều lỗi cho NaN: bỏ qua, không tính vào trung bình
+            if not math.isnan(gia_tri):
+                moi_lan.append(gia_tri)
+        if len(moi_lan) == 0:
+            tong_hop[(nhom, ten)] = 0.0
+            dong.append("%s không chấm được" % ten)
+            continue
         tb = statistics.mean(moi_lan)
         lech = statistics.stdev(moi_lan) if len(moi_lan) > 1 else 0.0
         tong_hop[(nhom, ten)] = tb
