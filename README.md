@@ -10,7 +10,7 @@ Chatbot tư vấn điện thoại và chính sách bán hàng, xây bằng **Lla
 - **Lưu trữ**: bảng `products` cho truy vấn SQL; bảng vector `data_san_pham` và `data_kien_thuc` (768 chiều, chỉ mục HNSW cosine); bảng docstore và bảng cache của pipeline nạp.
 - **Mô hình**:
   - Nhúng: `gemini-embedding-2` (768 chiều).
-  - Trả lời: `gemini-3.5-flash-lite`; dự phòng và giám khảo chấm điểm: `gemini-3.1-flash-lite`. Đổi được trong `.env`, không cần sửa code.
+  - Trả lời: `gemini-3.5-flash-lite` (`GEMINI_LLM_MODEL`); dự phòng: `gemini-3.1-flash-lite` (`GEMINI_MODEL_DU_PHONG`); giám khảo chấm điểm chương 9: `gemini-3.1-flash-lite` (`GEMINI_JUDGE_MODEL`, bỏ trống thì dùng mô hình trả lời). Đổi trong `.env`, không cần sửa code.
   - Tái xếp hạng: `BAAI/bge-reranker-base` chạy trên máy.
 - **Luồng một câu hỏi** (`he_thong/dich_vu.py`, hàm `TroLy.hoi`):
   1. Làm sạch câu hỏi (tối đa 500 ký tự).
@@ -35,7 +35,7 @@ Sơ đồ: `hinh/hinh_3_1_luong_nap.png` (luồng nạp), `hinh/hinh_3_2_luong_t
 ## 3. Cài đặt
 
 ```bash
-git clone <địa chỉ repo của nhóm>
+git clone https://github.com/npone25/LlamaIndex_RAG_Tech.git
 cd LlamaIndex_RAG_Tech
 
 python -m venv .venv
@@ -89,21 +89,27 @@ Mọi thí nghiệm nằm trong `thi_nghiem/` và được chạy từ thư mụ
 | Chương | Script trong `thi_nghiem/` | Ghi chú |
 |---|---|---|
 | 3. Môi trường | `kiem_tra_moi_truong`, `kiem_tra_module`, `hello_world`, `thong_ke_du_lieu` | |
-| 4. Nạp và lập chỉ mục | `exp_411` … `exp_443` | 4.3.3 và 4.4 cần PostgreSQL |
+| 4. Nạp và lập chỉ mục | `exp_411` … `exp_443` | 4.2.5 (bước 4), 4.3.3, 4.3.4 và 4.4 cần PostgreSQL; 4.3.1 gọi Gemini và lưu `vector_431.json`, 4.3.2 dùng lại file đó (chạy 4.3.1 trước) |
 | 5. Truy hồi theo metadata | `exp_511` … `exp_533` | `exp_532` là thí nghiệm độc lập, không nằm trong luồng chính |
 | 6. Truy hồi nâng cao | `exp_611` … `exp_652` | reranker tải mô hình lần đầu (~1 GB) |
 | 7. Tổng hợp câu trả lời | `exp_71`, `exp_72`, `exp_73` | |
 | 8. Định tuyến công cụ | `kiem_tra_gia`, `exp_811` … `exp_841` | |
-| 9. Đánh giá | `exp_91`, `exp_93`, `exp_94`, `exp_94b`, `so_sanh_tham_so` | bộ câu hỏi `thi_nghiem/golden_set_ch9.json` (35 câu) |
+| 9. Đánh giá | `exp_91`, `exp_93`, `exp_94`, `exp_94c`, `exp_94b`, `so_sanh_tham_so` | bộ câu hỏi `thi_nghiem/golden_set_ch9.json` (35 câu) |
 | 10. Lớp bảo vệ | `exp_101a` … `exp_103` | |
 | 12. Độ trễ, chi phí | `do_tre_chi_phi`, `kiem_tra_truy_vet`, `chay_6_cau_demo` | |
 
 Chạy một thí nghiệm: `python thi_nghiem/exp_93_truy_hoi.py`.
 
 Chạy hàng loạt và tự ghi log:
-- 4.1.2 và 4.2 (không cần cơ sở dữ liệu, không gọi API): `python thi_nghiem/chay_tat_ca.py`.
+- 4.1.2 và 4.2 (không gọi API; riêng `exp_425` có một bước đọc PostgreSQL): `python thi_nghiem/chay_tat_ca.py`.
 - Các chương cần dữ liệu đã nạp: `python thi_nghiem/chay_thi_nghiem.py 5 8` (chỉ chương 5 và 8), hoặc liệt kê tên file: `python thi_nghiem/chay_thi_nghiem.py exp_91_cau_hinh exp_93_truy_hoi`. Thêm `--qua-dem` để tự đợi rồi thử lại khi gặp 503 hoặc hết hạn mức.
-- Không chạy lại `bo_cau_hoi_ch9.py` và `tao_bo_danh_gia.py` nếu không định đổi bộ câu hỏi: hai script này ghi đè bộ câu hỏi đã khóa.
+- Không chạy lại `bo_cau_hoi_ch9.py` và `tao_bo_danh_gia.py` nếu không định đổi bộ câu hỏi: hai script này ghi đè bộ câu hỏi đã khóa. Vì vậy cũng không chạy `chay_thi_nghiem.py 9`: danh sách chương 9 có `bo_cau_hoi_ch9`; hãy liệt kê tên file như ví dụ trên.
+
+Chương 9 chạy theo thứ tự (mỗi bước ghi log bằng `cmd /c "python ... > logs\<tên>.txt 2>&1"` trên Windows):
+1. `exp_91_cau_hinh`, `exp_93_truy_hoi`: cấu hình và chỉ số truy hồi.
+2. `exp_94_ragas.py 1`: trả lời 35 câu và chấm Faithfulness, Context Precision; số `1` là số lần chấm (mặc định 3). Giám khảo chạy ở temperature 0 nên các lần chấm cho cùng kết quả; chấm 1 lần để tiết kiệm hạn mức. Kết quả lưu ở `logs/ket_qua_ch9.json`.
+3. `exp_94c_cham_bu.py`: chỉ khi bước 2 còn ô trống do Gemini lỗi 503/429; hỏi lại và chấm bù đúng những câu đó.
+4. `exp_94b_answer_relevancy.py`: chấm Answer Relevancy trên câu trả lời đã lưu ở bước 2-3, nên chạy sau cùng.
 
 `so_sanh_tham_so.py` so sánh `top_k` (1, 3, 5, 10) trên 30 câu có đáp án; thêm `--chunk` để so sánh `chunk_size` (128, 256, 512), phần này tốn khoảng 787 lượt nhúng.
 
@@ -135,7 +141,7 @@ Mỗi script trong `thi_nghiem/` có dòng `import _duong_dan` ở đầu: dòng
 ├── hands_on_lab/                 Bài thực hành 30–45 phút
 ├── hinh/                         Sơ đồ dùng trong báo cáo (nguồn .dot và ảnh .png)
 ├── data_phones_v2/, data_kien_thuc/   Dữ liệu sản phẩm và kho kiến thức
-├── docs/                         Hướng dẫn thành viên, ghi chú làm việc, ảnh dùng trong báo cáo
+├── docs/                         Hướng dẫn thành viên, ảnh minh chứng chương 11-12
 ├── cong_cu/                      Công cụ phụ: cào dữ liệu, tạo dữ liệu mẫu, chụp code thành ảnh
 ├── db/init.sql                   Bật extension vector khi tạo container
 └── docker-compose.yml, Dockerfile, requirements*.txt, pyproject.toml, .env.example
@@ -144,13 +150,14 @@ Mỗi script trong `thi_nghiem/` có dòng `import _duong_dan` ở đầu: dòng
 ## 8. Hạn mức Gemini miễn phí
 
 - Nhúng: 1.000 lượt mỗi ngày, 100 lượt mỗi phút, tính theo Google Cloud Project (không theo từng khóa).
+- Sinh văn bản: giới hạn riêng cho từng mô hình. Lần chạy chương 9 ngày 22/10/2026 gặp giới hạn 500 lượt mỗi ngày của `gemini-3.1-flash-lite` (mô hình giám khảo), nên chương 9 chỉ chấm 1 lần.
 - Hạn mức làm mới lúc 0 giờ giờ Thái Bình Dương, tức 14 hoặc 15 giờ Việt Nam.
 - Khi gặp 429, `ChuoiMoHinh` thử mô hình kế tiếp; hết mô hình thì chỉ trả về tài liệu liên quan.
 
 ## 9. Lỗi thường gặp
 
 - `Chua dat PG_PASSWORD trong file .env`: chưa tạo `.env` hoặc thiếu biến.
-- `password authentication failed`: mật khẩu trong `PG_DSN` khác `PG_PASSWORD`. Nếu đã đổi mật khẩu sau khi tạo container, chạy `docker compose down -v` để tạo lại.
+- `password authentication failed`: mật khẩu trong `PG_DSN` khác `PG_PASSWORD`. Nếu đã đổi mật khẩu sau khi tạo container, chạy `docker compose down -v` để tạo lại (lệnh này xóa luôn dữ liệu, phải chạy lại `seed_sql.py` và `ingest.py`).
 - Cổng 5432 bị trùng: đổi `PG_PORT=5433` và sửa cổng trong `PG_DSN`.
 - `Cannot connect to the Docker daemon`: mở Docker Desktop trước.
 - `503` / `429` từ Gemini: xem mục 8.
