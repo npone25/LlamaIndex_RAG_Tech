@@ -3,68 +3,38 @@
 .env.*
 !.env.example
 
-# Thông tin cá nhân sinh viên & lịch học
-*Gemini for Student*.pdf
-*Thông tin cá nhân*
-*Thời khóa biểu*
-*Lịch học*
-
-# Môi trường ảo Python
+# Môi trường ảo và cache
 .venv/
 venv/
 env/
-
-# Cache và file tạm Python
 __pycache__/
 *.py[cod]
-*$py.class
+.pytest_cache/
+.ruff_cache/
+
+# Log: log thí nghiệm trong logs/ được commit làm minh chứng; chỉ bỏ vết truy vết, nhật ký hỏi đáp và log tạm
 *.log
-# Log thí nghiệm trong logs/ được commit làm minh chứng; chỉ bỏ vết truy vết và nhật ký hỏi đáp
 logs/truy_vet/
 logs/hoi_dap.jsonl
 /log_*.txt
+
+# File sinh ra khi chạy, tạo lại được
 vector_431.json
-data_test/
-_cu/
-
-# Thư mục sao lưu / bản cũ
-_ban_sao_san_pham/
-_ban_cu_bao_cao/
-
-# Báo cáo Word và file lock của Word
-*.docx
-~$*.docx
-*.doc
-
-# File crawl HTML debug (nặng ~42MB) và file web tải về ở thư mục gốc
+docs/anh_bao_cao/code_*.png
+docs/anh_bao_cao/log_*.png
+docs/anh_bao_cao/exp_411.png
 data/phones/debug_html/
-/*.html
-/*_files/
+data/phones/phones.json
+data/phones/phones.csv
 
-# IDE & Hệ điều hành
+# File Word (báo cáo, file khóa của Word); file mẫu .docx cho thí nghiệm tạo bằng scripts/make_sample_data.py
+*.docx
+*.doc
+~$*
+
+# IDE và hệ điều hành
 .vscode/
 .idea/
 .DS_Store
 Thumbs.db
 Desktop.ini
-
-# Thư mục tạm của Claude
-_claude_lam_viec/
-
-# Cache của công cụ kiểm thử
-.pytest_cache/
-.ruff_cache/
-
-# Ảnh chụp code/log tự sinh bằng scripts/code_capture.py (đã chèn vào báo cáo, tạo lại được)
-docs/anh_bao_cao/code_*.png
-docs/anh_bao_cao/log_*.png
-docs/anh_bao_cao/exp_411.png
-
-# Bản sao định dạng khác của dữ liệu cào (code chỉ đọc phones.xlsx; crawl_phones.py tạo lại được)
-data/phones/phones.json
-data/phones/phones.csv
-
-# Ghi chú bàn giao giữa các phiên làm việc
-docs/Cac_cong_viec_da_lam.txt
-docs/HUONG_DAN_AGENT_CODE_DO_AN.txt
-PROMPT_Antigravity_Truy_vet_RAG.md
