@@ -9,7 +9,10 @@ import sys
 
 import ingest
 import seed_sql
-from kho_du_lieu import check_sync, create_db_engine  # loi_rag/ đã được ingest và seed_sql thêm vào đường dẫn
+from phone_advisor.ingestion.store import (
+    check_sync,
+    create_db_engine,
+)
 
 ALLOWED_ARGS = {"--gia", "--cho-phep-don-nhieu"}
 

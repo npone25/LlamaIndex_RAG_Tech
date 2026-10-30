@@ -37,7 +37,7 @@ _ban_cu_bao_cao/
 *.doc
 
 # File crawl HTML debug (nặng ~42MB) và file web tải về ở thư mục gốc
-data_phones_v2/debug_html/
+data/phones/debug_html/
 /*.html
 /*_files/
 
@@ -55,14 +55,14 @@ _claude_lam_viec/
 .pytest_cache/
 .ruff_cache/
 
-# Ảnh chụp code/log tự sinh bằng cong_cu/code_capture.py (đã chèn vào báo cáo, tạo lại được)
+# Ảnh chụp code/log tự sinh bằng scripts/code_capture.py (đã chèn vào báo cáo, tạo lại được)
 docs/anh_bao_cao/code_*.png
 docs/anh_bao_cao/log_*.png
 docs/anh_bao_cao/exp_411.png
 
 # Bản sao định dạng khác của dữ liệu cào (code chỉ đọc phones.xlsx; crawl_phones.py tạo lại được)
-data_phones_v2/phones.json
-data_phones_v2/phones.csv
+data/phones/phones.json
+data/phones/phones.csv
 
 # Ghi chú bàn giao giữa các phiên làm việc
 docs/Cac_cong_viec_da_lam.txt

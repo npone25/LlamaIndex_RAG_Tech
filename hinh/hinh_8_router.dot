@@ -3,14 +3,16 @@ digraph G {
   node [shape=box, style="rounded,filled", fillcolor="#eef3fb", color="#4a6fa5", fontname="Liberation Sans", fontsize=11];
   edge [color="#555555", fontname="Liberation Sans", fontsize=10];
   q [label="Câu hỏi đã qua lớp bảo vệ", shape=ellipse, fillcolor="#e6f4ea", color="#3b8b55"];
-  r [label="RouterQueryEngine\nLLMSingleSelector đọc name + description\ncủa 3 QueryEngineTool", shape=diamond, fillcolor="#fff7d6", color="#b39b2d"];
+  r [label="RouterQueryEngine\nLLMSingleSelector đọc name + description\ncủa 4 QueryEngineTool", shape=diamond, fillcolor="#fff7d6", color="#b39b2d"];
   a [label="tra_cuu_so_lieu\nNLSQLTableQueryEngine\nlớp (a): lọc, đếm, sắp xếp, trung bình"];
-  b [label="tu_van_va_chinh_sach\nquery engine chương 7\nlớp (b), (c) và tài liệu kiến thức"];
-  c [label="tinh_tra_gop\nTraGopEngine bọc FunctionTool"];
+  b [label="tu_van_va_chinh_sach\nquery engine chương 7\nlớp (b) và tài liệu kiến thức"];
+  d [label="tu_van_theo_dieu_kien\nMetadataFilterEngine: Auto-Retriever\nLLM tách điều kiện -> lọc metadata lớp (c)\nrồi tìm theo nghĩa, reranker, ngưỡng"];
+  c [label="tinh_tra_gop\nInstallmentEngine bọc FunctionTool"];
   m [label="Nếu LLM chọn 2 công cụ: chạy cả hai,\ngộp bằng bộ tổng hợp (thêm 1 lần gọi LLM)", fillcolor="#f2f2f2", color="#888888"];
   q -> r;
   r -> a [label="số liệu"];
   r -> b [label="tư vấn, chính sách"];
+  r -> d [label="tư vấn có điều kiện\n(giá, hãng, RAM...)"];
   r -> c [label="trả góp"];
-  a -> m [style=dashed]; b -> m [style=dashed];
+  a -> m [style=dashed]; b -> m [style=dashed]; d -> m [style=dashed];
 }

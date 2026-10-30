@@ -5,12 +5,6 @@ Có hai chế độ: chế độ thường (khung chat) và chế độ truy v�
 """
 
 import sys
-from pathlib import Path
-
-# Lõi RAG nằm trong loi_rag/: thêm thư mục này vào đường dẫn tìm module
-CORE_DIR = Path(__file__).resolve().parent / "loi_rag"
-if str(CORE_DIR) not in sys.path:
-    sys.path.insert(0, str(CORE_DIR))
 
 try:
     if hasattr(sys.stdout, "reconfigure"):
@@ -20,17 +14,10 @@ except Exception:
 
 import streamlit as st
 
-try:
-    from he_thong.dich_vu import AnswerResult, clean_error_message
-    from he_thong.mo_hinh_du_phong import build_model_chain
-except ImportError:
-    from dich_vu import AnswerResult, clean_error_message
-    from mo_hinh_du_phong import build_model_chain
-
-from kho_du_lieu import check_connnection, count_table_rows
-
-from he_thong.giao_dien import load_css, metric_card, draw_trace_panel, trace_to_message
-
+from phone_advisor.ingestion.store import check_connnection, count_table_rows
+from phone_advisor.service.assistant import AnswerResult, clean_error_message
+from phone_advisor.service.model_chain import build_model_chain
+from phone_advisor.ui.components import draw_trace_panel, load_css, metric_card, trace_to_message
 
 st.set_page_config(
     page_title="Trợ lý tư vấn điện thoại",
@@ -73,7 +60,7 @@ def get_assistant():
 @st.cache_resource
 def _create_trace_resources(_real_assistant):
     """Dùng lại retriever 4 nhánh, reranker và router của trợ lý thật; dựng một lần."""
-    from he_thong.truy_vet import init_trace_resources
+    from phone_advisor.service.tracing import init_trace_resources
     return init_trace_resources(tro_ly=_real_assistant)
 
 
@@ -88,8 +75,8 @@ def get_trace_resources(tro_ly):
 @st.cache_resource
 def _knowledge_nodes():
     """Các node tài liệu nhóm theo Document cha, dùng để ghép lại tài liệu gốc khi xem nguồn."""
-    from kho_du_lieu import KNOWLEDGE_VECTOR_TABLE
-    from truy_hoi import load_table_nodes
+    from phone_advisor.ingestion.store import KNOWLEDGE_VECTOR_TABLE
+    from phone_advisor.retrieval.retrievers import load_table_nodes
     by_document = {}
     for node in load_table_nodes(KNOWLEDGE_VECTOR_TABLE):
         key_name = node.ref_doc_id
@@ -324,7 +311,7 @@ def main():
         if trace_mode:
             with st.spinner("Đang chạy và ghi lại từng khâu (bảo vệ → định tuyến → truy hồi → RRF → rerank → LLM)..."):
                 try:
-                    from he_thong.truy_vet import trace_question
+                    from phone_advisor.service.tracing import trace_question
                     resources = get_trace_resources(tro_ly)
                     trace = trace_question(cau_hoi, history=history, resources=resources)
                     assistant_message = trace_to_message(trace)

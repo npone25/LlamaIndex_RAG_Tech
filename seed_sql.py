@@ -10,12 +10,7 @@ import pandas as pd
 from dotenv import load_dotenv
 from sqlalchemy import create_engine, text
 
-# Lõi RAG nằm trong loi_rag/: thêm thư mục này vào đường dẫn tìm module
-CORE_FOLDER = Path(__file__).resolve().parent / "loi_rag"
-if str(CORE_FOLDER) not in sys.path:
-    sys.path.insert(0, str(CORE_FOLDER))
-
-from loi_rag.chuyen_doi_san_pham import PHONE_FILE, get_price
+from phone_advisor.ingestion.documents import PHONE_FILE, get_price
 
 load_dotenv()
 

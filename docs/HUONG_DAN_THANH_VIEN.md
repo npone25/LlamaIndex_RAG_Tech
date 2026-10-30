@@ -2,7 +2,7 @@
 
 Nguyên tắc chung: mỗi commit là việc người đó thật sự làm, commit bằng tài khoản Git của chính mình. Lịch sử commit và trang Contributors là minh chứng nộp cho thầy, và buổi bảo vệ có thể gọi bất kỳ ai lên giải thích hoặc sửa phần mình phụ trách.
 
-Hệ thống lõi và các thí nghiệm `thi_nghiem/exp_*.py` đã có sẵn (Trọng Phúc viết). Phần việc của các bạn là việc mới: chạy lại, kiểm chứng kết quả, bổ sung kiểm thử, cải tiến và viết phần tương ứng trong báo cáo. Không xóa hoặc gõ lại các file đã có rồi commit như file mới.
+Hệ thống lõi và các thí nghiệm `experiments/exp_*.py` đã có sẵn (Trọng Phúc viết). Phần việc của các bạn là việc mới: chạy lại, kiểm chứng kết quả, bổ sung kiểm thử, cải tiến và viết phần tương ứng trong báo cáo. Không xóa hoặc gõ lại các file đã có rồi commit như file mới.
 
 ## 1. Thiết lập một lần
 
@@ -16,7 +16,7 @@ python -m venv .venv
 .venv\Scripts\Activate.ps1
 pip install -r requirements.txt -r requirements-ci.txt -r requirements-dev.txt
 copy .env.example .env          # rồi điền GOOGLE_API_KEY và mật khẩu của riêng bạn
-pytest                          # phải ra 102 passed
+pytest                          # phải ra 121 passed
 ```
 
 Mỗi người dùng khóa Gemini của riêng mình (tạo ở https://aistudio.google.com/apikey) để không dùng chung hạn mức. Không commit file `.env`.
@@ -30,7 +30,7 @@ git checkout main
 git pull
 git checkout -b <ten>/<viec>          # ví dụ: thinh/kiem-thu-loc-gia
 # ... làm việc, chạy, xem log ...
-ruff check he_thong tests
+ruff check phone_advisor tests app.py ingest.py seed_sql.py update_data.py pages
 pytest
 git add <các file đã làm>
 git commit -m "Chương 5: thêm kiểm thử lọc giá cho máy không có giá"
@@ -53,15 +53,15 @@ Ghi chép kiểm chứng đặt trong thư mục `kiem_chung/` (tạo mới nế
 ### Quỳnh Hương - chương 9 (đánh giá)
 
 - Sau khi Trọng Phúc đẩy log chương 9 mới, đọc `logs/ket_qua_ch9.json`: với từng câu trong 35 câu, ghi nguồn lấy ra có chứa đáp án không và câu trả lời có thêm gì ngoài nguồn không; ghi vào `kiem_chung/ch9_kiem_tay.md`.
-- Tự chấm tay 10 câu theo cùng tiêu chí với giám khảo LLM; viết script `thi_nghiem/exp_95_kiem_tra_giam_khao.py` đọc điểm tự chấm và điểm giám khảo, in tỷ lệ khớp và các câu lệch, lưu log `logs/exp_95_kiem_tra_giam_khao.txt`.
+- Tự chấm tay 10 câu theo cùng tiêu chí với giám khảo LLM; viết script `experiments/exp_95_kiem_tra_giam_khao.py` đọc điểm tự chấm và điểm giám khảo, in tỷ lệ khớp và các câu lệch, lưu log `logs/exp_95_kiem_tra_giam_khao.txt`.
 - Hands-on lab: kiểm lại 3 bài tập và đáp án (mục 4-5 của `LAB.md`).
 - Báo cáo: viết phần phân tích 9.3-9.4 theo số mới và kết quả kiểm tay; ảnh trang Contributors cho phụ lục; ý 4 của mục 13.3.
 
 ### Đăng Phúc - chương 8 và chương 10
 
-- Viết script `thi_nghiem/kiem_chung_sql.py`: với khoảng 10 câu hỏi số liệu, chạy câu SQL tự viết tay trên bảng `products` và so với câu trả lời của NLSQL; ghi kết quả vào `kiem_chung/ch8_nghiep_vu.md`.
+- Viết script `experiments/kiem_chung_sql.py`: với khoảng 10 câu hỏi số liệu, chạy câu SQL tự viết tay trên bảng `products` và so với câu trả lời của NLSQL; ghi kết quả vào `kiem_chung/ch8_nghiep_vu.md`.
 - Thêm kiểm thử cho công cụ trả góp trong `tests/test_tra_gop.py`: lãi 0%, trả trước 0% và 50%, các kỳ hạn khác nhau; tính tay 2-3 ca để đối chiếu.
-- Cải tiến chương 10 (báo cáo đã ghi là hạn chế ở 10.1.d và hướng phát triển ở 14.1): cho lớp biểu thức chính quy chạy trên câu gốc trước bước viết lại câu hỏi, sửa trong `he_thong/dich_vu.py`, thêm kiểm thử, chạy lại `thi_nghiem/exp_103_tich_hop.py` và ghi kết quả trước/sau.
+- Cải tiến chương 10 (báo cáo đã ghi là hạn chế ở 10.1.d và hướng phát triển ở 14.1): cho lớp biểu thức chính quy chạy trên câu gốc trước bước viết lại câu hỏi, sửa trong `phone_advisor/service/assistant.py`, thêm kiểm thử, chạy lại `experiments/exp_103_tich_hop.py` và ghi kết quả trước/sau.
 - Ca cách ly phiên: mở hai tab trình duyệt, hỏi hai câu khác nhau, chụp ảnh chứng minh lịch sử không lẫn (mục 3.3.3).
 - Hands-on lab: bổ sung mục Lỗi thường gặp sau khi chạy thử trên Windows. Quay video demo 2-3 phút.
 - Báo cáo: cập nhật 8.2-8.3, 10.1 và ý 4 của mục 13.3.

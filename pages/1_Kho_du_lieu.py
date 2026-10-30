@@ -1,20 +1,12 @@
 """Trang Kho dữ liệu: xem Document, Node, metadata và vector đã nạp vào PostgreSQL + pgvector."""
 
 import json
-import sys
-from pathlib import Path
-
-# Trang con chạy từ thư mục pages/, thêm thư mục dự án vào đường dẫn tìm module
-PROJECT_FOLDER = Path(__file__).resolve().parent.parent
-for folder in [PROJECT_FOLDER, PROJECT_FOLDER / "loi_rag"]:
-    if str(folder) not in sys.path:
-        sys.path.insert(0, str(folder))
 
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
-from he_thong.giao_dien import COLORS, e, load_css, badge, metric_card, html_text
+from phone_advisor.ui.components import COLORS, badge, e, html_text, load_css, metric_card
 
 st.set_page_config(page_title="Kho dữ liệu", page_icon="🗂️", layout="wide")
 
@@ -22,8 +14,8 @@ st.set_page_config(page_title="Kho dữ liệu", page_icon="🗂️", layout="wi
 @st.cache_resource
 def load_nodes():
     """Đọc toàn bộ Node của hai bảng vector một lần (818 + 204 Node)."""
-    from kho_du_lieu import KNOWLEDGE_VECTOR_TABLE, PRODUCT_VECTOR_TABLE
-    from truy_hoi import load_table_nodes
+    from phone_advisor.ingestion.store import KNOWLEDGE_VECTOR_TABLE, PRODUCT_VECTOR_TABLE
+    from phone_advisor.retrieval.retrievers import load_table_nodes
     return {"san_pham": load_table_nodes(PRODUCT_VECTOR_TABLE), "kien_thuc": load_table_nodes(KNOWLEDGE_VECTOR_TABLE)}
 
 
@@ -45,8 +37,9 @@ def count_tokens(text_body):
 
 def get_vector(table_name, node_id):
     """Đọc vector của một Node từ cột embedding trong PostgreSQL."""
-    from kho_du_lieu import create_db_engine
     from sqlalchemy import text
+
+    from phone_advisor.ingestion.store import create_db_engine
     with create_db_engine().connect() as conn:
         fetched = conn.execute(text("SELECT embedding FROM data_" + table_name + " WHERE node_id = :ma"),
                             {"ma": node_id}).fetchone()

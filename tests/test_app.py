@@ -10,12 +10,9 @@ from pathlib import Path
 import pytest
 from streamlit.testing.v1 import AppTest
 
-APP_PATH = str(Path(__file__).parent.parent / "app.py")
+from phone_advisor.service.assistant import AnswerResult
 
-try:
-    from he_thong.dich_vu import AnswerResult
-except ImportError:
-    from dich_vu import AnswerResult
+APP_PATH = str(Path(__file__).parent.parent / "app.py")
 
 
 class FakeAppAssistant:
@@ -40,9 +37,9 @@ class FakeAppAssistant:
 @pytest.fixture(autouse=True)
 def mock_app_environment(monkeypatch):
     """Mặc định mock kết nối cơ sở dữ liệu và đếm dòng bảng sẵn sàng."""
-    monkeypatch.setattr("kho_du_lieu.check_connnection", lambda *a, **kw: (True, ""))
+    monkeypatch.setattr("phone_advisor.ingestion.store.check_connnection", lambda *a, **kw: (True, ""))
     monkeypatch.setattr(
-        "kho_du_lieu.count_table_rows",
+        "phone_advisor.ingestion.store.count_table_rows",
         lambda *a, **kw: {"products": 818, "data_san_pham": 818, "data_kien_thuc": 20},
     )
 
@@ -50,7 +47,7 @@ def mock_app_environment(monkeypatch):
 def test_app_starts_with_title(monkeypatch):
     """(1) Khởi động không lỗi, có tiêu đề đúng."""
     fake_assistant = FakeAppAssistant()
-    monkeypatch.setattr("he_thong.mo_hinh_du_phong.build_model_chain", lambda *a, **kw: fake_assistant)
+    monkeypatch.setattr("phone_advisor.service.model_chain.build_model_chain", lambda *a, **kw: fake_assistant)
 
     at = AppTest.from_file(APP_PATH, default_timeout=15)
     at.session_state["_tro_ly_kiem_thu"] = fake_assistant
@@ -78,7 +75,7 @@ def test_app_question_creates_messages(monkeypatch):
         ],
     )
     fake_assistant = FakeAppAssistant(return_value=res)
-    monkeypatch.setattr("he_thong.mo_hinh_du_phong.build_model_chain", lambda *a, **kw: fake_assistant)
+    monkeypatch.setattr("phone_advisor.service.model_chain.build_model_chain", lambda *a, **kw: fake_assistant)
 
     at = AppTest.from_file(APP_PATH, default_timeout=15)
     at.session_state["_tro_ly_kiem_thu"] = fake_assistant
@@ -104,7 +101,7 @@ def test_app_blocked_mode_shows_info(monkeypatch):
         cong_cu="bi_chan",
     )
     fake_assistant = FakeAppAssistant(return_value=res)
-    monkeypatch.setattr("he_thong.mo_hinh_du_phong.build_model_chain", lambda *a, **kw: fake_assistant)
+    monkeypatch.setattr("phone_advisor.service.model_chain.build_model_chain", lambda *a, **kw: fake_assistant)
 
     at = AppTest.from_file(APP_PATH, default_timeout=15)
     at.session_state["_tro_ly_kiem_thu"] = fake_assistant
@@ -135,7 +132,7 @@ def test_app_sources_only_mode_shows_warning(monkeypatch):
         ],
     )
     fake_assistant = FakeAppAssistant(return_value=res)
-    monkeypatch.setattr("he_thong.mo_hinh_du_phong.build_model_chain", lambda *a, **kw: fake_assistant)
+    monkeypatch.setattr("phone_advisor.service.model_chain.build_model_chain", lambda *a, **kw: fake_assistant)
 
     at = AppTest.from_file(APP_PATH, default_timeout=15)
     at.session_state["_tro_ly_kiem_thu"] = fake_assistant
@@ -154,7 +151,7 @@ def test_app_error_mode_hides_dsn(monkeypatch):
     """(5) Chế độ loi hiển thị st.error và KHÔNG chứa 'postgresql://'."""
     error = Exception("Lỗi kết nối tới postgresql://postgres:mat_khau_bi_mat@127.0.0.1:5432/db")
     fake_assistant = FakeAppAssistant(return_value=error)
-    monkeypatch.setattr("he_thong.mo_hinh_du_phong.build_model_chain", lambda *a, **kw: fake_assistant)
+    monkeypatch.setattr("phone_advisor.service.model_chain.build_model_chain", lambda *a, **kw: fake_assistant)
 
     at = AppTest.from_file(APP_PATH, default_timeout=15)
     at.session_state["_tro_ly_kiem_thu"] = fake_assistant
@@ -173,11 +170,11 @@ def test_app_error_mode_hides_dsn(monkeypatch):
 def test_app_empty_tables_show_warning(monkeypatch):
     """(6) Bảng chưa nạp (hoặc count=0) hiển thị st.warning hướng dẫn nạp dữ liệu."""
     monkeypatch.setattr(
-        "kho_du_lieu.count_table_rows",
+        "phone_advisor.ingestion.store.count_table_rows",
         lambda *a, **kw: {"products": 0, "data_san_pham": 0, "data_kien_thuc": 0},
     )
     fake_assistant = FakeAppAssistant()
-    monkeypatch.setattr("he_thong.mo_hinh_du_phong.build_model_chain", lambda *a, **kw: fake_assistant)
+    monkeypatch.setattr("phone_advisor.service.model_chain.build_model_chain", lambda *a, **kw: fake_assistant)
 
     at = AppTest.from_file(APP_PATH, default_timeout=15)
     at.session_state["_tro_ly_kiem_thu"] = fake_assistant
@@ -192,7 +189,7 @@ def test_app_empty_tables_show_warning(monkeypatch):
 def test_app_clear_chat_empties_history(monkeypatch):
     """(7) Nút Xóa hội thoại làm rỗng lịch sử chat trong session_state."""
     fake_assistant = FakeAppAssistant()
-    monkeypatch.setattr("he_thong.mo_hinh_du_phong.build_model_chain", lambda *a, **kw: fake_assistant)
+    monkeypatch.setattr("phone_advisor.service.model_chain.build_model_chain", lambda *a, **kw: fake_assistant)
 
     at = AppTest.from_file(APP_PATH, default_timeout=15)
     at.session_state["_tro_ly_kiem_thu"] = fake_assistant
@@ -225,7 +222,7 @@ def test_app_shows_model_in_sidebar_and_details(monkeypatch):
         mo_hinh="gemini-2.5-pro",
     )
     fake_assistant = FakeAppAssistant(return_value=res, model_name="gemini-2.5-flash")
-    monkeypatch.setattr("he_thong.mo_hinh_du_phong.build_model_chain", lambda *a, **kw: fake_assistant)
+    monkeypatch.setattr("phone_advisor.service.model_chain.build_model_chain", lambda *a, **kw: fake_assistant)
 
     at = AppTest.from_file(APP_PATH, default_timeout=15)
     at.session_state["_tro_ly_kiem_thu"] = fake_assistant

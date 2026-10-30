@@ -6,13 +6,13 @@ Chatbot tư vấn điện thoại và chính sách bán hàng, xây bằng **Lla
 
 ## 1. Hệ thống làm gì
 
-- **Dữ liệu**: `data_phones_v2/phones.xlsx` (818 sản phẩm, 299 máy có giá, 180 máy còn hàng) và `data_kien_thuc/` (20 tài liệu Markdown: chính sách, kiến thức, mẹo dùng, tư vấn).
+- **Dữ liệu**: `data/phones/phones.xlsx` (818 sản phẩm, 299 máy có giá, 180 máy còn hàng) và `data/knowledge/` (20 tài liệu Markdown: chính sách, kiến thức, mẹo dùng, tư vấn).
 - **Lưu trữ**: bảng `products` cho truy vấn SQL; bảng vector `data_san_pham` và `data_kien_thuc` (768 chiều, chỉ mục HNSW cosine); bảng docstore và bảng cache của pipeline nạp.
 - **Mô hình**:
   - Nhúng: `gemini-embedding-2` (768 chiều).
   - Trả lời: `gemini-3.5-flash-lite` (`GEMINI_LLM_MODEL`); dự phòng: `gemini-3.1-flash-lite` (`GEMINI_MODEL_DU_PHONG`); giám khảo chấm điểm chương 9: `gemini-3.1-flash-lite` (`GEMINI_JUDGE_MODEL`, bỏ trống thì dùng mô hình trả lời). Đổi trong `.env`, không cần sửa code.
   - Tái xếp hạng: `BAAI/bge-reranker-base` chạy trên máy.
-- **Luồng một câu hỏi** (`he_thong/dich_vu.py`, hàm `Assistant.ask`):
+- **Luồng một câu hỏi** (`phone_advisor/service/assistant.py`, hàm `Assistant.ask`):
   1. Làm sạch câu hỏi (tối đa 500 ký tự).
   2. Viết lại câu hỏi theo 6 tin nhắn gần nhất của phiên.
   3. Lớp bảo vệ 1 (regex) rồi lớp 2 (LLM phân loại tấn công / ngoài phạm vi).
@@ -78,33 +78,33 @@ Chạy cả ứng dụng trong Docker: `docker compose up --build -d`. Xem dữ 
 
 ```bash
 pip install -r requirements-ci.txt -r requirements-dev.txt
-ruff check he_thong tests
+ruff check phone_advisor tests app.py ingest.py seed_sql.py update_data.py pages
 pytest
 ```
 
-Bộ kiểm thử (102 ca) chạy không cần mạng, không cần khóa Gemini và không cần Docker: dùng vector giả và LLM giả trong `tests/conftest.py`. GitHub Actions (`.github/workflows/kiem_thu.yml`) chạy đúng hai lệnh trên mỗi lần push lên `main`.
+Bộ kiểm thử (121 ca) chạy không cần mạng, không cần khóa Gemini và không cần Docker: dùng vector giả và LLM giả trong `tests/conftest.py`. GitHub Actions (`.github/workflows/kiem_thu.yml`) chạy đúng hai lệnh trên mỗi lần push lên `main`.
 
 ## 6. Thí nghiệm của báo cáo
 
-Mọi thí nghiệm nằm trong `thi_nghiem/` và được chạy từ thư mục gốc. Mỗi mục trong báo cáo có một script `exp_<số mục>_<tên>.py` và một log tương ứng trong `logs/`. Ví dụ `thi_nghiem/exp_642_reranker.py` → `logs/exp_642_reranker.txt` (mục 6.4.2).
+Mọi thí nghiệm nằm trong `experiments/` và được chạy từ thư mục gốc. Mỗi mục trong báo cáo có một script `exp_<số mục>_<tên>.py` và một log tương ứng trong `logs/`. Ví dụ `experiments/exp_642_reranker.py` → `logs/exp_642_reranker.txt` (mục 6.4.2).
 
-| Chương | Script trong `thi_nghiem/` | Ghi chú |
+| Chương | Script trong `experiments/` | Ghi chú |
 |---|---|---|
 | 3. Môi trường | `kiem_tra_moi_truong`, `kiem_tra_module`, `hello_world`, `thong_ke_du_lieu` | |
 | 4. Nạp và lập chỉ mục | `exp_411` … `exp_443` | 4.2.5 (bước 4), 4.3.3, 4.3.4 và 4.4 cần PostgreSQL; 4.3.1 gọi Gemini và lưu `vector_431.json`, 4.3.2 dùng lại file đó (chạy 4.3.1 trước) |
-| 5. Truy hồi theo metadata | `exp_511` … `exp_533` | `exp_532` là thí nghiệm độc lập, không nằm trong luồng chính |
+| 5. Truy hồi theo metadata | `exp_511` … `exp_533` | `exp_532` minh họa Auto-Retriever; trong ứng dụng, Auto-Retriever là công cụ `tu_van_theo_dieu_kien` của router (chương 8) |
 | 6. Truy hồi nâng cao | `exp_611` … `exp_652` | reranker tải mô hình lần đầu (~1 GB) |
 | 7. Tổng hợp câu trả lời | `exp_71`, `exp_72`, `exp_73` | |
 | 8. Định tuyến công cụ | `kiem_tra_gia`, `exp_811` … `exp_841` | |
-| 9. Đánh giá | `exp_91`, `exp_93`, `exp_94`, `exp_94c`, `exp_94b`, `so_sanh_tham_so` | bộ câu hỏi `thi_nghiem/golden_set_ch9.json` (35 câu) |
+| 9. Đánh giá | `exp_91`, `exp_93`, `exp_94`, `exp_94c`, `exp_94b`, `so_sanh_tham_so` | bộ câu hỏi `experiments/golden_set_ch9.json` (35 câu) |
 | 10. Lớp bảo vệ | `exp_101a` … `exp_103` | |
 | 12. Độ trễ, chi phí | `do_tre_chi_phi`, `kiem_tra_truy_vet`, `chay_6_cau_demo` | |
 
-Chạy một thí nghiệm: `python thi_nghiem/exp_93_truy_hoi.py`.
+Chạy một thí nghiệm: `python experiments/exp_93_truy_hoi.py`.
 
 Chạy hàng loạt và tự ghi log:
-- 4.1.2 và 4.2 (không gọi API; riêng `exp_425` có một bước đọc PostgreSQL): `python thi_nghiem/chay_tat_ca.py`.
-- Các chương cần dữ liệu đã nạp: `python thi_nghiem/chay_thi_nghiem.py 5 8` (chỉ chương 5 và 8), hoặc liệt kê tên file: `python thi_nghiem/chay_thi_nghiem.py exp_91_cau_hinh exp_93_truy_hoi`. Thêm `--qua-dem` để tự đợi rồi thử lại khi gặp 503 hoặc hết hạn mức.
+- 4.1.2 và 4.2 (không gọi API; riêng `exp_425` có một bước đọc PostgreSQL): `python experiments/chay_tat_ca.py`.
+- Các chương cần dữ liệu đã nạp: `python experiments/chay_thi_nghiem.py 5 8` (chỉ chương 5 và 8), hoặc liệt kê tên file: `python experiments/chay_thi_nghiem.py exp_91_cau_hinh exp_93_truy_hoi`. Thêm `--qua-dem` để tự đợi rồi thử lại khi gặp 503 hoặc hết hạn mức.
 - Không chạy lại `bo_cau_hoi_ch9.py` và `tao_bo_danh_gia.py` nếu không định đổi bộ câu hỏi: hai script này ghi đè bộ câu hỏi đã khóa. Vì vậy cũng không chạy `chay_thi_nghiem.py 9`: danh sách chương 9 có `bo_cau_hoi_ch9`; hãy liệt kê tên file như ví dụ trên.
 
 Chương 9 chạy theo thứ tự (mỗi bước ghi log bằng `cmd /c "python ... > logs\<tên>.txt 2>&1"` trên Windows):
@@ -115,40 +115,49 @@ Chương 9 chạy theo thứ tự (mỗi bước ghi log bằng `cmd /c "python 
 
 `so_sanh_tham_so.py` so sánh `top_k` (1, 3, 5, 10) trên 30 câu có đáp án; thêm `--chunk` để so sánh `chunk_size` (128, 256, 512), phần này tốn khoảng 787 lượt nhúng.
 
-Mỗi script trong `thi_nghiem/` có dòng `import _duong_dan` ở đầu: dòng này thêm thư mục gốc và `loi_rag/` vào đường dẫn tìm module, nhờ đó script vẫn viết `from truy_hoi import ...` như khi mọi file còn nằm chung một thư mục.
+Mỗi script trong `experiments/` có dòng `import _paths` ở đầu: dòng này thêm thư mục gốc vào đường dẫn tìm module, nhờ đó script import được package `phone_advisor` (ví dụ `from phone_advisor.retrieval.retrievers import create_reranker`) và các file ở thư mục gốc như `ingest.py`.
 
 ## 7. Cấu trúc thư mục
 
 ```
 ├── app.py, pages/, .streamlit/   Giao diện Streamlit (trang chat và trang Kho dữ liệu)
-├── ingest.py, seed_sql.py        Nạp dữ liệu vào PostgreSQL
+├── ingest.py, seed_sql.py        Nạp dữ liệu vào PostgreSQL (lớp vector và bảng products)
 ├── update_data.py                Cập nhật cả hai lớp bằng một lệnh và kiểm tra đồng bộ
-├── loi_rag/                      Lõi RAG dùng chung
-│   ├── chuyen_doi_san_pham.py    đọc bảng điện thoại, tạo Document
-│   ├── kho_du_lieu.py            kết nối PostgreSQL, PGVectorStore, docstore, cache
-│   ├── nhung_gemini.py, llm_gemini.py, vector_gia.py   mô hình nhúng và LLM (vector_gia: vector giả để thử)
-│   ├── truy_hoi.py               Vector + BM25 + RRF + reranker
-│   ├── loc_metadata.py           lọc metadata, Auto-Retriever
-│   ├── tro_ly.py                 prompt tổng hợp, ngưỡng từ chối, trích nguồn
-│   ├── dinh_tuyen.py, tra_gop.py Router, Text-to-SQL, tính trả góp
-│   └── bao_ve.py                 hai lớp bảo vệ
-├── he_thong/                     Lớp ứng dụng
-│   ├── cau_hinh.py               đọc .env và các hằng số cấu hình (chunk, top_k, ngưỡng)
-│   ├── dich_vu.py                lớp Assistant: luồng xử lý một câu hỏi
-│   ├── mo_hinh_du_phong.py       ModelChain
-│   ├── nhat_ky.py, truy_vet.py   nhật ký hỏi đáp, ghi vết từng bước
-│   └── giao_dien.py, .css        thành phần hiển thị
-├── thi_nghiem/                   Thí nghiệm theo mục báo cáo, bộ câu hỏi đánh giá, dữ liệu mẫu chương 4
+├── phone_advisor/                Mã nguồn chính (package Python)
+│   ├── config.py                 đọc .env và các hằng số cấu hình (chunk, top_k, ngưỡng)
+│   ├── llm.py                    tạo LLM Gemini (trả lời, giám khảo, dự phòng)
+│   ├── guardrails.py             hai lớp bảo vệ: biểu thức chính quy và LLM phân loại
+│   ├── ingestion/                nạp dữ liệu
+│   │   ├── documents.py          đọc bảng điện thoại, tạo Document có metadata
+│   │   ├── store.py              kết nối PostgreSQL, PGVectorStore, docstore, cache, kiểm tra đồng bộ
+│   │   ├── embeddings.py         mô hình nhúng gemini-embedding-2 (giới hạn tốc độ, thử lại khi 429)
+│   │   └── fake_embeddings.py    vector giả để thử luồng không tốn hạn mức
+│   ├── retrieval/                truy hồi
+│   │   ├── retrievers.py         Vector + BM25 + RRF + reranker
+│   │   ├── metadata_filters.py   lọc metadata, Auto-Retriever
+│   │   └── query_engine.py       prompt tổng hợp, ngưỡng từ chối, trích nguồn
+│   ├── tools/                    công cụ của router
+│   │   ├── router.py             RouterQueryEngine với 4 công cụ, Text-to-SQL, tư vấn theo điều kiện
+│   │   └── installment.py        tính trả góp bằng Python
+│   ├── service/                  tầng dịch vụ
+│   │   ├── assistant.py          lớp Assistant: luồng xử lý một câu hỏi
+│   │   ├── model_chain.py        ModelChain: chuyển mô hình dự phòng khi Gemini lỗi
+│   │   ├── tracing.py            ghi vết từng khâu cho chế độ truy vết
+│   │   └── qa_log.py             nhật ký hỏi đáp
+│   └── ui/                       thành phần giao diện (components.py, style.css)
+├── experiments/                  Thí nghiệm theo mục báo cáo, bộ câu hỏi đánh giá, dữ liệu mẫu chương 4
 ├── logs/                         Log thí nghiệm (minh chứng, được commit)
-├── tests/                        Kiểm thử pytest (102 ca)
+├── tests/                        Kiểm thử pytest (121 ca)
 ├── hands_on_lab/                 Bài thực hành 30–45 phút
 ├── hinh/                         Sơ đồ dùng trong báo cáo (nguồn .dot và ảnh .png)
-├── data_phones_v2/, data_kien_thuc/   Dữ liệu sản phẩm và kho kiến thức
+├── data/phones/, data/knowledge/ Dữ liệu sản phẩm và kho kiến thức
 ├── docs/                         Hướng dẫn thành viên, ảnh minh chứng chương 11-12
-├── cong_cu/                      Công cụ phụ: cào dữ liệu, tạo dữ liệu mẫu, chụp code thành ảnh
+├── scripts/                      Công cụ phụ: cào dữ liệu, tạo dữ liệu mẫu, chụp code thành ảnh
 ├── db/init.sql                   Bật extension vector khi tạo container
 └── docker-compose.yml, Dockerfile, requirements*.txt, pyproject.toml, .env.example
 ```
+
+Hướng phụ thuộc chỉ đi một chiều: `service/` và `ui/` gọi xuống lõi (`tools/`, `retrieval/`, `guardrails.py`), lõi gọi xuống nền (`ingestion/`, `llm.py`, `config.py`). Lớp `Assistant` không phụ thuộc Streamlit, nên có thể bọc bằng một API khác mà không sửa lõi. Kiểm chứng bằng `python experiments/kiem_tra_module.py`.
 
 ## 8. Hạn mức Gemini miễn phí
 

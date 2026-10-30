@@ -36,7 +36,7 @@ Chế độ bm25 | top_k=3 | Hit Rate@3 = 0.90 | MRR@3 = 0.80
 Nội dung thư mục:
 
 - `du_lieu/dien_thoai_mau.csv`: 20 điện thoại lấy từ bộ dữ liệu 818 máy của đồ án (13 hãng, giá từ 1,4 đến 65 triệu đồng).
-- `du_lieu/*.md`: hai tài liệu chính sách (bảo hành đổi trả, trả góp) lấy nguyên từ `data_kien_thuc/chinh_sach/`.
+- `du_lieu/*.md`: hai tài liệu chính sách (bảo hành đổi trả, trả góp) lấy nguyên từ `data/knowledge/chinh_sach/`.
 - `cau_hoi.json`: 10 câu hỏi có đáp án, 5 câu về sản phẩm (đáp án là `product_id`) và 5 câu về chính sách (đáp án là một cụm từ phải có trong đoạn lấy ra).
 - `lab_rag.py`: code khởi đầu. Hai chỗ ghi `BÀI TẬP` cần viết thêm.
 - `dap_an/lab_rag_dap_an.py`: code đã làm xong, chỉ mở sau khi tự làm.

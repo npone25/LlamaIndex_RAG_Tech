@@ -14,32 +14,27 @@ from llama_index.core.ingestion import DocstoreStrategy, IngestionPipeline
 from llama_index.core.node_parser import SentenceSplitter
 from sqlalchemy import text
 
-# Lõi RAG nằm trong loi_rag/: thêm thư mục này vào đường dẫn tìm module
-sys.path.insert(0, str(Path(__file__).parent / "loi_rag"))
-
-
-from chuyen_doi_san_pham import load_phones
-from kho_du_lieu import (
-    KNOWLEDGE_VECTOR_TABLE,
-    PRODUCT_VECTOR_TABLE,
-    enable_hnsw_iterative_scan,
-    ensure_hnsw_index,
-    create_cache,
-    create_docstore,
-    create_db_engine,
-    create_vector_store,
-)
-
-from he_thong.cau_hinh import (  # noqa: E402
+from phone_advisor.config import (  # noqa: E402
     KNOWLEDGE_CHUNK_OVERLAP,
+    KNOWLEDGE_CHUNK_SIZE,
     MAX_STALE_RATIO,
     PRODUCT_CHUNK_OVERLAP,
-    KNOWLEDGE_CHUNK_SIZE,
     PRODUCT_CHUNK_SIZE,
+)
+from phone_advisor.ingestion.documents import load_phones
+from phone_advisor.ingestion.store import (
+    KNOWLEDGE_VECTOR_TABLE,
+    PRODUCT_VECTOR_TABLE,
+    create_cache,
+    create_db_engine,
+    create_docstore,
+    create_vector_store,
+    enable_hnsw_iterative_scan,
+    ensure_hnsw_index,
 )
 
 FOLDER = Path(__file__).parent
-KNOWLEDGE_FOLDER = FOLDER / "data_kien_thuc"
+KNOWLEDGE_FOLDER = FOLDER / "data" / "knowledge"
 
 
 def load_knowledge(folder_name_in=None):
@@ -56,8 +51,10 @@ def load_knowledge(folder_name_in=None):
         page_count[name] = page_count.get(name, 0) + 1
         doc.id_ = name + "#" + str(page_count[name])    # mỗi trang PDF một doc_id riêng vì mỗi trang là 1 document
         doc.metadata = {
-            "file_name": doc.metadata["file_name"], # chắc chắn có thì dùng [] , không chắc có như page_label thì dùng () 
-            "doc_type": path.parts[0] if len(path.parts) > 1 else "chung", #kiểm tra nằm trong thư mục con, lấy làm nhãn để phân biệt tài liệu thuộc nhóm nào 
+            # chắc chắn có thì dùng [] , không chắc có như page_label thì dùng ()
+            "file_name": doc.metadata["file_name"],
+            # kiểm tra nằm trong thư mục con, lấy làm nhãn để phân biệt tài liệu thuộc nhóm nào
+            "doc_type": path.parts[0] if len(path.parts) > 1 else "chung",
             "page_label": doc.metadata.get("page_label", "1"), #tham số 1 dự phòng nếu không có trang 
         }
     return documents
@@ -86,7 +83,8 @@ def remove_stale_documents(pipeline, documents, max_ratio=MAX_STALE_RATIO, force
         return []
     in_store = set(pipeline.docstore.get_all_document_hashes().values())
     stale = sorted(in_store - {doc.doc_id for doc in documents})
-    if stale and not force and len(stale) > max_ratio * len(in_store): # dùng raise phân biệt có nhiều bị chặn/ không có gì để dọn
+    # dùng raise phân biệt có nhiều bị chặn/ không có gì để dọn
+    if stale and not force and len(stale) > max_ratio * len(in_store):
         raise StaleCleanupRefused("%d/%d Document định dọn (%.0f%%, vượt ngưỡng %.0f%%): %s" % (
             len(stale), len(in_store), 100 * len(stale) / len(in_store), 100 * max_ratio,
             ", ".join(stale[:5]) + (" ..." if len(stale) > 5 else "")))
@@ -97,8 +95,10 @@ def remove_stale_documents(pipeline, documents, max_ratio=MAX_STALE_RATIO, force
 
 
 # namespace: vai trò nhãn dán phân loại Document
-# # docstore (UPSERTS): nhớ mã băm của từng Document theo doc_id; Document chưa đổi thì bỏ qua, đã đổi thì xóa Node cũ rồi nạp lại
-# cache: nhớ kết quả từng công đoạn (cắt, nhúng) theo mã băm của cả lô đầu vào + cấu hình; trùng thì dùng lại, khỏi tính và khỏi gọi Gemini
+# # docstore (UPSERTS): nhớ mã băm của từng Document theo doc_id; Document chưa đổi thì bỏ qua,
+# đã đổi thì xóa Node cũ rồi nạp lại
+# cache: nhớ kết quả từng công đoạn (cắt, nhúng) theo mã băm của cả lô đầu vào + cấu hình;
+# trùng thì dùng lại, khỏi tính và khỏi gọi Gemini
  
 def ingest_documents(namespace, documents, splitter, embed_model, table_name, docs_per_batch =100, engine=None,
                      force_clean=False):
@@ -149,12 +149,12 @@ def main(args=None):
         return
 
     if "--vector-gia" in args:
-        from vector_gia import FakeEmbedding
+        from phone_advisor.ingestion.fake_embeddings import FakeEmbedding
         embed_model = FakeEmbedding()
         print("Mô hình nhúng: VECTOR GIẢ (chỉ để thử luồng)")
     else:
-        from nhung_gemini import MODEL_EMBEDDING_NAME, create_embed_model
-        from he_thong.cau_hinh import VECTOR_SIZE
+        from phone_advisor.config import VECTOR_SIZE
+        from phone_advisor.ingestion.embeddings import MODEL_EMBEDDING_NAME, create_embed_model
         embed_model = create_embed_model()
         embed_model.embed_batch_size = 50   # gửi 50 văn bản một lần để giảm số lần gọi API
         print("Mô hình nhúng:", MODEL_EMBEDDING_NAME, "|", VECTOR_SIZE, "chiều")
@@ -163,13 +163,15 @@ def main(args=None):
     loaded_tables = []   # bảng vector được nạp ở lần chạy này; bước kiểm chứng cuối chỉ xét các bảng đó
     if "--load-knowledge-document-only" not in args:
         loaded_tables.append(PRODUCT_VECTOR_TABLE)
-        ingest_documents("san_pham", load_phones(), SentenceSplitter(chunk_size=PRODUCT_CHUNK_SIZE, chunk_overlap=PRODUCT_CHUNK_OVERLAP),
+        splitter = SentenceSplitter(chunk_size=PRODUCT_CHUNK_SIZE, chunk_overlap=PRODUCT_CHUNK_OVERLAP)
+        ingest_documents("san_pham", load_phones(), splitter,
             embed_model, PRODUCT_VECTOR_TABLE, engine=eng, force_clean=force_clean)
 
     if "--load-products-only" not in args:
         loaded_tables.append(KNOWLEDGE_VECTOR_TABLE)
         # Kho kiến thức chỉ có 20 tệp (~204 Node): chia lô 4 tệp để nếu hết hạn mức thì phần nạp vẫn được giữ
-        ingest_documents("kien_thuc", load_knowledge(), SentenceSplitter(chunk_size=KNOWLEDGE_CHUNK_SIZE, chunk_overlap=KNOWLEDGE_CHUNK_OVERLAP),
+        splitter = SentenceSplitter(chunk_size=KNOWLEDGE_CHUNK_SIZE, chunk_overlap=KNOWLEDGE_CHUNK_OVERLAP)
+        ingest_documents("kien_thuc", load_knowledge(), splitter,
             embed_model, KNOWLEDGE_VECTOR_TABLE, docs_per_batch =4, engine=eng, force_clean=force_clean)
 
     version, is_turn_on = enable_hnsw_iterative_scan(eng)
