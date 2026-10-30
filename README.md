@@ -82,7 +82,7 @@ ruff check phone_advisor tests app.py ingest.py seed_sql.py update_data.py pages
 pytest
 ```
 
-Bộ kiểm thử (124 ca) chạy không cần mạng, không cần khóa Gemini và không cần Docker: dùng vector giả và LLM giả trong `tests/conftest.py`. GitHub Actions (`.github/workflows/kiem_thu.yml`) chạy đúng hai lệnh trên mỗi lần push lên `main`.
+Bộ kiểm thử (125 ca) chạy không cần mạng, không cần khóa Gemini và không cần Docker: dùng vector giả và LLM giả trong `tests/conftest.py`. GitHub Actions (`.github/workflows/kiem_thu.yml`) chạy đúng hai lệnh trên mỗi lần push lên `main`.
 
 ## 6. Thí nghiệm của báo cáo
 
@@ -147,7 +147,7 @@ Mỗi script trong `experiments/` có dòng `import _paths` ở đầu: dòng n�
 │   └── ui/                       thành phần giao diện (components.py, style.css)
 ├── experiments/                  Thí nghiệm theo mục báo cáo, bộ câu hỏi đánh giá, dữ liệu mẫu chương 4
 ├── logs/                         Log thí nghiệm (minh chứng, được commit)
-├── tests/                        Kiểm thử pytest (124 ca)
+├── tests/                        Kiểm thử pytest (125 ca)
 ├── hands_on_lab/                 Bài thực hành 30–45 phút
 ├── hinh/                         Sơ đồ dùng trong báo cáo (nguồn .dot và ảnh .png)
 ├── data/phones/, data/knowledge/ Dữ liệu sản phẩm và kho kiến thức

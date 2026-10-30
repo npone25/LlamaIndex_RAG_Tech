@@ -236,3 +236,53 @@ def test_print_report_in_sync_and_mismatch(capsys):
                               "extra_in_vector": [], "price_mismatch": [("sp1", 100, 200)], "in_sync": False})
     outflow = capsys.readouterr().out
     assert "LỆCH" in outflow and "sp3" in outflow and "sp1" in outflow
+
+
+class _FakeConn:
+    """Kết nối giả cho bước kiểm chứng cuối của ingest.main."""
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc):
+        return False
+
+    def execute(self, *a, **kw):
+        class _Row:
+            def one(self):
+                return (0, 0, 0)
+
+            def scalar(self):
+                return None
+        return _Row()
+
+
+class _FakeEngine:
+    def connect(self):
+        return _FakeConn()
+
+
+def _run_ingest(monkeypatch, args):
+    """Chạy ingest.main với kho và hàm nạp giả; trả về danh sách (bảng, lớp mô hình nhúng) đã được gọi."""
+    import ingest
+
+    calls = []
+    monkeypatch.setattr(ingest, "create_db_engine", lambda: _FakeEngine())
+    monkeypatch.setattr(ingest, "load_phones", lambda: [])
+    monkeypatch.setattr(ingest, "load_knowledge", lambda: [])
+    monkeypatch.setattr(ingest, "enable_hnsw_iterative_scan", lambda eng: ("0.8.7", True))
+    monkeypatch.setattr(ingest, "delete_all", lambda eng: calls.append(("xoa", None)))
+    monkeypatch.setattr(ingest, "ingest_documents",
+                        lambda name, docs, splitter, embed_model, table, **kw: calls.append(
+                            (table, type(embed_model).__name__)))
+    ingest.main(args)
+    return calls
+
+
+def test_ingest_flags_match_readme_and_update_data(monkeypatch):
+    """Các cờ ghi trong README và update_data.py (--gia, --chi-san-pham, --xoa) phải được ingest.py hiểu đúng."""
+    calls = _run_ingest(monkeypatch, ["--gia", "--chi-san-pham"])
+    assert calls == [("san_pham", "FakeEmbedding")]          # --gia: vector giả, không gọi Gemini
+    calls = _run_ingest(monkeypatch, ["--gia", "--chi-kien-thuc"])
+    assert calls == [("kien_thuc", "FakeEmbedding")]
+    assert _run_ingest(monkeypatch, ["--xoa"]) == [("xoa", None)]

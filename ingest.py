@@ -2,6 +2,7 @@
 #   python ingest.py          nhúng bằng gemini-embedding-2 (cần GOOGLE_API_KEY và PG_DSN trong .env)
 #   python ingest.py --gia    nhúng bằng vector giả, chỉ để thử luồng khi chưa có API key
 #   python ingest.py --xoa    xóa bảng vector, docstore và cache để nạp lại từ đầu
+#   python ingest.py --chi-san-pham     chỉ nạp bảng sản phẩm;  --chi-kien-thuc: chỉ nạp kho kiến thức
 #   python ingest.py --cho-phep-don-nhieu   cho phép dọn hơn 20% Document đã biến mất khỏi nguồn (mặc định từ chối)
 # Chạy lại nhiều lần an toàn: docstore (UPSERTS) chỉ nhúng Document mới hoặc đã thay đổi
 
@@ -144,11 +145,11 @@ def main(args=None):
         args = sys.argv[1:]
 
     eng = create_db_engine()
-    if "--delete-all" in args:
+    if "--xoa" in args:
         delete_all(eng)
         return
 
-    if "--vector-gia" in args:
+    if "--gia" in args:
         from phone_advisor.ingestion.fake_embeddings import FakeEmbedding
         embed_model = FakeEmbedding()
         print("Mô hình nhúng: VECTOR GIẢ (chỉ để thử luồng)")
@@ -161,13 +162,13 @@ def main(args=None):
 
     force_clean = "--cho-phep-don-nhieu" in args
     loaded_tables = []   # bảng vector được nạp ở lần chạy này; bước kiểm chứng cuối chỉ xét các bảng đó
-    if "--load-knowledge-document-only" not in args:
+    if "--chi-kien-thuc" not in args:
         loaded_tables.append(PRODUCT_VECTOR_TABLE)
         splitter = SentenceSplitter(chunk_size=PRODUCT_CHUNK_SIZE, chunk_overlap=PRODUCT_CHUNK_OVERLAP)
         ingest_documents("san_pham", load_phones(), splitter,
             embed_model, PRODUCT_VECTOR_TABLE, engine=eng, force_clean=force_clean)
 
-    if "--load-products-only" not in args:
+    if "--chi-san-pham" not in args:
         loaded_tables.append(KNOWLEDGE_VECTOR_TABLE)
         # Kho kiến thức chỉ có 20 tệp (~204 Node): chia lô 4 tệp để nếu hết hạn mức thì phần nạp vẫn được giữ
         splitter = SentenceSplitter(chunk_size=KNOWLEDGE_CHUNK_SIZE, chunk_overlap=KNOWLEDGE_CHUNK_OVERLAP)
