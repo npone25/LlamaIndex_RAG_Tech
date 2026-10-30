@@ -3,7 +3,7 @@
 import numpy as np
 import pandas as pd
 
-from chuyen_doi_san_pham import has_value , get_price, row_to_document, row_to_text
+from chuyen_doi_san_pham import get_price, has_value, row_to_document, row_to_text
 
 
 def test_has_value():

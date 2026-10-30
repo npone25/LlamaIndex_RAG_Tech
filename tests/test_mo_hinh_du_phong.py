@@ -6,7 +6,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from he_thong.dich_vu import AnswerResult
-from he_thong.mo_hinh_du_phong import ModelChain, embed_query_safely, classify_error
+from he_thong.mo_hinh_du_phong import ModelChain, classify_error, embed_query_safely
 
 
 class FakeError(Exception):
@@ -163,14 +163,16 @@ def test_model_chain_other_error_reraised():
 
 
 def test_model_chain_builds_shared_resources_once(monkeypatch):
-    """ModelChain với 3 mô hình: ép chuyển qua cả 3 mô hình thì load_table_nodes và create_reranker chỉ gọi đúng 1 lần."""
+    """ModelChain với 3 mô hình: ép chuyển qua cả 3 mô hình thì load_table_nodes và create_reranker
+    chỉ gọi đúng 1 lần."""
     counts = {"load_table_nodes": 0, "create_reranker": 0}
 
     from llama_index.core.schema import NodeWithScore, TextNode
 
     from tests.conftest import FakeLLM
 
-    sample_node = TextNode(text="Samsung Galaxy S24 Ultra", metadata={"product_id": "sp01", "product_name": "S24 Ultra"})
+    sample_node = TextNode(text="Samsung Galaxy S24 Ultra",
+                           metadata={"product_id": "sp01", "product_name": "S24 Ultra"})
 
     def mock_load_table_nodes(table_name):
         counts["load_table_nodes"] += 1

@@ -7,7 +7,7 @@ from llama_index.core.embeddings import MockEmbedding
 from llama_index.core.query_engine import CustomQueryEngine, NLSQLTableQueryEngine, RouterQueryEngine
 from llama_index.core.selectors import LLMSingleSelector
 from llama_index.core.tools import QueryEngineTool
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import create_engine, text
 
 from he_thong.cau_hinh import TOP_K
@@ -42,6 +42,7 @@ def create_sql_engine(llm):
 
 class InstallmentRequest(BaseModel):
     """Tham số trả góp trích từ câu hỏi của khách."""
+    model_config = ConfigDict(title="YeuCauTraGop")  # giữ tên schema gửi Gemini như lúc chạy thí nghiệm
     ten_may: Optional[str] = Field(None, description="Tên máy khách hỏi, nếu có")
     gia_san_pham: Optional[int] = Field(None, description="Giá máy (đồng) nếu khách nêu rõ")
     ty_le_tra_truoc: float = Field(description="Tỷ lệ trả trước, 30% = 0.3, không nêu thì 0")

@@ -170,26 +170,26 @@ def build_model_chain(
     # cau_hinh và dich_vu nằm trong he_thong/, các module còn lại nằm ở thư mục gốc của dự án
     try:
         from he_thong.cau_hinh import (
+            get_answer_model_name,
             get_fallback_models,
             get_refusal_threshold,
-            get_answer_model_name,
         )
         from he_thong.dich_vu import Assistant
     except ImportError:
         from cau_hinh import (
+            get_answer_model_name,
             get_fallback_models,
             get_refusal_threshold,
-            get_answer_model_name,
         )
         from dich_vu import Assistant
 
     from llama_index.core.postprocessor import SimilarityPostprocessor
 
     from kho_du_lieu import KNOWLEDGE_VECTOR_TABLE, PRODUCT_VECTOR_TABLE
-    from llm_gemini import create_llm_by_name 
+    from llm_gemini import create_llm_by_name
     from nhung_gemini import create_embed_model
     from tro_ly import REFUSAL_CUTOFF
-    from truy_hoi import load_table_nodes, create_all_retriever, create_reranker
+    from truy_hoi import create_all_retriever, create_reranker, load_table_nodes
 
     if model_names is None:
         rows = [get_answer_model_name()] + get_fallback_models()

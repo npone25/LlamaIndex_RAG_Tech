@@ -253,7 +253,8 @@ def tab_branches(trace):
                     '<div class="mono" style="font-size:13px">[%s, …]</div>'
                     '<div class="tv-phu">8 giá trị đầu của embedding gemini-embedding-2; '
                     'dùng chung cho hai nhánh Vector</div></div>'
-                    % (e(embedding_info.get("so_chieu")), format_ms(embedding_info.get("thoi_gian_ms")), e(head)), unsafe_allow_html=True)
+                    % (e(embedding_info.get("so_chieu")), format_ms(embedding_info.get("thoi_gian_ms")), e(head)),
+                    unsafe_allow_html=True)
     counts = count_occurrences(trace)
     branches = trace.get("cac_nhanh") or []
     for i in range(0, len(branches), 2):
@@ -309,7 +310,8 @@ def sankey_chart(trace):
     branch_count = len(node_label)
     node_label = node_label + ["Top 10 sau RRF", "Không vào Top 10", "Top 3 sau rerank",
                            "Loại sau rerank", "Đưa vào prompt", "Dưới ngưỡng 0,10"]
-    node_colors = node_colors + [COLORS["rrf"], COLORS["xam"], COLORS["rerank"], COLORS["xam"], COLORS["llm"], COLORS["xam"]]
+    node_colors = node_colors + [COLORS["rrf"], COLORS["xam"], COLORS["rerank"], COLORS["xam"],
+                                 COLORS["llm"], COLORS["xam"]]
     NODE_RRF = branch_count
     NODE_OUTSIDE = branch_count + 1
     NODE_TOP3 = branch_count + 2
@@ -493,7 +495,8 @@ def source_card(n, position):
     is_document = n.get("loai") == "tài liệu"
     lop = "tv-nguon tai-lieu" if is_document else "tv-nguon"
     dropped_color = COLORS["tai_lieu"] if is_document else COLORS["san_pham"]
-    row_label = [badge(n.get("loai"), dropped_color), badge("rerank %.3f" % float(n.get("diem_rerank") or 0), COLORS["rerank"])]
+    row_label = [badge(n.get("loai"), dropped_color),
+                 badge("rerank %.3f" % float(n.get("diem_rerank") or 0), COLORS["rerank"])]
     if is_document:
         row_label.append(badge(n.get("doc_type"), COLORS["xam"]))
         row_label.append(badge("trang " + str(n.get("page_label")), COLORS["xam"]))
@@ -566,7 +569,8 @@ def tab_timing(trace):
         ("Token ra", "không có" if tokens_out in (None, 0) else str(tokens_out), False),
     ])
     bars = [("Viết lại", timing.get("viet_lai"), COLORS["llm"]), ("Bảo vệ", timing.get("bao_ve"), COLORS["bao_ve"]),
-            ("Định tuyến", timing.get("dinh_tuyen"), COLORS["chu_dao"]), ("Nhúng", timing.get("nhung"), COLORS["vector"])]
+            ("Định tuyến", timing.get("dinh_tuyen"), COLORS["chu_dao"]),
+            ("Nhúng", timing.get("nhung"), COLORS["vector"])]
     for branch in trace.get("cac_nhanh") or []:
         color_code = COLORS["vector"] if branch.get("kieu") == "vector" else COLORS["bm25"]
         bars.append((BRANCH_LABELS.get(branch["ten"], branch["ten"]), branch.get("thoi_gian_ms"), color_code))

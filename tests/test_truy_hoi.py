@@ -3,7 +3,7 @@
 from llama_index.core.base.base_retriever import BaseRetriever
 from llama_index.core.schema import NodeWithScore, QueryBundle, TextNode
 
-from truy_hoi import is_answer, create_bm25, create_fusion, short_label
+from truy_hoi import create_bm25, create_fusion, is_answer, short_label
 
 
 class FakeRetriever(BaseRetriever):

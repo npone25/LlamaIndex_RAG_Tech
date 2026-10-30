@@ -2,7 +2,7 @@
 
 import pytest
 
-from tra_gop import create_installment_tool, compute_installment
+from tra_gop import compute_installment, create_installment_tool
 
 
 def test_compute_installment_without_interest():

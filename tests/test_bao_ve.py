@@ -5,10 +5,10 @@ from unittest.mock import MagicMock
 from bao_ve import (
     ATTACK_REFUSAL_REPLY,
     QuestionCheck,
-    apply_guardrails,
-    strip_accents,
-    check_regex,
     answer_safely,
+    apply_guardrails,
+    check_regex,
+    strip_accents,
 )
 from tests.conftest import FakeLLM
 

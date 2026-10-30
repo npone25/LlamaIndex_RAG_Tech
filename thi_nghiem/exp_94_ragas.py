@@ -126,7 +126,7 @@ for j, item_name in enumerate(COLUMNS.values()):
              width=0.38, label=item_name)
 axes.set_xticks([x + 0.19 for x in range(3)], ["Thông số", "Chính sách", "Tất cả"])
 axes.set_ylim(0, 1.05)
-axes.legend(filter_value="lower left")
+axes.legend(loc="lower left")
 fig.tight_layout()
 (ROOT_FOLDER / "hinh").mkdir(exist_ok=True)
 fig.savefig(ROOT_FOLDER / "hinh" / "fig_generation.png", dpi=150)

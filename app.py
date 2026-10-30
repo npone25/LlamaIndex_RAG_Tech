@@ -347,12 +347,12 @@ def main():
             source_dicts = []
             if res.nguon:
                 for n in res.nguon:
-                    if hasattr(n, "heading"):
+                    if hasattr(n, "tieu_de"):
                         source_dicts.append({
-                            "tieu_de": n.heading,
-                            "loai": n.kind_label,
+                            "tieu_de": n.tieu_de,
+                            "loai": n.loai,
                             "diem_rerank": n.diem_rerank,
-                            "gia": n.price,
+                            "gia": n.gia,
                             "doan_trich": n.doan_trich,
                         })
                     elif isinstance(n, dict):

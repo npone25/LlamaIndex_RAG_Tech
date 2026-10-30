@@ -5,8 +5,8 @@ from unittest.mock import MagicMock, patch
 from sqlalchemy import create_engine, text
 
 import seed_sql
-from kho_du_lieu import count_table_rows, check_connnection
-from llm_gemini import create_llm_by_name 
+from kho_du_lieu import check_connnection, count_table_rows
+from llm_gemini import create_llm_by_name
 from truy_hoi import create_all_retriever
 
 

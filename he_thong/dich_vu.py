@@ -309,8 +309,8 @@ class Assistant:
         t_route_ms = (time.perf_counter() - t_route_start) * 1000
         t_total = (time.perf_counter() - t_total_start) * 1000
 
-        from dinh_tuyen import get_sql_query, get_chosen_tool_name
-        from tro_ly import NO_DATA_REPLY, extract_sources, answer_text
+        from dinh_tuyen import get_chosen_tool_name, get_sql_query
+        from tro_ly import NO_DATA_REPLY, answer_text, extract_sources
 
         cong_cu = get_chosen_tool_name(response)
         if cong_cu == "khong_ro" and not self.use_router:

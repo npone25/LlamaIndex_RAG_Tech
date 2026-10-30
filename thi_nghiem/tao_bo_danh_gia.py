@@ -74,7 +74,7 @@ QUESTION_LIST = [
 
 question_set = []
 for i, (group, cau_hoi, rule, conditions) in enumerate(QUESTION_LIST, start=1):
-    answer_ids = df.filter_value[conditions, "product_id"].astype(str).tolist()
+    answer_ids = df.loc[conditions, "product_id"].astype(str).tolist()
     question_set.append({"id": "q%02d" % i, "nhom": group, "cau_hoi": cau_hoi,
                        "quy_tac": rule, "dap_an": answer_ids})
     print("q%02d | %-8s | %3d đáp án | %s" % (i, group, len(answer_ids), cau_hoi))

@@ -15,7 +15,8 @@ VECTOR_TABLE = "data_" + PRODUCT_VECTOR_TABLE
 def create_fake_pipeline(existing_doc_ids):
     """Pipeline giả: docstore đang ghi nhận các doc_id này (khóa là mã băm, giá trị là doc_id)."""
     pipeline = MagicMock()
-    pipeline.docstore.get_all_document_hashes.return_value = {"hash_" + item_id: item_id for item_id in existing_doc_ids}
+    pipeline.docstore.get_all_document_hashes.return_value = {
+        "hash_" + item_id: item_id for item_id in existing_doc_ids}
     return pipeline
 
 
@@ -23,7 +24,8 @@ def test_remove_documents_missing_from_source():
     """Document có trong docstore nhưng không còn trong đầu vào phải bị xóa khỏi cả docstore và bảng vector."""
     existing_ids = list("abcdefghij")
     pipeline = create_fake_pipeline(existing_ids)
-    documents = [Document(text="x", doc_id=item_id) for item_id in existing_ids[:-1]]   # thiếu "j": 1/10 = 10%, dưới ngưỡng 20%
+    # thiếu "j": 1/10 = 10%, dưới ngưỡng 20%
+    documents = [Document(text="x", doc_id=item_id) for item_id in existing_ids[:-1]]
 
     cleaned = remove_stale_documents(pipeline, documents)
 
@@ -187,7 +189,8 @@ def test_check_sync_vector_keeps_deleted_product():
 
 
 def test_check_sync_price_mismatch():
-    connection = FakeConnection({"products", VECTOR_TABLE}, sql_count_value=2, vector_count_value=2, price_diffs=[("sp1", 100, 200)])
+    connection = FakeConnection({"products", VECTOR_TABLE}, sql_count_value=2, vector_count_value=2,
+                                price_diffs=[("sp1", 100, 200)])
 
     res = check_sync(create_fake_engine(connection))
 

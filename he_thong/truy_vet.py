@@ -22,9 +22,8 @@ except ImportError:
 
 from bao_ve import ATTACK_REFUSAL_REPLY, apply_guardrails, check_regex
 from dinh_tuyen import TOOL_NAMES, get_sql_query
-from tro_ly import NO_DATA_REPLY, ANSWER_PROMPT, REWRITE_PROMPT, answer_text
+from tro_ly import ANSWER_PROMPT, NO_DATA_REPLY, REWRITE_PROMPT, answer_text
 from truy_hoi import short_label
-
 
 BRANCH_NAMES = [
     "vector/san_pham",
@@ -382,7 +381,7 @@ def init_trace_resources(
 
     if not retrievers:
         from kho_du_lieu import KNOWLEDGE_VECTOR_TABLE, PRODUCT_VECTOR_TABLE
-        from truy_hoi import load_table_nodes, create_bm25, create_vector
+        from truy_hoi import create_bm25, create_vector, load_table_nodes
 
         for table_name in [PRODUCT_VECTOR_TABLE, KNOWLEDGE_VECTOR_TABLE]:
             retrievers.append(create_vector(embed_model, table_name, top_k=TOP_K))

@@ -92,7 +92,7 @@ for k, pos in enumerate(["Hit Rate@3", "MRR@3"]):
     axes[k].set_xticks([x + 0.19 for x in range(3)], ["Thông số", "Chính sách", "Tất cả"])
     axes[k].set_ylim(0, 1.05)
     axes[k].set_title(pos)
-axes[0].legend(filter_value="lower left")
+axes[0].legend(loc="lower left")
 fig.tight_layout()
 (ROOT_FOLDER / "hinh").mkdir(exist_ok=True)
 fig.savefig(ROOT_FOLDER / "hinh" / "fig_retrieval.png", dpi=150)
