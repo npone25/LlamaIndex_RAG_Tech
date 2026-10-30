@@ -14,5 +14,5 @@ llama-index-storage-kvstore-postgres==0.4.3
 llama-index-retrievers-bm25==0.8.0
 llama-index-llms-google-genai==0.11.2
 streamlit==1.66.0
-# Giao diện truy vết (he_thong/giao_dien.py) cần plotly; thiếu dòng này thì pytest lỗi khi thu thập test
+# Giao diện truy vết (phone_advisor/ui/components.py) cần plotly; thiếu dòng này thì pytest lỗi khi thu thập test
 plotly

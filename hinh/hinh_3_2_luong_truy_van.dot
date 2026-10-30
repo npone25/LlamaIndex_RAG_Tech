@@ -10,6 +10,7 @@ digraph G {
   router [label="RouterQueryEngine\nLLMSingleSelector\n(có thể chọn 2 công cụ)", shape=diamond, fillcolor="#fff7d6", color="#b39b2d"];
   sql [label="tra_cuu_so_lieu\nNLSQL trên products\n(kết nối chỉ đọc)"];
   rag [label="tu_van_va_chinh_sach\n4 nhánh Vector + BM25\nRRF Top 10, Reranker Top 3\nngưỡng 0,10"];
+  dk [label="tu_van_theo_dieu_kien\nLLM tách điều kiện -> lọc metadata\nrồi tìm theo nghĩa, Reranker,\nngưỡng 0,10"];
   gop [label="tinh_tra_gop\nLLM trích tham số,\nPython tính"];
   llm [label="Gemini sinh câu trả lời\n+ source_nodes"];
   tc [label="Câu từ chối cố định\n(không gọi LLM)", fillcolor="#f2f2f2", color="#888888"];
@@ -20,8 +21,9 @@ digraph G {
   lg -> router [label="qua"];
   router -> sql [label="số liệu"];
   router -> rag [label="tư vấn, chính sách"];
+  router -> dk [label="tư vấn có điều kiện"];
   router -> gop [label="trả góp"];
-  rag -> tc [label="không còn Node"];
-  sql -> llm; rag -> llm; gop -> user [label="kết quả tính"];
+  rag -> tc [label="không còn Node"]; dk -> tc;
+  sql -> llm; rag -> llm; dk -> llm; gop -> user [label="kết quả tính"];
   llm -> user; refuse -> user; tc -> user;
 }

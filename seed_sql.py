@@ -10,17 +10,12 @@ import pandas as pd
 from dotenv import load_dotenv
 from sqlalchemy import create_engine, text
 
-# Lõi RAG nằm trong loi_rag/: thêm thư mục này vào đường dẫn tìm module
-THU_MUC_LOI_RAG = Path(__file__).resolve().parent / "loi_rag"
-if str(THU_MUC_LOI_RAG) not in sys.path:
-    sys.path.insert(0, str(THU_MUC_LOI_RAG))
-
-from chuyen_doi_san_pham import PHONE_FILE, lay_gia
+from phone_advisor.ingestion.documents import PHONE_FILE, get_price
 
 load_dotenv()
 
 # Kiểu dữ liệu từng cột: số để NLSQL so sánh, lọc, sắp xếp được; chữ để hiển thị
-TAO_BANG = """
+CREATE_TABLE_SQL = """
 CREATE TABLE products (
     product_id        TEXT PRIMARY KEY,
     product_name      TEXT NOT NULL,
@@ -45,64 +40,64 @@ CREATE TABLE products (
     url               TEXT
 )
 """
-COT = ["product_id", "product_name", "brand", "price", "ram_gb", "storage_gb", "battery_mah",
-       "screen_size_inch", "rating", "rating_count", "stock_status", "category_path", "needs",
-       "chipset", "screen_tech", "screen_resolution", "charging", "camera_rear", "camera_front",
-       "key_features", "url"]
-COT_SO_NGUYEN = ["price", "ram_gb", "storage_gb", "battery_mah", "rating_count"]
+COLUMNS = ["product_id", "product_name", "brand", "price", "ram_gb", "storage_gb", "battery_mah",
+           "screen_size_inch", "rating", "rating_count", "stock_status", "category_path", "needs",
+           "chipset", "screen_tech", "screen_resolution", "charging", "camera_rear", "camera_front",
+           "key_features", "url"]
+INTEGER_COLUMNS = ["price", "ram_gb", "storage_gb", "battery_mah", "rating_count"]
 
 
-def doc_du_lieu_san_pham(duong_dan_excel=None) -> pd.DataFrame:
+def load_product_data(excel_path=None) -> pd.DataFrame:
     """Đọc dữ liệu sản phẩm, loại bỏ giá giữ chỗ và giữ 21 cột thuộc tính của lớp (a)."""
-    tep = Path(duong_dan_excel) if duong_dan_excel else PHONE_FILE
-    df = pd.read_excel(tep)
-    df["price"] = df.apply(lay_gia, axis=1)   # bỏ giá giữ chỗ, giống metadata của Document
-    df = df[COT].copy()
-    for cot in COT_SO_NGUYEN:
-        df[cot] = df[cot].astype("Int64")  # số nguyên cho phép ô trống (NULL)
+    file = Path(excel_path) if excel_path else PHONE_FILE
+    df = pd.read_excel(file)
+    df["price"] = df.apply(get_price, axis=1)   # bỏ giá giữ chỗ, giống metadata của Document
+    df = df[COLUMNS].copy()
+    for column in INTEGER_COLUMNS:
+        df[column] = df[column].astype("Int64")  # số nguyên cho phép ô trống (NULL)
     return df
 
 
-def tao_lai_bang(engine, df: pd.DataFrame) -> None:
+def recreate_table(engine, df: pd.DataFrame) -> None:
     """Tạo lại bảng products và nạp toàn bộ DataFrame vào cơ sở dữ liệu."""
     with engine.begin() as conn:
         conn.execute(text("DROP TABLE IF EXISTS products"))
-        conn.execute(text(TAO_BANG))
+        conn.execute(text(CREATE_TABLE_SQL))
         df.to_sql("products", conn, if_exists="append", index=False)
 
 
-def kiem_chung(engine) -> dict:
+def verify_data(engine) -> dict:
     """Kiểm chứng dữ liệu bảng products bằng SQL, in kết quả theo khuôn chuẩn."""
     with engine.connect() as conn:
         print("=== BƯỚC 3: KIỂM CHỨNG BẰNG SQL ===")
         try:
-            pg_ver = conn.execute(text("SHOW server_version")).scalar()
-            vec_ver = conn.execute(text("SELECT extversion FROM pg_extension WHERE extname = 'vector'")).scalar()
+            pg_version = conn.execute(text("SHOW server_version")).scalar()
+            vector_version = conn.execute(text("SELECT extversion FROM pg_extension WHERE extname = 'vector'")).scalar()
         except Exception:
-            pg_ver = "khong_ro"
-            vec_ver = "khong_ro"
-        print("PostgreSQL:", pg_ver, "| pgvector:", vec_ver)
+            pg_version = "khong_ro"
+            vector_version = "khong_ro"
+        print("PostgreSQL:", pg_version, "| pgvector:", vector_version)
 
-        tong_so = conn.execute(text("SELECT count(*) FROM products")).scalar()
-        print("SELECT count(*) FROM products ->", tong_so)
+        total = conn.execute(text("SELECT count(*) FROM products")).scalar()
+        print("SELECT count(*) FROM products ->", total)
 
-        co_gia = conn.execute(text("SELECT count(*) FROM products WHERE price IS NOT NULL")).scalar()
-        con_hang = conn.execute(text("SELECT count(*) FROM products WHERE stock_status = 'InStock'")).scalar()
-        print("Có giá:", co_gia, "| còn hàng:", con_hang)
+        with_price = conn.execute(text("SELECT count(*) FROM products WHERE price IS NOT NULL")).scalar()
+        in_stock = conn.execute(text("SELECT count(*) FROM products WHERE stock_status = 'InStock'")).scalar()
+        print("Có giá:", with_price, "| còn hàng:", in_stock)
 
         print("Ví dụ câu hỏi NLSQL: 3 máy Samsung còn hàng rẻ nhất có giá")
-        dong = conn.execute(text(
+        rows = conn.execute(text(
             "SELECT product_name, price FROM products "
             "WHERE brand = 'Samsung' AND stock_status = 'InStock' AND price IS NOT NULL "
             "ORDER BY price LIMIT 3")).fetchall()
-        for d in dong:
-            print("  ", d[0], "|", d[1])
+        for row in rows:
+            print("  ", row[0], "|", row[1])
 
         return {
-            "tong_so": int(tong_so) if tong_so is not None else 0,
-            "co_gia": int(co_gia) if co_gia is not None else 0,
-            "con_hang": int(con_hang) if con_hang is not None else 0,
-            "vi_du_samsung": [(d[0], d[1]) for d in dong],
+            "total": int(total) if total is not None else 0,
+            "with_price": int(with_price) if with_price is not None else 0,
+            "in_stock": int(in_stock) if in_stock is not None else 0,
+            "samsung_examples": [(row[0], row[1]) for row in rows],
         }
 
 
@@ -113,14 +108,14 @@ def main():
         sys.exit("Thiếu PG_DSN trong file .env")
     engine = create_engine(os.environ["PG_DSN"])
 
-    df = doc_du_lieu_san_pham()
+    df = load_product_data()
     print("=== BƯỚC 1: ĐỌC DỮ LIỆU ===")
-    print("File:", PHONE_FILE.parent.name + "/" + PHONE_FILE.name, "| dòng:", len(df), "| cột lớp (a):", len(COT))
+    print("File:", PHONE_FILE.parent.name + "/" + PHONE_FILE.name, "| dòng:", len(df), "| cột lớp (a):", len(COLUMNS))
 
-    tao_lai_bang(engine, df)
+    recreate_table(engine, df)
     print("=== BƯỚC 2: NẠP VÀO POSTGRESQL ===")
 
-    kiem_chung(engine)
+    verify_data(engine)
 
 
 if __name__ == "__main__":

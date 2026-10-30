@@ -3,7 +3,7 @@ digraph G {
   node [shape=box, style="rounded,filled", fillcolor="#eef3fb", color="#4a6fa5", fontname="Liberation Sans", fontsize=11];
   edge [color="#555555", fontname="Liberation Sans", fontsize=10];
   excel [label="phones.xlsx\n818 sản phẩm", shape=cylinder, fillcolor="#fdf3e1", color="#b7863b"];
-  cs [label="data_kien_thuc/ (20 tệp .md)\nchính sách, kiến thức,\nmẹo sử dụng, tư vấn", shape=cylinder, fillcolor="#fdf3e1", color="#b7863b"];
+  cs [label="data/knowledge/ (20 tệp .md)\nchính sách, kiến thức,\nmẹo sử dụng, tư vấn", shape=cylinder, fillcolor="#fdf3e1", color="#b7863b"];
   r2t [label="row_to_document\n(Row-to-Text, lay_gia)"];
   sdr [label="SimpleDirectoryReader"];
   seed [label="seed_sql.py"];

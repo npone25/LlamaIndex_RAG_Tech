@@ -1,13 +1,18 @@
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-pythonpath = [".", "loi_rag", "he_thong", "thi_nghiem"]
+# Thư mục gốc chứa package phone_advisor/ và các script ingest.py, seed_sql.py, update_data.py
+pythonpath = ["."]
 addopts = "-q"
 
 [tool.ruff]
 line-length = 120
-# Module của dự án nằm ở thư mục gốc, loi_rag/ và thi_nghiem/ (để sắp xếp import đúng nhóm)
-src = [".", "loi_rag", "thi_nghiem"]
+# experiments/ là nơi import theo tên file (import _paths, ham_chung_42) nên khai báo thêm để sắp xếp import đúng nhóm
+src = [".", "experiments"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I"]
-exclude = ["thi_nghiem", "_cu", ".venv"]
+exclude = ["experiments", "_cu", ".venv"]
+
+[tool.pyright]
+# Cho VS Code (Pylance) tìm được module dùng chung của các thí nghiệm (ham_chung_42, _paths)
+extraPaths = ["experiments"]

@@ -1,17 +1,24 @@
 digraph G {
-  rankdir=TB; nodesep=0.3; ranksep=0.5;
+  rankdir=TB; nodesep=0.3; ranksep=0.5; compound=true;
   node [shape=box, style="rounded,filled", fillcolor="#eef3fb", color="#4a6fa5", fontname="Liberation Sans", fontsize=11];
   edge [color="#555555"];
-  subgraph cluster_chay { label="Chạy / thí nghiệm"; fontname="Liberation Sans"; style=dashed; color="#999999";
-    app [label="app Streamlit\n(chương 12)"]; ingest [label="ingest.py"]; seed [label="seed_sql.py"]; exp [label="exp_*.py\nchay_thi_nghiem.py"]; }
-  subgraph cluster_tl { label="Tầng nghiệp vụ"; fontname="Liberation Sans"; style=dashed; color="#999999";
-    bao_ve; dinh_tuyen; tro_ly; loc_metadata; tra_gop; }
-  subgraph cluster_th { label="Truy hồi"; fontname="Liberation Sans"; style=dashed; color="#999999"; truy_hoi; }
-  subgraph cluster_nen { label="Nền tảng"; fontname="Liberation Sans"; style=dashed; color="#999999";
-    chuyen_doi_san_pham; kho_du_lieu; nhung_gemini; llm_gemini; }
-  app -> bao_ve; app -> dinh_tuyen; exp -> dinh_tuyen; exp -> truy_hoi;
-  ingest -> kho_du_lieu; ingest -> chuyen_doi_san_pham; ingest -> nhung_gemini; seed -> chuyen_doi_san_pham;
-  dinh_tuyen -> tro_ly; dinh_tuyen -> tra_gop; dinh_tuyen -> kho_du_lieu;
-  tro_ly -> truy_hoi; loc_metadata -> truy_hoi; truy_hoi -> kho_du_lieu;
-  exp -> nhung_gemini; exp -> llm_gemini;
+  subgraph cluster_chay { label="Điểm chạy (thư mục gốc) và thí nghiệm"; fontname="Liberation Sans"; style=dashed; color="#999999";
+    app [label="app.py + pages/\n(Streamlit)"]; ingest [label="ingest.py"]; seed [label="seed_sql.py"]; upd [label="update_data.py"];
+    exp [label="experiments/exp_*.py"]; }
+  subgraph cluster_service { label="phone_advisor/service + ui"; fontname="Liberation Sans"; style=dashed; color="#999999";
+    assistant [label="service/assistant.py\n(Assistant.ask)"]; chain [label="service/model_chain.py"]; tracing [label="service/tracing.py"];
+    ui [label="ui/components.py"]; }
+  subgraph cluster_core { label="phone_advisor (lõi)"; fontname="Liberation Sans"; style=dashed; color="#999999";
+    guard [label="guardrails.py"]; router [label="tools/router.py"]; inst [label="tools/installment.py"];
+    qe [label="retrieval/query_engine.py"]; mf [label="retrieval/metadata_filters.py"]; ret [label="retrieval/retrievers.py"]; }
+  subgraph cluster_base { label="phone_advisor (nền)"; fontname="Liberation Sans"; style=dashed; color="#999999";
+    docs [label="ingestion/documents.py"]; store [label="ingestion/store.py"]; emb [label="ingestion/embeddings.py"];
+    llm [label="llm.py"]; config [label="config.py"]; }
+  app -> chain; app -> ui; chain -> assistant; ui -> tracing;
+  assistant -> guard; assistant -> router; tracing -> router;
+  router -> qe; router -> mf; router -> inst; router -> store;
+  qe -> ret; mf -> ret; ret -> store;
+  ingest -> docs; ingest -> store; ingest -> emb; seed -> docs; upd -> ingest; upd -> seed;
+  exp -> router; exp -> ret; exp -> emb; exp -> llm;
+  store -> config; emb -> config; llm -> config;
 }

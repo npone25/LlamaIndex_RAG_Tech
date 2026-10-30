@@ -31,7 +31,7 @@ jobs:
 
       - name: Kiểm tra mã nguồn với Ruff
         run: |
-          ruff check he_thong tests
+          ruff check phone_advisor tests app.py ingest.py seed_sql.py update_data.py pages
 
       - name: Chạy kiểm thử tự động với Pytest (không cần mạng, không cần khóa API)
         run: |
