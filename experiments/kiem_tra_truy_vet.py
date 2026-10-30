@@ -18,6 +18,7 @@ from phone_advisor.config import get_refusal_threshold
 from phone_advisor.service.tracing import init_trace_resources, trace_question
 from phone_advisor.service.assistant import build_real_assistant
 from phone_advisor.retrieval.query_engine import create_query_engine
+_paths.print_commit()
 
 
 QUESTION_SET = [

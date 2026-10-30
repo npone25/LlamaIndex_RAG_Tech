@@ -16,7 +16,7 @@ python -m venv .venv
 .venv\Scripts\Activate.ps1
 pip install -r requirements.txt -r requirements-ci.txt -r requirements-dev.txt
 copy .env.example .env          # rồi điền GOOGLE_API_KEY và mật khẩu của riêng bạn
-pytest                          # phải ra 121 passed
+pytest                          # phải ra 124 passed
 ```
 
 Mỗi người dùng khóa Gemini của riêng mình (tạo ở https://aistudio.google.com/apikey) để không dùng chung hạn mức. Không commit file `.env`.

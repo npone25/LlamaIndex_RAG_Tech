@@ -11,6 +11,7 @@ from phone_advisor.guardrails import answer_safely
 from phone_advisor.tools.router import create_router
 from phone_advisor.llm import create_answer_llm
 from phone_advisor.ingestion.embeddings import create_embed_model
+_paths.print_commit()
 
 counts = TokenCountingHandler()                 # đếm số lần gọi LLM cho mỗi câu
 Settings.callback_manager = CallbackManager([counts])

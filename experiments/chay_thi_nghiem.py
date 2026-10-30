@@ -34,7 +34,7 @@ EXPERIMENTS = {
           "exp_651_pipeline", "exp_652_danh_gia"],
     "7": ["exp_71_prompt_synthesis", "exp_72_chat_memory", "exp_73_grounding"],
     "8": ["kiem_tra_gia", "exp_811_ba_lop", "exp_821_nlsql", "exp_822_sql_chi_doc",
-          "exp_831_tra_gop", "exp_841_router"],
+          "exp_831_tra_gop", "exp_841_router", "exp_842_tu_van_theo_dieu_kien"],
     "9": ["bo_cau_hoi_ch9", "exp_91_cau_hinh", "exp_93_truy_hoi", "exp_94_ragas", "exp_94b_answer_relevancy"],
     "10": ["exp_101a_regex", "exp_101b_llm", "exp_102_pham_vi", "exp_103_tich_hop"],
     "12": ["do_tre_chi_phi"],
@@ -54,7 +54,7 @@ RESUME_ORDER = ["4", "6", "7", "5", "3", "8", "12", "9", "10"]
 # File gọi LLM: kết quả phụ thuộc mô hình và code truy hồi/bảo vệ, nên đổi mô hình hoặc code thì phải chạy lại
 FILES_USING_LLM = ["kiem_tra_module", "hello_world", "exp_532_auto_retriever", "exp_533_bien",
                      "exp_71_prompt_synthesis", "exp_72_chat_memory", "exp_73_grounding", "exp_821_nlsql",
-                     "exp_841_router", "exp_91_cau_hinh", "exp_94_ragas", "exp_94b_answer_relevancy", "exp_101b_llm", "exp_102_pham_vi",
+                     "exp_841_router", "exp_842_tu_van_theo_dieu_kien", "exp_91_cau_hinh", "exp_94_ragas", "exp_94b_answer_relevancy", "exp_101b_llm", "exp_102_pham_vi",
                      "exp_103_tich_hop", "do_tre_chi_phi"]
 FILES_USING_JUDGE = ["exp_91_cau_hinh", "exp_94_ragas", "exp_94b_answer_relevancy"]
 STATE_FILE = FOLDER / "logs" / "_trang_thai.json"

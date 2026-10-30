@@ -82,7 +82,7 @@ ruff check phone_advisor tests app.py ingest.py seed_sql.py update_data.py pages
 pytest
 ```
 
-Bộ kiểm thử (121 ca) chạy không cần mạng, không cần khóa Gemini và không cần Docker: dùng vector giả và LLM giả trong `tests/conftest.py`. GitHub Actions (`.github/workflows/kiem_thu.yml`) chạy đúng hai lệnh trên mỗi lần push lên `main`.
+Bộ kiểm thử (124 ca) chạy không cần mạng, không cần khóa Gemini và không cần Docker: dùng vector giả và LLM giả trong `tests/conftest.py`. GitHub Actions (`.github/workflows/kiem_thu.yml`) chạy đúng hai lệnh trên mỗi lần push lên `main`.
 
 ## 6. Thí nghiệm của báo cáo
 
@@ -95,7 +95,7 @@ Mọi thí nghiệm nằm trong `experiments/` và được chạy từ thư m�
 | 5. Truy hồi theo metadata | `exp_511` … `exp_533` | `exp_532` minh họa Auto-Retriever; trong ứng dụng, Auto-Retriever là công cụ `tu_van_theo_dieu_kien` của router (chương 8) |
 | 6. Truy hồi nâng cao | `exp_611` … `exp_652` | reranker tải mô hình lần đầu (~1 GB) |
 | 7. Tổng hợp câu trả lời | `exp_71`, `exp_72`, `exp_73` | |
-| 8. Định tuyến công cụ | `kiem_tra_gia`, `exp_811` … `exp_841` | |
+| 8. Định tuyến công cụ | `kiem_tra_gia`, `exp_811` … `exp_842` | `exp_842`: công cụ `tu_van_theo_dieu_kien` lọc đúng điều kiện giá, hãng, RAM |
 | 9. Đánh giá | `exp_91`, `exp_93`, `exp_94`, `exp_94c`, `exp_94b`, `so_sanh_tham_so` | bộ câu hỏi `experiments/golden_set_ch9.json` (35 câu) |
 | 10. Lớp bảo vệ | `exp_101a` … `exp_103` | |
 | 12. Độ trễ, chi phí | `do_tre_chi_phi`, `kiem_tra_truy_vet`, `chay_6_cau_demo` | |
@@ -147,7 +147,7 @@ Mỗi script trong `experiments/` có dòng `import _paths` ở đầu: dòng n�
 │   └── ui/                       thành phần giao diện (components.py, style.css)
 ├── experiments/                  Thí nghiệm theo mục báo cáo, bộ câu hỏi đánh giá, dữ liệu mẫu chương 4
 ├── logs/                         Log thí nghiệm (minh chứng, được commit)
-├── tests/                        Kiểm thử pytest (121 ca)
+├── tests/                        Kiểm thử pytest (124 ca)
 ├── hands_on_lab/                 Bài thực hành 30–45 phút
 ├── hinh/                         Sơ đồ dùng trong báo cáo (nguồn .dot và ảnh .png)
 ├── data/phones/, data/knowledge/ Dữ liệu sản phẩm và kho kiến thức

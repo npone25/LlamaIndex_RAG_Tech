@@ -22,6 +22,7 @@ from phone_advisor.retrieval.query_engine import NO_DATA_REPLY, REFUSAL_CUTOFF, 
 from phone_advisor.retrieval.retrievers import TOP_K, TOP_N, load_table_nodes, create_bm25, create_reranker, create_vector
 
 sys.stdout.reconfigure(encoding="utf-8")
+_paths.print_commit()
 FOLDER = Path(__file__).parent
 
 # Giá gói trả phí, USD cho 1 triệu token (https://ai.google.dev/gemini-api/docs/pricing, truy cập 13/10/2026).

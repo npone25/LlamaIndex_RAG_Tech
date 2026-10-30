@@ -15,6 +15,7 @@ from phone_advisor.ingestion.embeddings import VECTOR_SIZE, MODEL_EMBEDDING_NAME
 from phone_advisor.retrieval.retrievers import RERANKER_NAME, TOP_K, TOP_N
 
 sys.stdout.reconfigure(encoding="utf-8")
+_paths.print_commit()
 warnings.filterwarnings("ignore")
 
 print("=== BƯỚC 1: PHIÊN BẢN THƯ VIỆN ===")

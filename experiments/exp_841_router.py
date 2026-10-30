@@ -5,6 +5,7 @@ import _paths  # noqa: F401  (thêm thư mục gốc vào đường dẫn tìm m
 from phone_advisor.llm import create_answer_llm
 from phone_advisor.ingestion.embeddings import create_embed_model
 from phone_advisor.tools.router import create_router
+_paths.print_commit()
 
 router = create_router(create_answer_llm(), create_embed_model())
 TOOL_NAME = ["tra_cuu_so_lieu", "tu_van_va_chinh_sach", "tinh_tra_gop", "tu_van_theo_dieu_kien"]
