@@ -478,81 +478,73 @@ def merge_responses(resources: "TraceResources", responses_list: List[Any], quer
     return combine_responses(resources.router._summarizer, responses_list, query_bundle)
 
 
-def trace_question(
-    cau_hoi: str,
-    history: Optional[List[Dict[str, str]]] = None,
-    resources: Optional[TraceResources] = None,
-    tro_ly: Optional[Any] = None,
-    catch_errors: bool = True,
-    save_file: bool = True,
-) -> Dict[str, Any]:
-    """Hàm chính thực hiện toàn bộ luồng hỏi-đáp ở chế độ Truy vết RAG minh bạch.
-
-    Trả về dict `vet` chứa dữ liệu chi tiết ở từng khâu.
-    """
-    t_total_start = time.perf_counter()
-    thoi_gian_ms = {}
-
-    if resources is None:
-        resources = init_trace_resources(tro_ly=tro_ly)
-
-    llm = resources.llm
-    embed_model = resources.embed_model
-
-    # 1. ĐẦU VÀO
-    original_question = cau_hoi or ""
-    clean_question = original_question.strip()
-
-    note_message = None
-    if len(clean_question) > 500:
-        clean_question = clean_question[:500]
-        note_message = "Câu hỏi đã được rút ngắn còn 500 ký tự."
-
-    cau_hoi_viet_lai = None
-    t_rewrite_ms = 0.0
-
-    if history and len(history) > 0 and llm is not None:
-        t_rewrite_start = time.perf_counter()
+def _finish_trace(trace: Dict[str, Any], save_file: bool) -> Dict[str, Any]:
+    """Ghi dict vết ra file (nếu được yêu cầu) rồi trả về; lỗi ghi file không làm hỏng kết quả."""
+    if save_file:
         try:
-            recent_messages = history[-6:]
-            dialogue_lines = []
-            for msg in recent_messages:
-                role = "Khách hàng" if msg.get("role") == "user" else "Nhân viên tư vấn"
-                dialogue_lines.append(f"{role}: {msg.get('content', '')}")
-            chat_history_str = "\n".join(dialogue_lines)
-
-            if hasattr(llm, "predict"):
-                rewrite_response = llm.predict(
-                    REWRITE_PROMPT,
-                    chat_history=chat_history_str,
-                    question=clean_question,
-                )
-            else:
-                prompt_str = REWRITE_PROMPT.format(
-                    chat_history=chat_history_str,
-                    question=clean_question,
-                )
-                rewrite_response = llm.complete(prompt_str)
-            cau_hoi_viet_lai = str(rewrite_response).strip()
+            trace["file_log"] = str(save_trace_file(trace))
         except Exception:
-            if not catch_errors:
-                raise
-            cau_hoi_viet_lai = None
-        t_rewrite_ms = (time.perf_counter() - t_rewrite_start) * 1000
+            trace["file_log"] = None
+    return trace
 
-    thoi_gian_ms["viet_lai"] = round(t_rewrite_ms, 2)
-    question_used = cau_hoi_viet_lai if cau_hoi_viet_lai else clean_question
 
-    input_info = {
-        "cau_goc": original_question,
-        "cau_sach": clean_question,
-        "cau_viet_lai": cau_hoi_viet_lai,
-        "cau_su_dung": question_used,
-        "thoi_gian_ms": round(t_rewrite_ms, 2),
-        "ghi_chu": note_message,
+def _stopped_trace(input_info, guard_info, routing_info, answer, che_do, thoi_gian_ms) -> Dict[str, Any]:
+    """Dict vết cho câu dừng trước bước truy hồi (bị chặn hoặc lỗi kiểm tra bảo vệ): không có nhánh, RRF, rerank."""
+    return {
+        "dau_vao": input_info,
+        "bao_ve": guard_info,
+        "dinh_tuyen": routing_info,
+        "nhung": None,
+        "cac_nhanh": [],
+        "rrf": [],
+        "rerank": [],
+        "tong_hop": {
+            "prompt": None,
+            "cau_tra_loi": answer,
+            "co_goi_llm": False,
+            "che_do": che_do,
+        },
+        "nguon": [],
+        "doi_chieu_nguon": [],
+        "thoi_gian_ms": thoi_gian_ms,
     }
 
-    # 2. BẢO VỆ (GUARDRAILS)
+
+def _rewrite_question(llm, history, clean_question, catch_errors):
+    """Bước 1: viết lại câu hỏi theo 6 tin gần nhất. Trả về (câu đã viết lại hoặc None, thời gian ms)."""
+    if not (history and len(history) > 0 and llm is not None):
+        return None, 0.0
+    t_rewrite_start = time.perf_counter()
+    try:
+        recent_messages = history[-6:]
+        dialogue_lines = []
+        for msg in recent_messages:
+            role = "Khách hàng" if msg.get("role") == "user" else "Nhân viên tư vấn"
+            dialogue_lines.append(f"{role}: {msg.get('content', '')}")
+        chat_history_str = "\n".join(dialogue_lines)
+
+        if hasattr(llm, "predict"):
+            rewrite_response = llm.predict(
+                REWRITE_PROMPT,
+                chat_history=chat_history_str,
+                question=clean_question,
+            )
+        else:
+            prompt_str = REWRITE_PROMPT.format(
+                chat_history=chat_history_str,
+                question=clean_question,
+            )
+            rewrite_response = llm.complete(prompt_str)
+        cau_hoi_viet_lai = str(rewrite_response).strip()
+    except Exception:
+        if not catch_errors:
+            raise
+        cau_hoi_viet_lai = None
+    return cau_hoi_viet_lai, (time.perf_counter() - t_rewrite_start) * 1000
+
+
+def _check_guardrails(question_used, llm, input_info, thoi_gian_ms, t_total_start, catch_errors):
+    """Bước 2: hai lớp bảo vệ. Trả về (guard_dict, dict vết dừng sớm hoặc None nếu được đi tiếp)."""
     t_guard_start = time.perf_counter()
     regex_pattern = check_regex(question_used)
 
@@ -560,38 +552,17 @@ def trace_question(
         t_guard_ms = (time.perf_counter() - t_guard_start) * 1000
         thoi_gian_ms["bao_ve"] = round(t_guard_ms, 2)
         thoi_gian_ms["tong"] = round((time.perf_counter() - t_total_start) * 1000, 2)
-
-        trace = {
-            "dau_vao": input_info,
-            "bao_ve": {
-                "cho_phep": False,
-                "lop": "regex",
-                "mau_khop": regex_pattern,
-                "chu_de": None,
-                "phan_hoi": ATTACK_REFUSAL_REPLY,
-                "thoi_gian_ms": round(t_guard_ms, 2),
-            },
-            "dinh_tuyen": {"cong_cu": "bi_chan", "ly_do": "Khớp biểu thức chính quy tấn công"},
-            "nhung": None,
-            "cac_nhanh": [],
-            "rrf": [],
-            "rerank": [],
-            "tong_hop": {
-                "prompt": None,
-                "cau_tra_loi": ATTACK_REFUSAL_REPLY,
-                "co_goi_llm": False,
-                "che_do": "bi_chan",
-            },
-            "nguon": [],
-            "doi_chieu_nguon": [],
-            "thoi_gian_ms": thoi_gian_ms,
+        guard_info = {
+            "cho_phep": False,
+            "lop": "regex",
+            "mau_khop": regex_pattern,
+            "chu_de": None,
+            "phan_hoi": ATTACK_REFUSAL_REPLY,
+            "thoi_gian_ms": round(t_guard_ms, 2),
         }
-        if save_file:
-            try:
-                trace["file_log"] = str(save_trace_file(trace))
-            except Exception:
-                trace["file_log"] = None
-        return trace
+        routing_info = {"cong_cu": "bi_chan", "ly_do": "Khớp biểu thức chính quy tấn công"}
+        return guard_info, _stopped_trace(input_info, guard_info, routing_info, ATTACK_REFUSAL_REPLY,
+                                          "bi_chan", thoi_gian_ms)
 
     try:
         check = apply_guardrails(question_used, llm)
@@ -601,37 +572,17 @@ def trace_question(
         t_guard_ms = (time.perf_counter() - t_guard_start) * 1000
         thoi_gian_ms["bao_ve"] = round(t_guard_ms, 2)
         thoi_gian_ms["tong"] = round((time.perf_counter() - t_total_start) * 1000, 2)
-        trace = {
-            "dau_vao": input_info,
-            "bao_ve": {
-                "cho_phep": False,
-                "lop": "loi",
-                "chu_de": None,
-                "phan_hoi": "Đã xảy ra lỗi khi kiểm tra an toàn.",
-                "thoi_gian_ms": round(t_guard_ms, 2),
-                "loi": str(e)[:200],
-            },
-            "dinh_tuyen": {"cong_cu": "loi", "ly_do": "Lỗi kiểm tra bảo vệ"},
-            "nhung": None,
-            "cac_nhanh": [],
-            "rrf": [],
-            "rerank": [],
-            "tong_hop": {
-                "prompt": None,
-                "cau_tra_loi": "Đã xảy ra lỗi khi kiểm tra an toàn.",
-                "co_goi_llm": False,
-                "che_do": "loi",
-            },
-            "nguon": [],
-            "doi_chieu_nguon": [],
-            "thoi_gian_ms": thoi_gian_ms,
+        guard_info = {
+            "cho_phep": False,
+            "lop": "loi",
+            "chu_de": None,
+            "phan_hoi": "Đã xảy ra lỗi khi kiểm tra an toàn.",
+            "thoi_gian_ms": round(t_guard_ms, 2),
+            "loi": str(e)[:200],
         }
-        if save_file:
-            try:
-                trace["file_log"] = str(save_trace_file(trace))
-            except Exception:
-                trace["file_log"] = None
-        return trace
+        routing_info = {"cong_cu": "loi", "ly_do": "Lỗi kiểm tra bảo vệ"}
+        return guard_info, _stopped_trace(input_info, guard_info, routing_info,
+                                          "Đã xảy ra lỗi khi kiểm tra an toàn.", "loi", thoi_gian_ms)
 
     t_guard_ms = (time.perf_counter() - t_guard_start) * 1000
     thoi_gian_ms["bao_ve"] = round(t_guard_ms, 2)
@@ -646,36 +597,18 @@ def trace_question(
 
     if not check.cho_phep:
         thoi_gian_ms["tong"] = round((time.perf_counter() - t_total_start) * 1000, 2)
-        trace = {
-            "dau_vao": input_info,
-            "bao_ve": guard_dict,
-            "dinh_tuyen": {"cong_cu": "bi_chan", "ly_do": f"Chặn bởi {check.lop}"},
-            "nhung": None,
-            "cac_nhanh": [],
-            "rrf": [],
-            "rerank": [],
-            "tong_hop": {
-                "prompt": None,
-                "cau_tra_loi": check.phan_hoi or ATTACK_REFUSAL_REPLY,
-                "co_goi_llm": False,
-                "che_do": "bi_chan",
-            },
-            "nguon": [],
-            "doi_chieu_nguon": [],
-            "thoi_gian_ms": thoi_gian_ms,
-        }
-        if save_file:
-            try:
-                trace["file_log"] = str(save_trace_file(trace))
-            except Exception:
-                trace["file_log"] = None
-        return trace
+        routing_info = {"cong_cu": "bi_chan", "ly_do": f"Chặn bởi {check.lop}"}
+        return guard_dict, _stopped_trace(input_info, guard_dict, routing_info,
+                                          check.phan_hoi or ATTACK_REFUSAL_REPLY, "bi_chan", thoi_gian_ms)
+    return guard_dict, None
 
-    # 3. ĐỊNH TUYẾN (ROUTER)
-    # Bộ chọn có thể trả về nhiều công cụ; khi đó RouterQueryEngine chạy từng công cụ rồi gộp
-    # các câu trả lời bằng combine_responses. Truy vết làm đúng như vậy.
-    t_route_start = time.perf_counter()
-    query_bundle = QueryBundle(question_used)
+
+def _route_question(resources, query_bundle, catch_errors):
+    """Bước 3: bộ chọn của router chọn công cụ, chạy các công cụ không phải RAG.
+
+    Bộ chọn có thể trả về nhiều công cụ; khi đó RouterQueryEngine chạy từng công cụ rồi gộp
+    các câu trả lời bằng combine_responses. Truy vết làm đúng như vậy.
+    """
     chosen_tools = []
     reason_list = []
     cau_sql = None
@@ -720,73 +653,52 @@ def trace_question(
         if len(reason_list) == 0:
             reason_list = ["Không có bộ định tuyến, dùng công cụ RAG"]
 
-    has_rag = "tu_van_va_chinh_sach" in chosen_tools
-    if has_rag:
-        chosen_tool = "tu_van_va_chinh_sach"
-    else:
-        chosen_tool = chosen_tools[0]
-    selection_reason = " | ".join(str(x) for x in reason_list)
-
-    t_route_ms = (time.perf_counter() - t_route_start) * 1000
-    thoi_gian_ms["dinh_tuyen"] = round(t_route_ms, 2)
-
     routing_dict = {
-        "cong_cu": chosen_tool,
+        "cong_cu": "tu_van_va_chinh_sach" if "tu_van_va_chinh_sach" in chosen_tools else chosen_tools[0],
         "cac_cong_cu": chosen_tools,
-        "ly_do": selection_reason,
-        "thoi_gian_ms": round(t_route_ms, 2),
+        "ly_do": " | ".join(str(x) for x in reason_list),
+        "thoi_gian_ms": None,           # điền sau khi đo xong
         "cau_sql": cau_sql,
         "ket_qua_sql": sql_result,
         "tham_so_tra_gop": installment_params,
     }
+    return routing_dict, responses_by_tool
 
-    # Không có công cụ RAG: trả lời bằng SQL / trả góp (gộp lại nếu có hai công cụ)
-    if not has_rag:
-        responses_list = []
-        for tool_name in chosen_tools:
-            if tool_name in responses_by_tool:
-                responses_list.append(responses_by_tool[tool_name])
-        other_answer = ""
-        if len(responses_list) == 1:
-            # Như luồng gốc: phản hồi rỗng (không máy nào qua bộ lọc và ngưỡng) thành câu từ chối
-            other_answer = answer_text(str(responses_list[0]))
-        elif len(responses_list) > 1:
-            other_answer = str(merge_responses(resources, responses_list, query_bundle))
-        # Công cụ lọc theo điều kiện trả về các node nguồn; SQL và trả góp thì không có
-        other_sources = []
-        other_match_list = []
-        resp_filtered = responses_by_tool.get("tu_van_theo_dieu_kien")
-        if resp_filtered is not None:
-            other_sources = create_source_details(list(getattr(resp_filtered, "source_nodes", None) or []))
-            other_match_list = match_sources_to_answer(other_sources, other_answer)
-        thoi_gian_ms["tong"] = round((time.perf_counter() - t_total_start) * 1000, 2)
-        trace: Dict[str, Any] = {
-            "dau_vao": input_info,
-            "bao_ve": guard_dict,
-            "dinh_tuyen": routing_dict,
-            "nhung": None,
-            "cac_nhanh": [],
-            "rrf": [],
-            "rerank": [],
-            "tong_hop": {
-                "prompt": None,
-                "cau_tra_loi": other_answer,
-                "co_goi_llm": True,
-                "che_do": "tu_choi" if other_answer == NO_DATA_REPLY else "day_du",
-                "gop_nhieu_cong_cu": len(responses_list) > 1,
-            },
-            "nguon": other_sources,
-            "doi_chieu_nguon": other_match_list,
-            "thoi_gian_ms": thoi_gian_ms,
-        }
-        if save_file:
-            try:
-                trace["file_log"] = str(save_trace_file(trace))
-            except Exception:
-                trace["file_log"] = None
-        return trace
 
-    # 4. NHÚNG VECTOR CÂU HỎI
+def _answer_without_rag(resources, routing_dict, responses_by_tool, query_bundle):
+    """Không có công cụ RAG: trả lời bằng SQL / trả góp / lọc theo điều kiện (gộp lại nếu có hai công cụ).
+
+    Trả về (phần tong_hop, danh sách nguồn, đối chiếu nguồn).
+    """
+    responses_list = []
+    for tool_name in routing_dict["cac_cong_cu"]:
+        if tool_name in responses_by_tool:
+            responses_list.append(responses_by_tool[tool_name])
+    other_answer = ""
+    if len(responses_list) == 1:
+        # Như luồng gốc: phản hồi rỗng (không máy nào qua bộ lọc và ngưỡng) thành câu từ chối
+        other_answer = answer_text(str(responses_list[0]))
+    elif len(responses_list) > 1:
+        other_answer = str(merge_responses(resources, responses_list, query_bundle))
+    # Công cụ lọc theo điều kiện trả về các node nguồn; SQL và trả góp thì không có
+    other_sources = []
+    other_match_list = []
+    resp_filtered = responses_by_tool.get("tu_van_theo_dieu_kien")
+    if resp_filtered is not None:
+        other_sources = create_source_details(list(getattr(resp_filtered, "source_nodes", None) or []))
+        other_match_list = match_sources_to_answer(other_sources, other_answer)
+    synthesis = {
+        "prompt": None,
+        "cau_tra_loi": other_answer,
+        "co_goi_llm": True,
+        "che_do": "tu_choi" if other_answer == NO_DATA_REPLY else "day_du",
+        "gop_nhieu_cong_cu": len(responses_list) > 1,
+    }
+    return synthesis, other_sources, other_match_list
+
+
+def _embed_question(embed_model, query_bundle, catch_errors):
+    """Bước 4: nhúng câu hỏi một lần, dùng chung cho hai nhánh vector. Trả về phần "nhung" của vết."""
     t_embed_start = time.perf_counter()
     dim_count = 0
     first_values = []
@@ -804,18 +716,17 @@ def trace_question(
             first_values = []
 
     t_embed_ms = (time.perf_counter() - t_embed_start) * 1000
-    thoi_gian_ms["nhung"] = round(t_embed_ms, 2)
-
-    embedding_dict = {
+    return {
         "so_chieu": dim_count,
         "gia_tri_dau": first_values,
         "thoi_gian_ms": round(t_embed_ms, 2),
     }
 
-    # 5. TRUY HỒI 4 NHÁNH
+
+def _retrieve_branches(retriever_list, query_bundle, thoi_gian_ms, catch_errors):
+    """Bước 5: chạy riêng từng nhánh trong 4 nhánh để ghi lại kết quả. Trả về (node thô theo nhánh, phần hiển thị)."""
     raw_branches = {}
     visible_branches = []
-    retriever_list = resources.four_branch_retrievers
 
     for idx, branch_name in enumerate(BRANCH_NAMES):
         t_branch_start = time.perf_counter()
@@ -851,25 +762,14 @@ def trace_question(
             "so_node": len(branch_node_list),
             "nodes": branch_node_lists,
         })
+    return raw_branches, visible_branches
 
-    # 6. HỢP NHẤT RRF
-    t_rrf_start = time.perf_counter()
-    nodes_rrf, rrf_table = compute_standard_rrf(raw_branches, k=60.0, top_k=TOP_K)
-    t_rrf_ms = (time.perf_counter() - t_rrf_start) * 1000
-    thoi_gian_ms["rrf"] = round(t_rrf_ms, 2)
 
-    # 7. TÁI XẾP HẠNG (RERANK) & NGƯỠNG
-    standard_cutoff = get_refusal_threshold()
-    nodes_above_cutoff, rerank_table, t_rerank_ms = rerank_and_cutoff(
-        nodes_rrf=nodes_rrf,
-        query_bundle=query_bundle,
-        reranker=resources.reranker,
-        cutoff=standard_cutoff,
-        top_n=TOP_N,
-    )
-    thoi_gian_ms["rerank"] = t_rerank_ms
+def _synthesize_answer(synthesizer, nodes_above_cutoff, query_bundle, catch_errors):
+    """Bước 8: gửi các Node qua ngưỡng cho LLM; không có Node nào thì từ chối mà không gọi LLM.
 
-    # 8. TỔNG HỢP CÂU TRẢ LỜI & PROMPT
+    Trả về (prompt, câu trả lời, có gọi LLM, chế độ, token, thời gian ms).
+    """
     t_synth_start = time.perf_counter()
     final_prompt = None
     cau_tra_loi = NO_DATA_REPLY
@@ -877,7 +777,7 @@ def trace_question(
     che_do = "day_du"
     token_usage = {"token_vao": 0, "token_ra": 0, "tong_token": 0, "nguon": "khong_goi"}
 
-    if nodes_above_cutoff and len(nodes_above_cutoff) > 0 and resources.synthesizer is not None:
+    if nodes_above_cutoff and len(nodes_above_cutoff) > 0 and synthesizer is not None:
         called_llm = True
         # Tạo chuỗi context_str để hiển thị đúng văn bản gửi LLM
         context_snippet = [
@@ -891,7 +791,7 @@ def trace_question(
         )
 
         try:
-            resp_synth = resources.synthesizer.synthesize(
+            resp_synth = synthesizer.synthesize(
                 query=query_bundle,
                 nodes=nodes_above_cutoff,
             )
@@ -910,25 +810,137 @@ def trace_question(
         called_llm = False
 
     t_th_ms = (time.perf_counter() - t_synth_start) * 1000
+    return final_prompt, cau_tra_loi, called_llm, che_do, token_usage, t_th_ms
+
+
+def _merge_with_other_tools(resources, chosen_tools, responses_by_tool, rag_answer, called_llm,
+                            nodes_above_cutoff, query_bundle):
+    """Khi router chọn RAG cùng công cụ khác: gộp câu trả lời RAG với các công cụ đó như RouterQueryEngine."""
+    from llama_index.core.base.response.schema import Response
+    # RetrieverQueryEngine trả "Empty Response" khi mọi node bị ngưỡng loại; giữ đúng như vậy khi gộp
+    if called_llm:
+        resp_rag = Response(response=rag_answer, source_nodes=nodes_above_cutoff)
+    else:
+        resp_rag = Response(response="Empty Response", source_nodes=[])
+    responses_list = []
+    for tool_name in chosen_tools:
+        if tool_name == "tu_van_va_chinh_sach":
+            responses_list.append(resp_rag)
+        elif tool_name in responses_by_tool:
+            responses_list.append(responses_by_tool[tool_name])
+    return answer_text(str(merge_responses(resources, responses_list, query_bundle)))
+
+
+def trace_question(
+    cau_hoi: str,
+    history: Optional[List[Dict[str, str]]] = None,
+    resources: Optional[TraceResources] = None,
+    tro_ly: Optional[Any] = None,
+    catch_errors: bool = True,
+    save_file: bool = True,
+) -> Dict[str, Any]:
+    """Hàm chính thực hiện toàn bộ luồng hỏi-đáp ở chế độ Truy vết RAG minh bạch.
+
+    Trả về dict `vet` chứa dữ liệu chi tiết ở từng khâu. Mỗi khâu là một hàm con ở trên,
+    chạy đúng thứ tự của luồng thường: viết lại -> bảo vệ -> định tuyến -> nhúng -> 4 nhánh
+    -> RRF -> rerank và ngưỡng -> tổng hợp -> nguồn.
+    """
+    t_total_start = time.perf_counter()
+    thoi_gian_ms = {}
+
+    if resources is None:
+        resources = init_trace_resources(tro_ly=tro_ly)
+
+    # 1. ĐẦU VÀO VÀ VIẾT LẠI CÂU HỎI
+    original_question = cau_hoi or ""
+    clean_question = original_question.strip()
+
+    note_message = None
+    if len(clean_question) > 500:
+        clean_question = clean_question[:500]
+        note_message = "Câu hỏi đã được rút ngắn còn 500 ký tự."
+
+    cau_hoi_viet_lai, t_rewrite_ms = _rewrite_question(resources.llm, history, clean_question, catch_errors)
+    thoi_gian_ms["viet_lai"] = round(t_rewrite_ms, 2)
+    question_used = cau_hoi_viet_lai if cau_hoi_viet_lai else clean_question
+
+    input_info = {
+        "cau_goc": original_question,
+        "cau_sach": clean_question,
+        "cau_viet_lai": cau_hoi_viet_lai,
+        "cau_su_dung": question_used,
+        "thoi_gian_ms": round(t_rewrite_ms, 2),
+        "ghi_chu": note_message,
+    }
+
+    # 2. BẢO VỆ (GUARDRAILS)
+    guard_dict, stopped = _check_guardrails(question_used, resources.llm, input_info, thoi_gian_ms,
+                                            t_total_start, catch_errors)
+    if stopped is not None:
+        return _finish_trace(stopped, save_file)
+
+    # 3. ĐỊNH TUYẾN (ROUTER)
+    t_route_start = time.perf_counter()
+    query_bundle = QueryBundle(question_used)
+    routing_dict, responses_by_tool = _route_question(resources, query_bundle, catch_errors)
+    t_route_ms = (time.perf_counter() - t_route_start) * 1000
+    thoi_gian_ms["dinh_tuyen"] = round(t_route_ms, 2)
+    routing_dict["thoi_gian_ms"] = round(t_route_ms, 2)
+    chosen_tools = routing_dict["cac_cong_cu"]
+
+    if "tu_van_va_chinh_sach" not in chosen_tools:
+        synthesis, other_sources, other_match_list = _answer_without_rag(resources, routing_dict,
+                                                                         responses_by_tool, query_bundle)
+        thoi_gian_ms["tong"] = round((time.perf_counter() - t_total_start) * 1000, 2)
+        trace: Dict[str, Any] = {
+            "dau_vao": input_info,
+            "bao_ve": guard_dict,
+            "dinh_tuyen": routing_dict,
+            "nhung": None,
+            "cac_nhanh": [],
+            "rrf": [],
+            "rerank": [],
+            "tong_hop": synthesis,
+            "nguon": other_sources,
+            "doi_chieu_nguon": other_match_list,
+            "thoi_gian_ms": thoi_gian_ms,
+        }
+        return _finish_trace(trace, save_file)
+
+    # 4. NHÚNG VECTOR CÂU HỎI
+    embedding_dict = _embed_question(resources.embed_model, query_bundle, catch_errors)
+    thoi_gian_ms["nhung"] = embedding_dict["thoi_gian_ms"]
+
+    # 5. TRUY HỒI 4 NHÁNH
+    raw_branches, visible_branches = _retrieve_branches(resources.four_branch_retrievers, query_bundle,
+                                                        thoi_gian_ms, catch_errors)
+
+    # 6. HỢP NHẤT RRF
+    t_rrf_start = time.perf_counter()
+    nodes_rrf, rrf_table = compute_standard_rrf(raw_branches, k=60.0, top_k=TOP_K)
+    thoi_gian_ms["rrf"] = round((time.perf_counter() - t_rrf_start) * 1000, 2)
+
+    # 7. TÁI XẾP HẠNG (RERANK) & NGƯỠNG
+    nodes_above_cutoff, rerank_table, t_rerank_ms = rerank_and_cutoff(
+        nodes_rrf=nodes_rrf,
+        query_bundle=query_bundle,
+        reranker=resources.reranker,
+        cutoff=get_refusal_threshold(),
+        top_n=TOP_N,
+    )
+    thoi_gian_ms["rerank"] = t_rerank_ms
+
+    # 8. TỔNG HỢP CÂU TRẢ LỜI & PROMPT (gộp với công cụ khác nếu router chọn nhiều công cụ)
+    final_prompt, cau_tra_loi, called_llm, che_do, token_usage, t_th_ms = _synthesize_answer(
+        resources.synthesizer, nodes_above_cutoff, query_bundle, catch_errors)
     thoi_gian_ms["tong_hop"] = round(t_th_ms, 2)
 
     rag_answer = None
     if len(responses_by_tool) > 0:
-        from llama_index.core.base.response.schema import Response
         t_merge_start = time.perf_counter()
         rag_answer = cau_tra_loi
-        # RetrieverQueryEngine trả "Empty Response" khi mọi node bị ngưỡng loại; giữ đúng như vậy khi gộp
-        if called_llm:
-            resp_rag = Response(response=cau_tra_loi, source_nodes=nodes_above_cutoff)
-        else:
-            resp_rag = Response(response="Empty Response", source_nodes=[])
-        responses_list = []
-        for tool_name in chosen_tools:
-            if tool_name == "tu_van_va_chinh_sach":
-                responses_list.append(resp_rag)
-            elif tool_name in responses_by_tool:
-                responses_list.append(responses_by_tool[tool_name])
-        cau_tra_loi = answer_text(str(merge_responses(resources, responses_list, query_bundle)))
+        cau_tra_loi = _merge_with_other_tools(resources, chosen_tools, responses_by_tool, rag_answer,
+                                              called_llm, nodes_above_cutoff, query_bundle)
         called_llm = True
         che_do = "day_du"
         thoi_gian_ms["gop_cong_cu"] = round((time.perf_counter() - t_merge_start) * 1000, 2)
@@ -945,10 +957,8 @@ def trace_question(
         "cau_tra_loi_rag": rag_answer,
     }
 
-    # 9. NGUỒN TRÍCH XUẤT ĐẦY ĐỦ
+    # 9-10. NGUỒN TRÍCH XUẤT ĐẦY ĐỦ VÀ ĐỐI CHIẾU VỚI CÂU TRẢ LỜI
     sources_list = create_source_details(nodes_above_cutoff)
-
-    # 10. ĐỐI CHIẾU NGUỒN VỚI CÂU TRẢ LỜI
     match_list = match_sources_to_answer(sources_list, cau_tra_loi)
 
     # 11. TỔNG THỜI GIAN
@@ -967,11 +977,4 @@ def trace_question(
         "doi_chieu_nguon": match_list,
         "thoi_gian_ms": thoi_gian_ms,
     }
-
-    if save_file:
-        try:
-            trace["file_log"] = str(save_trace_file(trace))
-        except Exception:
-            trace["file_log"] = None
-
-    return trace
+    return _finish_trace(trace, save_file)

@@ -252,3 +252,81 @@ def test_no_secrets_in_log_file(tmp_path: Path):
     assert "mat_khau_bi_mat" not in content
     assert "***DA_GIAU_API_KEY***" in content
     assert "postgresql://***:***@" in content
+
+
+class _FakeSummarizer:
+    """Bộ tổng hợp giả của router: nối các câu trả lời con để kiểm tra bước gộp."""
+
+    def get_response(self, query_str, text_chunks, **kwargs):
+        return "GỘP: " + " || ".join(text_chunks)
+
+
+class _FakeSelector:
+    """Bộ chọn giả trả về đúng các chỉ số công cụ cho trước."""
+
+    def __init__(self, indices):
+        self.indices = indices
+
+    def select(self, metadatas, query_bundle):
+        from types import SimpleNamespace
+        return SimpleNamespace(inds=list(self.indices), reasons=["lý do"] * len(self.indices))
+
+
+def _routing_resources(indices, scores):
+    from types import SimpleNamespace
+
+    from llama_index.core.base.response.schema import Response
+
+    from phone_advisor.guardrails import QuestionCheck
+    from tests.conftest import FakeLLM
+
+    sql_engine = MagicMock()
+    sql_engine.query.return_value = Response(response="Có 5 máy Samsung",
+                                             metadata={"sql_query": "SELECT count(*) FROM products"})
+    synthesizer = MagicMock()
+    synthesizer.synthesize.return_value = Response(response="Galaxy A35 chụp ảnh đẹp")
+    reranker = MagicMock()
+    reranker._model = MagicMock()
+    reranker._model.predict.return_value = scores
+    fake_ret = MockSubRetriever(create_fake_node_list(3, "sp", "san_pham"))
+    return TraceResources(
+        llm=FakeLLM(structured_results=[QuestionCheck(la_tan_cong=False, trong_pham_vi=True, chu_de="điện thoại")]),
+        four_branch_retrievers=[fake_ret, fake_ret, fake_ret, fake_ret],
+        reranker=reranker,
+        synthesizer=synthesizer,
+        sql_engine=sql_engine,
+        selector=_FakeSelector(indices),
+        router=SimpleNamespace(_metadatas=["a", "b", "c", "d"], _summarizer=_FakeSummarizer()),
+    )
+
+
+def test_sql_only_skips_retrieval():
+    """Router chỉ chọn tra_cuu_so_lieu: có câu SQL trong vết, không chạy 4 nhánh truy hồi."""
+    trace = trace_question("Có bao nhiêu máy Samsung?", resources=_routing_resources([0], [0.9] * 3),
+                           save_file=False)
+    assert trace["dinh_tuyen"]["cac_cong_cu"] == ["tra_cuu_so_lieu"]
+    assert trace["dinh_tuyen"]["cau_sql"] == "SELECT count(*) FROM products"
+    assert trace["cac_nhanh"] == [] and trace["nhung"] is None
+    assert trace["tong_hop"]["cau_tra_loi"] == "Có 5 máy Samsung"
+
+
+def test_rag_and_sql_answers_are_merged():
+    """Router chọn cả RAG và SQL: hai câu trả lời được gộp như RouterQueryEngine, vẫn giữ câu trả lời RAG."""
+    trace = trace_question("Máy nào chụp đẹp và có bao nhiêu máy?", resources=_routing_resources([1, 0], [0.9] * 3),
+                           save_file=False)
+    assert trace["tong_hop"]["gop_nhieu_cong_cu"] is True
+    assert trace["tong_hop"]["cau_tra_loi_rag"] == "Galaxy A35 chụp ảnh đẹp"
+    assert trace["tong_hop"]["cau_tra_loi"] == "GỘP: Galaxy A35 chụp ảnh đẹp || Có 5 máy Samsung"
+    assert len(trace["cac_nhanh"]) == 4
+
+
+def test_guardrails_error_stops_before_routing():
+    """Lỗi khi gọi lớp bảo vệ LLM: dừng ở bước bảo vệ, chế độ 'loi', không định tuyến."""
+    from tests.conftest import FakeLLM
+
+    trace = trace_question("Máy nào chụp ảnh đẹp?",
+                           resources=TraceResources(llm=FakeLLM(error_to_raise=RuntimeError("hết hạn mức"))),
+                           save_file=False)
+    assert trace["bao_ve"]["lop"] == "loi"
+    assert trace["dinh_tuyen"]["cong_cu"] == "loi"
+    assert trace["tong_hop"]["che_do"] == "loi"
