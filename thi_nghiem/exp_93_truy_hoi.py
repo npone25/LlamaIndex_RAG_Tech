@@ -12,8 +12,8 @@ from llama_index.core.llms import MockLLM
 from llama_index.core.retrievers import QueryFusionRetriever
 from llama_index.core.schema import QueryBundle
 
-from kho_du_lieu import BANG_KIEN_THUC, BANG_SAN_PHAM
-from nhung_gemini import tao_model_nhung
+from kho_du_lieu import KNOWLEDGE_VECTOR_TABLE, PRODUCT_VECTOR_TABLE
+from nhung_gemini import create_embed_model
 from truy_hoi import TOP_N, lay_nodes, tao_bo_truy_hoi_tat_ca, tao_reranker, tao_vector
 
 matplotlib.use("Agg")
@@ -22,12 +22,12 @@ import matplotlib.pyplot as plt  # noqa: E402
 FOLDER = Path(__file__).parent
 GOC = FOLDER.parent  # thư mục gốc dự án, nơi có logs/ và hinh/
 bo = json.loads((FOLDER / "golden_set_ch9.json").read_text(encoding="utf-8"))
-model_nhung = tao_model_nhung()
-nodes_chinh_sach = lay_nodes(BANG_KIEN_THUC)
+model_nhung = create_embed_model()
+nodes_chinh_sach = lay_nodes(KNOWLEDGE_VECTOR_TABLE)
 
 # Cơ sở: chỉ vector trên hai bảng; cùng mô hình nhúng nên điểm cosine so sánh trực tiếp được
-co_so = QueryFusionRetriever([tao_vector(model_nhung, BANG_SAN_PHAM, top_k=TOP_N),
-                              tao_vector(model_nhung, BANG_KIEN_THUC, top_k=TOP_N)],
+co_so = QueryFusionRetriever([tao_vector(model_nhung, PRODUCT_VECTOR_TABLE, top_k=TOP_N),
+                              tao_vector(model_nhung, KNOWLEDGE_VECTOR_TABLE, top_k=TOP_N)],
                              mode="simple", num_queries=1, similarity_top_k=TOP_N,
                              use_async=False, llm=MockLLM())
 nang_cao = tao_bo_truy_hoi_tat_ca(model_nhung)

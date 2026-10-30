@@ -3,11 +3,11 @@
 # Hai loại câu hỏi lấy từ bộ đánh giá: gọi đúng tên máy và mô tả nhu cầu bằng lời tự nhiên
 
 import _duong_dan  # noqa: F401  (thêm thư mục gốc và loi_rag/ vào đường dẫn tìm module)
-from nhung_gemini import tao_model_nhung
+from nhung_gemini import create_embed_model
 from truy_hoi import doc_bo_danh_gia, la_dap_an, lay_nodes, tao_bm25, tao_vector, ten_ngan
 
 bo = doc_bo_danh_gia()
-nhanh_vector = tao_vector(tao_model_nhung(), top_k=3)
+nhanh_vector = tao_vector(create_embed_model(), top_k=3)
 nhanh_bm25 = tao_bm25(lay_nodes(), top_k=3)
 
 for ma in ["q06", "q07", "q20", "q21"]:

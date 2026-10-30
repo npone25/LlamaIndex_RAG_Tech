@@ -4,12 +4,12 @@
 import _duong_dan  # noqa: F401  (thêm thư mục gốc và loi_rag/ vào đường dẫn tìm module)
 from llama_index.core.schema import QueryBundle
 
-from llm_gemini import tao_llm
+from llm_gemini import create_answer_llm
 from loc_metadata import bo_loc_dang_chu, tao_auto_retriever
-from nhung_gemini import tao_model_nhung
+from nhung_gemini import create_embed_model
 
-llm = tao_llm()
-auto = tao_auto_retriever(llm, tao_model_nhung())
+llm = create_answer_llm()
+auto = tao_auto_retriever(llm, create_embed_model())
 print("LLM:", getattr(llm, "model", type(llm).__name__))
 
 CAU_HOI = "Tôi muốn điện thoại Xiaomi giá dưới 10 triệu, camera chụp thiếu sáng tốt"

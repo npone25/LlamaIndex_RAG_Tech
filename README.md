@@ -68,7 +68,9 @@ python ingest.py                 # nhúng và nạp hai bảng vector
 streamlit run app.py             # mở http://localhost:8501
 ```
 
-`ingest.py` nhúng theo lô và có cache, chạy lại không tốn thêm lượt nhúng cho tài liệu đã nạp. Nếu hết hạn mức giữa chừng, hôm sau chạy lại sẽ nạp tiếp.
+`ingest.py` nhúng theo lô và có cache, chạy lại không tốn thêm lượt nhúng cho tài liệu đã nạp. Nếu hết hạn mức giữa chừng, hôm sau chạy lại sẽ nạp tiếp. Sản phẩm hoặc tài liệu đã xóa khỏi dữ liệu nguồn cũng được dọn khỏi bảng vector.
+
+Sau khi thêm, sửa hoặc xóa sản phẩm trong `phones.xlsx`, chạy `python update_data.py`: lệnh này chạy `seed_sql.py` rồi `ingest.py`, sau đó so bảng `products` với bảng vector (theo `product_id` và giá) và in `ĐỒNG BỘ` hoặc chỗ lệch. Mỗi sản phẩm mới hoặc đã đổi (kể cả chỉ đổi giá) tốn một lượt nhúng.
 
 Chạy cả ứng dụng trong Docker: `docker compose up --build -d`. Xem dữ liệu bằng pgAdmin: `docker compose --profile tools up -d` rồi mở http://localhost:5050.
 
@@ -120,6 +122,7 @@ Mỗi script trong `thi_nghiem/` có dòng `import _duong_dan` ở đầu: dòng
 ```
 ├── app.py, pages/, .streamlit/   Giao diện Streamlit (trang chat và trang Kho dữ liệu)
 ├── ingest.py, seed_sql.py        Nạp dữ liệu vào PostgreSQL
+├── update_data.py                Cập nhật cả hai lớp bằng một lệnh và kiểm tra đồng bộ
 ├── loi_rag/                      Lõi RAG dùng chung
 │   ├── chuyen_doi_san_pham.py    đọc bảng điện thoại, tạo Document
 │   ├── kho_du_lieu.py            kết nối PostgreSQL, PGVectorStore, docstore, cache

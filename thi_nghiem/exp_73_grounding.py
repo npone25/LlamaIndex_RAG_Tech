@@ -6,15 +6,15 @@ from llama_index.core import Settings
 from llama_index.core.callbacks import CallbackManager, TokenCountingHandler
 from llama_index.core.schema import QueryBundle
 
-from llm_gemini import tao_llm
-from nhung_gemini import tao_model_nhung
+from llm_gemini import create_answer_llm
+from nhung_gemini import create_embed_model
 from truy_hoi import tao_bo_truy_hoi_tat_ca, tao_reranker
 from tro_ly import NGUONG_TU_CHOI, tao_query_engine, trich_nguon, van_ban_tra_loi
 
 dem = TokenCountingHandler()
 Settings.callback_manager = CallbackManager([dem])
-llm = tao_llm()
-model_nhung = tao_model_nhung()
+llm = create_answer_llm()
+model_nhung = create_embed_model()
 TRONG_PHAM_VI = ["Galaxy Z Fold7 có pin bao nhiêu mAh?", "điện thoại chip Helio G99",
                  "Redmi Note 14 Pro giá bao nhiêu?", "điện thoại cho người lớn tuổi nghe gọi",
                  "Sản phẩm lỗi được đổi trả trong bao lâu?"]

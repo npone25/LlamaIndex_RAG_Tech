@@ -7,7 +7,7 @@ from llama_index.core.schema import NodeWithScore, TextNode
 
 import kho_du_lieu
 from tro_ly import (
-    CAU_TU_CHOI,
+    NO_DATA_REPLY,
     NGUONG_TU_CHOI,
     PROMPT_TRA_LOI,
     PROMPT_VIET_LAI,
@@ -20,15 +20,15 @@ def test_quy_tac_1_cach_ly_bien_moi_truong():
     """Quy tắc 1: Sau khi import kho_du_lieu và tro_ly, NGUONG_TU_CHOI=0.10 và PG_DSN là giá trị giả."""
     assert NGUONG_TU_CHOI == 0.10
     assert os.environ.get("PG_DSN") == "postgresql://gia:gia@127.0.0.1:1/khong_ton_tai"
-    assert kho_du_lieu.lay_dsn() == "postgresql://gia:gia@127.0.0.1:1/khong_ton_tai"
+    assert kho_du_lieu.get_dsn() == "postgresql://gia:gia@127.0.0.1:1/khong_ton_tai"
 
 
 def test_van_ban_tra_loi():
     """Hàm van_ban_tra_loi chuyển các phản hồi rỗng/None/Empty Response thành CAU_TU_CHOI."""
-    assert van_ban_tra_loi("") == CAU_TU_CHOI
-    assert van_ban_tra_loi("   ") == CAU_TU_CHOI
-    assert van_ban_tra_loi("Empty Response") == CAU_TU_CHOI
-    assert van_ban_tra_loi("None") == CAU_TU_CHOI
+    assert van_ban_tra_loi("") == NO_DATA_REPLY
+    assert van_ban_tra_loi("   ") == NO_DATA_REPLY
+    assert van_ban_tra_loi("Empty Response") == NO_DATA_REPLY
+    assert van_ban_tra_loi("None") == NO_DATA_REPLY
 
     # Phản hồi có nội dung hợp lệ
     noi_dung = "Samsung Galaxy S24 Ultra chụp ảnh rất đẹp."
@@ -83,7 +83,7 @@ def test_prompt_tra_loi_cau_truc():
     prompt_str = PROMPT_TRA_LOI.get_template()
     assert "{context_str}" in prompt_str
     assert "{query_str}" in prompt_str
-    assert CAU_TU_CHOI in prompt_str
+    assert NO_DATA_REPLY in prompt_str
 
     formatted = PROMPT_TRA_LOI.format(
         context_str="Thông tin máy A",

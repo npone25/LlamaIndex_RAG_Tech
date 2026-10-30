@@ -2,12 +2,12 @@
 # Chạy: python exp_72_chat_memory.py   (cần PostgreSQL, GOOGLE_API_KEY, mô hình reranker)
 
 import _duong_dan  # noqa: F401  (thêm thư mục gốc và loi_rag/ vào đường dẫn tìm module)
-from llm_gemini import tao_llm
-from nhung_gemini import tao_model_nhung
+from llm_gemini import create_answer_llm
+from nhung_gemini import create_embed_model
 from tro_ly import tao_chat_engine, trich_nguon, van_ban_tra_loi
 
-llm = tao_llm()
-model_nhung = tao_model_nhung()
+llm = create_answer_llm()
+model_nhung = create_embed_model()
 CAC_LUOT = ["Tư vấn giúp mình điện thoại màn hình gập của Samsung",
             "Máy đó pin bao nhiêu mAh?",
             "Nếu máy bị lỗi thì được đổi trả trong bao lâu?"]

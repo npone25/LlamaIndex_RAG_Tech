@@ -4,7 +4,7 @@
 import _duong_dan  # noqa: F401  (thêm thư mục gốc và loi_rag/ vào đường dẫn tìm module)
 from llama_index.core.node_parser import SentenceSplitter
 from llama_index.core.schema import MetadataMode
-from ham_chung_42 import dem_token, doc_bang_dien_thoai, doc_chinh_sach, in_phien_ban
+from ham_chung_42 import dem_token, load_phones, doc_chinh_sach, in_phien_ban
 from ham_chung_42 import lay_document_dai_nhat
 
 CAC_CHUNK_SIZE = [128, 256, 512, 1024]
@@ -27,7 +27,7 @@ print("=== BƯỚC 0: PHIÊN BẢN ===")
 in_phien_ban()
 
 # BƯỚC 1: Hai loại dữ liệu thử
-san_pham = doc_bang_dien_thoai()
+san_pham = load_phones()
 ban_ghi_dai = lay_document_dai_nhat(san_pham)
 chinh_sach = doc_chinh_sach()
 print("=== BƯỚC 1: DỮ LIỆU THỬ ===")

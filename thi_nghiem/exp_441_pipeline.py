@@ -9,18 +9,18 @@ from llama_index.core.ingestion import IngestionPipeline
 from llama_index.core.node_parser import SentenceSplitter
 from sqlalchemy import text
 
-from ham_chung_42 import doc_bang_dien_thoai, doc_chinh_sach, in_phien_ban
-from kho_du_lieu import tao_engine, tao_vector_store
+from ham_chung_42 import load_phones, doc_chinh_sach, in_phien_ban
+from kho_du_lieu import create_db_engine, create_vector_store
 from vector_gia import VectorGia
 
-engine = tao_engine()
+engine = create_db_engine()
 with engine.begin() as conn:
     conn.execute(text("DROP TABLE IF EXISTS data_exp441_sp"))
     conn.execute(text("DROP TABLE IF EXISTS data_exp441_kt"))
 
 print("=== BƯỚC 0: PHIÊN BẢN ===")
 in_phien_ban()
-san_pham = doc_bang_dien_thoai()
+san_pham = load_phones()
 model = VectorGia()
 
 # BƯỚC 1: Chuỗi biến đổi chạy trong bộ nhớ: Document -> Node -> Node có vector
@@ -42,7 +42,7 @@ print("Node đầu: ref_doc_id =", nodes[0].ref_doc_id, "| metadata giữ nguyê
 # BƯỚC 2: Gắn vector_store -> pipeline tự ghi Node vào PostgreSQL sau bước cuối
 pipeline_sp = IngestionPipeline(
     transformations=[SentenceSplitter(chunk_size=1024, chunk_overlap=0), model],
-    vector_store=tao_vector_store("exp441_sp"),
+    vector_store=create_vector_store("exp441_sp"),
 )
 bat_dau = time.perf_counter()
 pipeline_sp.run(documents=san_pham)
@@ -55,7 +55,7 @@ print("SELECT count(*) FROM data_exp441_sp ->", so_dong, "| thời gian:", round
 # BƯỚC 3: Pipeline thứ hai cho tài liệu chính sách, cấu hình cắt khác (theo 4.2.4)
 pipeline_kt = IngestionPipeline(
     transformations=[SentenceSplitter(chunk_size=256, chunk_overlap=30), model],
-    vector_store=tao_vector_store("exp441_kt"),
+    vector_store=create_vector_store("exp441_kt"),
 )
 pipeline_kt.run(documents=[doc_chinh_sach()])
 with engine.connect() as conn:

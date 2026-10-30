@@ -8,10 +8,10 @@ import time
 from llama_index.core.vector_stores import MetadataFilter, MetadataFilters, VectorStoreQuery
 from sqlalchemy import text
 
-from kho_du_lieu import BANG_SAN_PHAM, phien_ban_pgvector, tao_engine, tao_vector_store
+from kho_du_lieu import PRODUCT_VECTOR_TABLE, pgvector_version, create_db_engine, create_vector_store
 
-engine = tao_engine()
-BANG = "data_" + BANG_SAN_PHAM
+engine = create_db_engine()
+BANG = "data_" + PRODUCT_VECTOR_TABLE
 SQL_TOP10 = "SELECT id FROM " + BANG + " {where} ORDER BY embedding <=> CAST(:v AS vector) LIMIT 10"
 
 
@@ -26,7 +26,7 @@ def top10(conn, vec, ef=None, duyet_can=False, where=""):
 
 
 with engine.connect() as conn:
-    so, ban = phien_ban_pgvector(conn)
+    so, ban = pgvector_version(conn)
     print("=== BƯỚC 0: CHỈ MỤC TRÊN BẢNG", BANG, "===")
     print("pgvector", ban, "| số dòng:", conn.execute(text("SELECT count(*) FROM " + BANG)).scalar())
     for (dinh_nghia,) in conn.execute(text("SELECT indexdef FROM pg_indexes WHERE tablename = :b "
@@ -88,7 +88,7 @@ if so >= (0, 8):
               "kết quả")
 
 print("=== BƯỚC 4: CÙNG BỘ LỌC, TRUY HỒI QUA PGVECTORSTORE CỦA LLAMAINDEX ===")
-store = tao_vector_store(BANG_SAN_PHAM)
+store = create_vector_store(PRODUCT_VECTOR_TABLE)
 truy_van = VectorStoreQuery(query_embedding=[float(x) for x in vectors[0].strip("[]").split(",")],
                             similarity_top_k=10, filters=MetadataFilters(
                                 filters=[MetadataFilter(key="brand", value="Nokia")]))

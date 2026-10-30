@@ -3,11 +3,11 @@
 # Với mỗi câu hỏi: lấy Top 10 của từng nhánh, đếm đáp án đúng riêng mỗi nhánh và khi gộp lại
 
 import _duong_dan  # noqa: F401  (thêm thư mục gốc và loi_rag/ vào đường dẫn tìm module)
-from nhung_gemini import tao_model_nhung
+from nhung_gemini import create_embed_model
 from truy_hoi import TOP_K, doc_bo_danh_gia, la_dap_an, lay_nodes, tao_bm25, tao_vector
 
 bo = doc_bo_danh_gia()
-nhanh_vector = tao_vector(tao_model_nhung())
+nhanh_vector = tao_vector(create_embed_model())
 nhanh_bm25 = tao_bm25(lay_nodes())
 print("Mỗi nhánh lấy Top", TOP_K)
 

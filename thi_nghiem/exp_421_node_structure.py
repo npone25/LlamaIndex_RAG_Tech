@@ -5,7 +5,7 @@ import _duong_dan  # noqa: F401  (thêm thư mục gốc và loi_rag/ vào đư�
 from llama_index.core.node_parser import SentenceSplitter
 from llama_index.core.schema import NodeRelationship
 
-from ham_chung_42 import doc_bang_dien_thoai, doc_chinh_sach, in_phien_ban, rut_gon
+from ham_chung_42 import load_phones, doc_chinh_sach, in_phien_ban, rut_gon
 
 
 def id_ngan(node_info):
@@ -68,7 +68,7 @@ print("Giữa :", rut_gon(giua.text, 60))
 print("Sau  :", rut_gon(tra_cuu[giua.next_node.node_id].text, 60))
 
 # BƯỚC 6: Bảng điện thoại - ref_doc_id của Node chính là product_id
-documents = doc_bang_dien_thoai()
+documents = load_phones()
 nodes_sp = SentenceSplitter(chunk_size=1024, chunk_overlap=0).get_nodes_from_documents(documents)
 dung = 0
 for n in nodes_sp:

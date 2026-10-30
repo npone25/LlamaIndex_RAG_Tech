@@ -15,8 +15,8 @@ from ragas.embeddings import LlamaIndexEmbeddingsWrapper
 from ragas.llms import LlamaIndexLLMWrapper
 from ragas.metrics import ResponseRelevancy
 
-from llm_gemini import tao_llm_giam_khao
-from nhung_gemini import tao_model_nhung
+from llm_gemini import create_judge_model
+from nhung_gemini import create_embed_model
 
 sys.stdout.reconfigure(encoding="utf-8")
 FOLDER = Path(__file__).parent
@@ -28,8 +28,8 @@ print("Số câu trả lời:", len(cac_cau))
 mau = [SingleTurnSample(user_input=c["user_input"], response=c["response"]) for c in cac_cau]
 
 print("=== BƯỚC 2: CHẤM ANSWER RELEVANCY (mỗi câu sinh câu hỏi giả định, chấm lại các ô lỗi) ===")
-giam_khao = LlamaIndexLLMWrapper(tao_llm_giam_khao())
-nhung = LlamaIndexEmbeddingsWrapper(tao_model_nhung())
+giam_khao = LlamaIndexLLMWrapper(create_judge_model())
+nhung = LlamaIndexEmbeddingsWrapper(create_embed_model())
 cau_hinh = RunConfig(max_workers=1, max_retries=10, max_wait=60, timeout=300)
 cot = "answer_relevancy"
 bang = None

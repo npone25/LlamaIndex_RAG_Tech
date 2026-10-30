@@ -15,7 +15,7 @@ services:
       - pgdata_v2:/var/lib/postgresql/data
       - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${PG_USER:-postgres} -d ${PG_DB:-phone_rag_db}"]
+      test: [ "CMD-SHELL", "pg_isready -U ${PG_USER:-postgres} -d ${PG_DB:-phone_rag_db}" ]
       interval: 5s
       timeout: 3s
       retries: 10
@@ -37,10 +37,10 @@ services:
   # Giao diện web xem dữ liệu (tùy chọn): docker compose --profile tools up -d
   pgadmin:
     image: dpage/pgadmin4
-    profiles: ["tools"]
+    profiles: [ "tools" ]
     environment:
       PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@example.com}
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-}   # chỉ cần khi bật pgAdmin
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-} # chỉ cần khi bật pgAdmin
     ports:
       - "5050:80"
     depends_on:
@@ -48,3 +48,4 @@ services:
 
 volumes:
   pgdata_v2:
+  pgadmin_data:

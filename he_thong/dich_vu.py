@@ -74,16 +74,13 @@ class TroLy:
             self.ten_model = str(getattr(llm, "model_name"))
         else:
             try:
-                from he_thong.cau_hinh import lay_ten_model_tra_loi
+                from he_thong.cau_hinh import get_answer_model_name
             except ImportError:
-                from cau_hinh import lay_ten_model_tra_loi
-            self.ten_model = lay_ten_model_tra_loi()
+                from cau_hinh import get_answer_model_name
+            self.ten_model = get_answer_model_name()
 
         if self.query_engine is None and self.llm is not None and self.embed_model is not None:
-            try:
-                from he_thong.tro_ly import tao_query_engine
-            except ImportError:
-                from tro_ly import tao_query_engine
+            from tro_ly import tao_query_engine
             self.query_engine = tao_query_engine(
                 self.llm,
                 self.embed_model,
@@ -93,10 +90,7 @@ class TroLy:
             )
 
         if self.dung_router and self.router is None and self.llm is not None and self.embed_model is not None:
-            try:
-                from he_thong.dinh_tuyen import tao_router
-            except ImportError:
-                from dinh_tuyen import tao_router
+            from dinh_tuyen import tao_router
             self.router = tao_router(
                 self.llm,
                 self.embed_model,
@@ -146,10 +140,7 @@ class TroLy:
         if lich_su and len(lich_su) > 0 and self.llm is not None:
             t_vl_dau = time.perf_counter()
             try:
-                try:
-                    from he_thong.tro_ly import PROMPT_VIET_LAI
-                except ImportError:
-                    from tro_ly import PROMPT_VIET_LAI
+                from tro_ly import PROMPT_VIET_LAI
 
                 tin_nhan_loc = lich_su[-6:]
                 doan_hoi_thoai = []
@@ -180,10 +171,7 @@ class TroLy:
         cau_hoi_dung = cau_hoi_viet_lai if cau_hoi_viet_lai else cau_hoi_sach
 
         t_bv_dau = time.perf_counter()
-        try:
-            from he_thong.bao_ve import CAU_TU_CHOI_TAN_CONG, ap_dung_guardrails, kiem_tra_regex
-        except ImportError:
-            from bao_ve import CAU_TU_CHOI_TAN_CONG, ap_dung_guardrails, kiem_tra_regex
+        from bao_ve import CAU_TU_CHOI_TAN_CONG, ap_dung_guardrails, kiem_tra_regex
 
         mau_khop = kiem_tra_regex(cau_hoi_dung)
         if mau_khop is not None:
@@ -321,12 +309,8 @@ class TroLy:
         t_dt_ms = (time.perf_counter() - t_dt_dau) * 1000
         t_tong = (time.perf_counter() - t_tong_dau) * 1000
 
-        try:
-            from he_thong.dinh_tuyen import lay_cau_sql, lay_ten_cong_cu_da_chon
-            from he_thong.tro_ly import CAU_TU_CHOI, trich_nguon, van_ban_tra_loi
-        except ImportError:
-            from dinh_tuyen import lay_cau_sql, lay_ten_cong_cu_da_chon
-            from tro_ly import CAU_TU_CHOI, trich_nguon, van_ban_tra_loi
+        from dinh_tuyen import lay_cau_sql, lay_ten_cong_cu_da_chon
+        from tro_ly import NO_DATA_REPLY, trich_nguon, van_ban_tra_loi
 
         cong_cu = lay_ten_cong_cu_da_chon(response)
         if cong_cu == "khong_ro" and not self.dung_router:
@@ -337,7 +321,7 @@ class TroLy:
         nguon = trich_nguon(response) if hasattr(response, "source_nodes") else []
         cau_sql = lay_cau_sql(response)
 
-        if van_ban == CAU_TU_CHOI:
+        if van_ban == NO_DATA_REPLY:
             che_do = "tu_choi"
             mo_hinh_dung = "khong_goi_llm"
         else:
@@ -367,10 +351,7 @@ class TroLy:
     def chi_truy_hoi(self, cau_hoi: str) -> KetQuaTraLoi:
         """Chế độ dự phòng khi không thể gọi LLM: chỉ chạy truy hồi RRF + rerank + ngưỡng."""
         t_dau = time.perf_counter()
-        try:
-            from he_thong.tro_ly import CAU_TU_CHOI, trich_nguon
-        except ImportError:
-            from tro_ly import CAU_TU_CHOI, trich_nguon
+        from tro_ly import NO_DATA_REPLY, trich_nguon
 
         nodes = []
         retriever = self.retriever
@@ -396,10 +377,7 @@ class TroLy:
         # Tự động rơi về chỉ BM25 trên cả 2 bảng + RRF + reranker + ngưỡng (100% offline)
         if not thanh_cong:
             try:
-                try:
-                    from he_thong.truy_hoi import tao_bo_truy_hoi_bm25_tat_ca
-                except ImportError:
-                    from truy_hoi import tao_bo_truy_hoi_bm25_tat_ca
+                from truy_hoi import tao_bo_truy_hoi_bm25_tat_ca
                 if self._bm25_retriever is None:
                     self._bm25_retriever = tao_bo_truy_hoi_bm25_tat_ca(nodes_theo_bang=self.nodes_theo_bang)
                 nodes = self._bm25_retriever.retrieve(qb)
@@ -437,7 +415,7 @@ class TroLy:
             )
         else:
             kq = KetQuaTraLoi(
-                cau_tra_loi=CAU_TU_CHOI,
+                cau_tra_loi=NO_DATA_REPLY,
                 nguon=[],
                 lop_bao_ve="khong_ro",
                 cong_cu="tu_van_va_chinh_sach",
@@ -460,13 +438,13 @@ class TroLy:
 def xay_dung_tro_ly_thuc() -> TroLy:
     """Tạo trợ lý hoàn chỉnh với các mô hình và cơ sở dữ liệu thật (dùng cho app)."""
     try:
-        from he_thong.cau_hinh import lay_ten_model_tra_loi
+        from he_thong.cau_hinh import get_answer_model_name
     except ImportError:
-        from cau_hinh import lay_ten_model_tra_loi
+        from cau_hinh import get_answer_model_name
 
-    from llm_gemini import tao_llm
-    from nhung_gemini import tao_model_nhung
+    from llm_gemini import create_answer_llm
+    from nhung_gemini import create_embed_model
 
-    llm = tao_llm()
-    embed = tao_model_nhung()
-    return TroLy(llm=llm, embed_model=embed, ten_model=lay_ten_model_tra_loi())
+    llm = create_answer_llm()
+    embed = create_embed_model()
+    return TroLy(llm=llm, embed_model=embed, ten_model=get_answer_model_name())

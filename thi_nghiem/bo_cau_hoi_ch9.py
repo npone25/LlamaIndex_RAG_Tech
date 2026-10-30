@@ -12,11 +12,11 @@ import sys
 
 import pandas as pd
 
-from chuyen_doi_san_pham import FOLDER, PHONE_FILE, lay_gia
+from chuyen_doi_san_pham import FOLDER, PHONE_FILE, get_price
 
 sys.stdout.reconfigure(encoding="utf-8")
 df = pd.read_excel(PHONE_FILE)
-df["gia"] = df.apply(lay_gia, axis=1)
+df["gia"] = df.apply(get_price, axis=1)
 # Đọc mọi tệp kiến thức: khóa là đường dẫn tương đối, ví dụ "chinh_sach/chinh_sach_tra_gop.md"
 THU_MUC_KIEN_THUC = FOLDER / "data_kien_thuc"
 kho_kien_thuc = {}

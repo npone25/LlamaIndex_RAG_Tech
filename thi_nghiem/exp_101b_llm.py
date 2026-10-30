@@ -4,9 +4,9 @@
 import _duong_dan  # noqa: F401  (thêm thư mục gốc và loi_rag/ vào đường dẫn tìm module)
 from bao_ve import PROMPT_KIEM_TRA, KiemTraCauHoi, ap_dung_guardrails, kiem_tra_regex
 from du_lieu_thu_ch10 import CAU_THU
-from llm_gemini import tao_llm
+from llm_gemini import create_answer_llm
 
-llm = tao_llm()
+llm = create_answer_llm()
 print("LLM kiểm duyệt:", getattr(llm, "model", type(llm).__name__))
 
 print("=== BƯỚC 1: NHÃN CỦA LLM CHO TỪNG CÂU (kể cả câu lớp 1 đã chặn, để so sánh) ===")

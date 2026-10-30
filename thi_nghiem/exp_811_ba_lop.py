@@ -5,11 +5,11 @@ import _duong_dan  # noqa: F401  (thêm thư mục gốc và loi_rag/ vào đư�
 from llama_index.core.schema import MetadataMode
 from sqlalchemy import text
 
-from kho_du_lieu import tao_engine
+from kho_du_lieu import create_db_engine
 from truy_hoi import lay_nodes
 
 MA = "dien-thoai-samsung-galaxy-z-fold-7"
-engine = tao_engine()
+engine = create_db_engine()
 
 print("=== BƯỚC 1: SỐ BẢN GHI Ở MỖI LỚP ===")
 with engine.connect() as conn:

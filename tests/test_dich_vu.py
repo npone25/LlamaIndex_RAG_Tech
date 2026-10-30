@@ -88,7 +88,7 @@ def test_thu_tu_goi_viet_lai_bao_ve_router():
 def test_che_do_tu_choi_khi_khong_du_du_lieu():
     """Khi văn bản trả lời là CAU_TU_CHOI -> che_do là 'tu_choi', mo_hinh là 'khong_goi_llm'."""
     from bao_ve import KiemTraCauHoi
-    from tro_ly import CAU_TU_CHOI
+    from tro_ly import NO_DATA_REPLY
 
     llm_gia = LLMGia(
         ket_qua_structured=[KiemTraCauHoi(la_tan_cong=False, trong_pham_vi=True, chu_de="Hỏi thông tin")],
@@ -107,7 +107,7 @@ def test_che_do_tu_choi_khi_khong_du_du_lieu():
     kq = tro_ly.hoi("Điện thoại nào bay được lên sao Hỏa?")
 
     assert kq.che_do == "tu_choi"
-    assert kq.cau_tra_loi == CAU_TU_CHOI
+    assert kq.cau_tra_loi == NO_DATA_REPLY
     assert kq.mo_hinh == "khong_goi_llm"
 
 
@@ -182,8 +182,8 @@ def test_chi_truy_hoi_co_nguon_va_khong_co_nguon():
 
 def test_ghi_nhat_ky_vao_tmp_path(tmp_path, monkeypatch):
     """Kiểm tra ghi nhật ký ẩn danh vào hoi_dap.jsonl trong tmp_path."""
-    # Bật nhật ký qua monkeypatch biến môi trường
-    monkeypatch.setenv("NHAT_KY_HOI_DAP", "1")
+    # Bật nhật ký bằng cách vá hằng số mà nhat_ky.py đã import
+    monkeypatch.setattr("he_thong.nhat_ky.LOGGING_ENABLED", True)
 
     kq = KetQuaTraLoi(
         cau_tra_loi="Đây là câu trả lời kiểm thử.",
@@ -216,9 +216,19 @@ def test_ghi_nhat_ky_vao_tmp_path(tmp_path, monkeypatch):
     assert "cau_tra_loi" not in du_lieu
 
 
+def test_khong_ghi_nhat_ky_khi_tat(tmp_path):
+    """Mặc định LOGGING_ENABLED là False: ghi_nhat_ky không tạo file nào."""
+    kq = KetQuaTraLoi(cau_tra_loi="x", nguon=[], lop_bao_ve="qua", cong_cu="tu_van_va_chinh_sach",
+                      cau_sql=None, thoi_gian_ms={"tong": 1.0}, mo_hinh="gemini-test", che_do="day_du")
+
+    ghi_nhat_ky(kq, "câu hỏi bất kỳ", thu_muc_logs=tmp_path)
+
+    assert not (tmp_path / "hoi_dap.jsonl").exists()
+
+
 def test_kich_ban_dau_cuoi_voi_do_gia(tmp_path, monkeypatch):
     """Kịch bản đầu-cuối: hỏi tư vấn sản phẩm, qua đầy đủ các lớp, trích nguồn và ghi nhật ký."""
-    monkeypatch.setenv("NHAT_KY_HOI_DAP", "1")
+    monkeypatch.setattr("he_thong.nhat_ky.LOGGING_ENABLED", True)
     from bao_ve import KiemTraCauHoi
 
     node_sp = TextNode(

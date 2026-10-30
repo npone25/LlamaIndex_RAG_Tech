@@ -40,9 +40,9 @@ class TroLyGiaApp:
 @pytest.fixture(autouse=True)
 def mock_moi_truong_app(monkeypatch):
     """Mặc định mock kết nối cơ sở dữ liệu và đếm dòng bảng sẵn sàng."""
-    monkeypatch.setattr("kho_du_lieu.kiem_tra_ket_noi", lambda *a, **kw: (True, ""))
+    monkeypatch.setattr("kho_du_lieu.check_connnection", lambda *a, **kw: (True, ""))
     monkeypatch.setattr(
-        "kho_du_lieu.dem_dong_cac_bang",
+        "kho_du_lieu.count_table_rows",
         lambda *a, **kw: {"products": 818, "data_san_pham": 818, "data_kien_thuc": 20},
     )
 
@@ -173,7 +173,7 @@ def test_app_che_do_loi_hien_error_khong_lo_dsn(monkeypatch):
 def test_app_bang_chua_nap_hien_canh_bao(monkeypatch):
     """(6) Bảng chưa nạp (hoặc count=0) hiển thị st.warning hướng dẫn nạp dữ liệu."""
     monkeypatch.setattr(
-        "kho_du_lieu.dem_dong_cac_bang",
+        "kho_du_lieu.count_table_rows",
         lambda *a, **kw: {"products": 0, "data_san_pham": 0, "data_kien_thuc": 0},
     )
     tro_ly_gia = TroLyGiaApp()

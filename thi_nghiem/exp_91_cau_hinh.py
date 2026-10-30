@@ -10,8 +10,8 @@ from importlib.metadata import version
 from llama_index.llms.google_genai import GoogleGenAI
 from sqlalchemy import text
 
-from kho_du_lieu import tao_engine
-from nhung_gemini import SO_CHIEU, TEN_MODEL
+from kho_du_lieu import create_db_engine
+from nhung_gemini import VECTOR_SIZE, MODEL_EMBEDDING_NAME
 from truy_hoi import TEN_RERANKER, TOP_K, TOP_N
 
 sys.stdout.reconfigure(encoding="utf-8")
@@ -24,11 +24,11 @@ for goi in ["llama-index-core", "llama-index-retrievers-bm25", "llama-index-llms
 
 print("=== BƯỚC 2: MÔ HÌNH VÀ KHO VECTOR ===")
 mac_dinh = GoogleGenAI.model_fields["model"].default
-print("Mô hình nhúng:", TEN_MODEL, "|", SO_CHIEU, "chiều")
+print("Mô hình nhúng:", MODEL_EMBEDDING_NAME, "|", VECTOR_SIZE, "chiều")
 print("LLM trả lời :", os.environ.get("GEMINI_LLM_MODEL", mac_dinh))
 tra_loi = os.environ.get("GEMINI_LLM_MODEL", mac_dinh)
 print("LLM giám khảo:", os.environ.get("GEMINI_JUDGE_MODEL", tra_loi), "| temperature = 0")
-with tao_engine().connect() as conn:
+with create_db_engine().connect() as conn:
     print("PostgreSQL", conn.execute(text("SHOW server_version")).scalar().split(" ")[0],
           "| pgvector", conn.execute(text("SELECT extversion FROM pg_extension "
                                           "WHERE extname = 'vector'")).scalar())

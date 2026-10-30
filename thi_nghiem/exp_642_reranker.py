@@ -6,10 +6,10 @@ import time
 
 from llama_index.core.schema import QueryBundle
 
-from nhung_gemini import tao_model_nhung
+from nhung_gemini import create_embed_model
 from truy_hoi import TEN_RERANKER, TOP_N, tao_bo_truy_hoi, tao_reranker, ten_ngan
 
-hybrid = tao_bo_truy_hoi(tao_model_nhung())
+hybrid = tao_bo_truy_hoi(create_embed_model())
 bat_dau = time.perf_counter()
 reranker = tao_reranker()
 print("Mô hình:", TEN_RERANKER, "| top_n =", TOP_N, "| nạp mô hình: %.1f giây"

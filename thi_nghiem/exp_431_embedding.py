@@ -12,7 +12,7 @@ from importlib.metadata import version
 import numpy as np
 from dotenv import load_dotenv
 
-from nhung_gemini import SO_CHIEU, TEN_MODEL, tao_model_nhung
+from nhung_gemini import VECTOR_SIZE, MODEL_EMBEDDING_NAME, create_embed_model
 
 sys.stdout.reconfigure(encoding="utf-8")  # để in được tiếng Việt trên Windows
 load_dotenv()
@@ -51,10 +51,10 @@ print("=== BƯỚC 0: PHIÊN BẢN VÀ CẤU HÌNH ===")
 print("Python                             :", sys.version.split()[0])
 print("llama-index-core                   :", version("llama-index-core"))
 print("llama-index-embeddings-google-genai:", version("llama-index-embeddings-google-genai"))
-print("Model nhúng:", TEN_MODEL, "| số chiều:", SO_CHIEU)
+print("Model nhúng:", MODEL_EMBEDDING_NAME, "| số chiều:", VECTOR_SIZE)
 
-model_co = tao_model_nhung(co_tien_to=True)
-model_khong = tao_model_nhung(co_tien_to=False)
+model_co = create_embed_model(with_prefix=True)
+model_khong = create_embed_model(with_prefix=False)
 
 # BƯỚC 1: Văn bản có độ dài khác nhau đều thành vector cùng số chiều
 print("\n=== BƯỚC 1: VĂN BẢN -> VECTOR ===")
@@ -96,7 +96,7 @@ print("Đã lưu vector vào vector_431.json")
 
 # BƯỚC 4: Ca lỗi - câu hỏi nhúng với số chiều khác số chiều lúc nạp dữ liệu
 print("\n=== BƯỚC 4: CA LỖI (SỐ CHIỀU KHÔNG KHỚP) ===")
-model_3072 = tao_model_nhung(co_tien_to=True, so_chieu=3072)
+model_3072 = create_embed_model(with_prefix=True, dimensions=3072)
 v_3072 = model_3072.get_query_embedding(CAU_HOI[0])
 print("Câu hỏi nhúng với", len(v_3072), "chiều, tài liệu đã nạp với", len(vec_tai_lieu_co[0]), "chiều")
 try:

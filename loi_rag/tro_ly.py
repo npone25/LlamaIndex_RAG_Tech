@@ -9,10 +9,10 @@ from llama_index.core.query_engine import RetrieverQueryEngine
 
 from truy_hoi import tao_bo_truy_hoi_tat_ca, tao_reranker, ten_ngan
 
-from he_thong.cau_hinh import CAU_TU_CHOI, lay_nguong_tu_choi
+from he_thong.cau_hinh import NO_DATA_REPLY, get_refusal_threshold
 # Điểm reranker thấp nhất để một Node được đưa cho LLM; chọn theo thí nghiệm 7.3:
 # nhóm câu trong phạm vi thấp nhất 0.153, nhóm ngoài phạm vi cao nhất 0.039, nên lấy 0.10 (nằm giữa)
-NGUONG_TU_CHOI = lay_nguong_tu_choi()
+NGUONG_TU_CHOI = get_refusal_threshold()
 
 PROMPT_TRA_LOI = PromptTemplate(
     "Bạn là nhân viên tư vấn điện thoại của cửa hàng.\n"
@@ -22,7 +22,7 @@ PROMPT_TRA_LOI = PromptTemplate(
     "---------------------\n"
     "Quy tắc:\n"
     "1. Chỉ dùng thông tin tham khảo ở trên, không dùng hiểu biết bên ngoài.\n"
-    "2. Nếu thông tin tham khảo không đủ để trả lời, chỉ trả lời: " + CAU_TU_CHOI + "\n"
+    "2. Nếu thông tin tham khảo không đủ để trả lời, chỉ trả lời: " + NO_DATA_REPLY + "\n"
     "3. Nêu rõ tên máy hoặc tên tài liệu đã dùng. Giá ghi theo đơn vị đồng.\n"
     "4. Trả lời ngắn gọn bằng tiếng Việt.\n"
     "Câu hỏi: {query_str}\n"
@@ -76,7 +76,7 @@ def tao_chat_engine(llm, embed_model, token_limit=3000):
 def van_ban_tra_loi(response):
     # Khi mọi Node bị ngưỡng loại, LlamaIndex trả "Empty Response" mà không gọi LLM
     if str(response).strip() in ("", "Empty Response", "None"):
-        return CAU_TU_CHOI
+        return NO_DATA_REPLY
     return str(response).strip()
 
 

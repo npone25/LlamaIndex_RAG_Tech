@@ -11,3 +11,8 @@ src = [".", "loi_rag", "thi_nghiem"]
 [tool.ruff.lint]
 select = ["E", "F", "I"]
 exclude = ["thi_nghiem", "_cu", ".venv"]
+
+[tool.pyright]
+# Cho VS Code (Pylance) biết module của dự án nằm ở loi_rag/ và thi_nghiem/;
+# lúc chạy, đường dẫn này do _duong_dan.py và app.py thêm vào sys.path
+extraPaths = ["loi_rag", "thi_nghiem"]

@@ -9,7 +9,7 @@ from pathlib import Path
 import pandas as pd
 from llama_index.core.schema import MetadataMode
 
-from chuyen_doi_san_pham import PHONE_FILE, doc_bang_dien_thoai, lay_gia
+from chuyen_doi_san_pham import PHONE_FILE, load_phones, get_price
 
 sys.stdout.reconfigure(encoding="utf-8")
 FOLDER = Path(__file__).parent
@@ -17,7 +17,7 @@ FOLDER = Path(__file__).parent
 print("=== BƯỚC 1: BẢNG SẢN PHẨM (" + PHONE_FILE.name + ") ===")
 df = pd.read_excel(PHONE_FILE)
 print("Số sản phẩm:", len(df), "| số cột:", len(df.columns), "| số hãng:", df["brand"].nunique())
-gia = df.apply(lay_gia, axis=1)
+gia = df.apply(get_price, axis=1)
 print("Có giá hợp lệ (sau khi bỏ giá giữ chỗ):", gia.notna().sum(), "/", len(df))
 for cot in ["rating", "ram_gb", "chipset", "battery_mah"]:
     print("Thiếu %-12s: %d / %d" % (cot, df[cot].isna().sum(), len(df)))
@@ -28,7 +28,7 @@ tin_don = df["category_path"].astype(str).str.contains("Tin đồn").sum()
 print("Thuộc mục 'Tin đồn - Mới ra':", tin_don)
 
 print("=== BƯỚC 2: ĐỘ DÀI VĂN BẢN NHÚNG CỦA MỖI SẢN PHẨM (số từ) ===")
-docs = doc_bang_dien_thoai()
+docs = load_phones()
 do_dai = []
 for d in docs:
     do_dai.append(len(d.get_content(MetadataMode.EMBED).split()))

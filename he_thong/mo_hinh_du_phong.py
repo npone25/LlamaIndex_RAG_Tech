@@ -170,37 +170,37 @@ def xay_dung_chuoi_mo_hinh(
     # cau_hinh và dich_vu nằm trong he_thong/, các module còn lại nằm ở thư mục gốc của dự án
     try:
         from he_thong.cau_hinh import (
-            lay_danh_sach_model_du_phong,
-            lay_nguong_tu_choi,
-            lay_ten_model_tra_loi,
+            get_fallback_models,
+            get_refusal_threshold,
+            get_answer_model_name,
         )
         from he_thong.dich_vu import TroLy
     except ImportError:
         from cau_hinh import (
-            lay_danh_sach_model_du_phong,
-            lay_nguong_tu_choi,
-            lay_ten_model_tra_loi,
+            get_fallback_models,
+            get_refusal_threshold,
+            get_answer_model_name,
         )
         from dich_vu import TroLy
 
     from llama_index.core.postprocessor import SimilarityPostprocessor
 
-    from kho_du_lieu import BANG_KIEN_THUC, BANG_SAN_PHAM
-    from llm_gemini import tao_llm_theo_ten
-    from nhung_gemini import tao_model_nhung
+    from kho_du_lieu import KNOWLEDGE_VECTOR_TABLE, PRODUCT_VECTOR_TABLE
+    from llm_gemini import create_llm_by_name 
+    from nhung_gemini import create_embed_model
     from tro_ly import NGUONG_TU_CHOI
     from truy_hoi import lay_nodes, tao_bo_truy_hoi_tat_ca, tao_reranker
 
     if danh_sach_ten_model is None:
-        ds = [lay_ten_model_tra_loi()] + lay_danh_sach_model_du_phong()
+        ds = [get_answer_model_name()] + get_fallback_models()
         danh_sach_ten_model = list(dict.fromkeys(ds))
     if embed_model is None:
-        embed_model = tao_model_nhung()
+        embed_model = create_embed_model()
 
     # 1. Đọc nodes MỘT LẦN DUY NHẤT
     nodes_theo_bang = {
-        BANG_SAN_PHAM: lay_nodes(BANG_SAN_PHAM),
-        BANG_KIEN_THUC: lay_nodes(BANG_KIEN_THUC),
+        PRODUCT_VECTOR_TABLE: lay_nodes(PRODUCT_VECTOR_TABLE),
+        KNOWLEDGE_VECTOR_TABLE: lay_nodes(KNOWLEDGE_VECTOR_TABLE),
     }
 
     # 2. Dựng retriever MỘT LẦN DUY NHẤT
@@ -208,7 +208,7 @@ def xay_dung_chuoi_mo_hinh(
 
     # 3. Nạp reranker MỘT LẦN DUY NHẤT
     try:
-        nguong = lay_nguong_tu_choi()
+        nguong = get_refusal_threshold()
     except Exception:
         nguong = NGUONG_TU_CHOI
 
@@ -218,7 +218,7 @@ def xay_dung_chuoi_mo_hinh(
     ]
 
     def ham_tao_tro_ly(ten_model: str) -> TroLy:
-        llm = tao_llm_theo_ten(ten_model)
+        llm = create_llm_by_name (ten_model)
         return TroLy(
             llm=llm,
             embed_model=embed_model,

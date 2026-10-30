@@ -9,12 +9,12 @@ from llama_index.core.node_parser import SentenceSplitter
 from sqlalchemy import text
 
 from chuyen_doi_san_pham import PHONE_FILE
-from ham_chung_42 import doc_bang_dien_thoai, in_phien_ban, row_to_document
-from kho_du_lieu import tao_docstore, tao_engine, tao_vector_store
+from ham_chung_42 import load_phones, in_phien_ban, row_to_document
+from kho_du_lieu import create_docstore, create_db_engine, create_vector_store
 from vector_gia import VectorGia
 
 NAMESPACE = "exp442"
-engine = tao_engine()
+engine = create_db_engine()
 model = VectorGia()
 
 
@@ -29,14 +29,14 @@ def chay(documents, co_docstore=True):
     if co_docstore:
         pipeline = IngestionPipeline(
             transformations=[SentenceSplitter(chunk_size=1024, chunk_overlap=0), model],
-            vector_store=tao_vector_store("exp442"),
-            docstore=tao_docstore(NAMESPACE),
+            vector_store=create_vector_store("exp442"),
+            docstore=create_docstore(NAMESPACE),
             docstore_strategy=DocstoreStrategy.UPSERTS,
         )
     else:
         pipeline = IngestionPipeline(
             transformations=[SentenceSplitter(chunk_size=1024, chunk_overlap=0), model],
-            vector_store=tao_vector_store("exp442"),
+            vector_store=create_vector_store("exp442"),
         )
     model.dat_lai_bo_dem()
     nodes = pipeline.run(documents=documents)
@@ -55,7 +55,7 @@ don_dep()
 print("=== BƯỚC 0: PHIÊN BẢN ===")
 in_phien_ban()
 df = pd.read_excel(PHONE_FILE)
-san_pham = doc_bang_dien_thoai()
+san_pham = load_phones()
 
 # BƯỚC 1 và 2: chạy hai lần trên cùng dữ liệu
 print("=== BƯỚC 1: LẦN NẠP ĐẦU ===")
@@ -83,7 +83,7 @@ print("=== BƯỚC 4: DOCSTORE TRONG POSTGRESQL (bảng data_docstore) ===")
 for d in dem:
     print("  ", d[0], ":", d[1], "dòng")
 print("Hash lưu trong docstore khớp hash Document:",
-      tao_docstore(NAMESPACE).get_document_hash(row["product_id"]) == san_pham[vi_tri].hash)
+      create_docstore(NAMESPACE).get_document_hash(row["product_id"]) == san_pham[vi_tri].hash)
 
 # BƯỚC 5: Ca lỗi - không gắn docstore thì chạy lại sẽ ghi trùng
 don_dep()

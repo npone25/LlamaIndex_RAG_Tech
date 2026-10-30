@@ -20,9 +20,9 @@ from ragas import EvaluationDataset, RunConfig, SingleTurnSample, evaluate
 from ragas.llms import LlamaIndexLLMWrapper
 from ragas.metrics import Faithfulness, LLMContextPrecisionWithReference
 
-from llm_gemini import tao_llm, tao_llm_giam_khao
-from nhung_gemini import tao_model_nhung
-from tro_ly import CAU_TU_CHOI, tao_query_engine, van_ban_tra_loi
+from llm_gemini import create_answer_llm, create_judge_model
+from nhung_gemini import create_embed_model
+from tro_ly import NO_DATA_REPLY, tao_query_engine, van_ban_tra_loi
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
@@ -34,16 +34,16 @@ SO_LAN = int(sys.argv[1]) if len(sys.argv) > 1 else 3
 bo = json.loads((FOLDER / "golden_set_ch9.json").read_text(encoding="utf-8"))
 
 print("=== BƯỚC 1: SINH CÂU TRẢ LỜI BẰNG QUERY ENGINE CỦA CHƯƠNG 7 ===")
-engine = tao_query_engine(tao_llm(), tao_model_nhung())
+engine = tao_query_engine(create_answer_llm(), create_embed_model())
 mau, ma_mau, tu_choi = [], [], []
 tu_choi_dung = []      # câu NG được từ chối đúng
 for muc in bo:
     response = engine.query(muc["cau_hoi"])
     if muc["nhom"] == "NG":
         tra_loi = van_ban_tra_loi(response)
-        if tra_loi == CAU_TU_CHOI:
+        if tra_loi == NO_DATA_REPLY:
             tu_choi_dung.append(muc["id"])
-        print("%s | %s | %s" % (muc["id"], "TỪ CHỐI" if tra_loi == CAU_TU_CHOI else "CÓ TRẢ LỜI",
+        print("%s | %s | %s" % (muc["id"], "TỪ CHỐI" if tra_loi == NO_DATA_REPLY else "CÓ TRẢ LỜI",
                                 tra_loi.replace("\n", " ")[:70]))
         continue
     # Đưa ngữ cảnh đúng như LLM trả lời đã thấy (kèm metadata như giá); bản cũ dùng get_content()
@@ -60,7 +60,7 @@ print("Câu ngoài tài liệu được từ chối:", len(tu_choi_dung), "/", s
 print("Có ngữ cảnh để chấm:", len(mau), "câu | câu trong tài liệu bị từ chối:", tu_choi)
 
 print("=== BƯỚC 2: RAGAS CHẤM %d LẦN ===" % SO_LAN)
-giam_khao = LlamaIndexLLMWrapper(tao_llm_giam_khao())
+giam_khao = LlamaIndexLLMWrapper(create_judge_model())
 cau_hinh = RunConfig(max_workers=2, max_retries=10, max_wait=60, timeout=180)
 cac_lan = []
 for lan in range(1, SO_LAN + 1):

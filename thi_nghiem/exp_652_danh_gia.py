@@ -7,12 +7,12 @@ import time
 
 from llama_index.core.schema import QueryBundle
 
-from nhung_gemini import tao_model_nhung
+from nhung_gemini import create_embed_model
 from truy_hoi import (TOP_N, doc_bo_danh_gia, la_dap_an, lay_nodes, tao_bm25, tao_hybrid,
                       tao_reranker, tao_vector)
 
 bo = doc_bo_danh_gia()
-nhanh_vector = tao_vector(tao_model_nhung())
+nhanh_vector = tao_vector(create_embed_model())
 nhanh_bm25 = tao_bm25(lay_nodes())
 hybrid = tao_hybrid(nhanh_vector, nhanh_bm25)
 reranker = tao_reranker()

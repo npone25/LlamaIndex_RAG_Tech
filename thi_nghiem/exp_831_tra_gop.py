@@ -6,7 +6,7 @@ import sys
 
 from sqlalchemy import text
 
-from kho_du_lieu import tao_engine
+from kho_du_lieu import create_db_engine
 from tra_gop import tao_cong_cu_tra_gop, tinh_tra_gop
 
 sys.stdout.reconfigure(encoding="utf-8")
@@ -16,7 +16,7 @@ print("=== BƯỚC 1: MÔ TẢ CÔNG CỤ MÀ LLM NHÌN THẤY ===")
 print("name:", cong_cu.metadata.name, "| description:", cong_cu.metadata.description)
 print("tham số:", list(cong_cu.metadata.get_parameters_dict()["properties"].keys()))
 
-with tao_engine().connect() as conn:
+with create_db_engine().connect() as conn:
     ten, gia = conn.execute(text("SELECT product_name, price FROM products "
                                  "WHERE product_name = 'iPhone 17 Pro Max 256GB'")).fetchone()
 print("=== BƯỚC 2: %s, GIÁ %s ĐỒNG, TRẢ TRƯỚC 30%%, 12 THÁNG ===" % (ten, "{:,}".format(gia)))

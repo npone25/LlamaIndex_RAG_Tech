@@ -7,14 +7,14 @@ import time
 from llama_index.core import PromptTemplate, Settings
 from llama_index.core.callbacks import CallbackManager, TokenCountingHandler
 
-from llm_gemini import tao_llm
-from nhung_gemini import tao_model_nhung
+from llm_gemini import create_answer_llm
+from nhung_gemini import create_embed_model
 from tro_ly import PROMPT_TRA_LOI, tao_query_engine, van_ban_tra_loi
 
 dem = TokenCountingHandler()                 # đếm số lần gọi LLM và số token gửi đi (ước lượng)
 Settings.callback_manager = CallbackManager([dem])
-llm = tao_llm()
-model_nhung = tao_model_nhung()
+llm = create_answer_llm()
+model_nhung = create_embed_model()
 print("LLM:", getattr(llm, "model", type(llm).__name__))
 
 

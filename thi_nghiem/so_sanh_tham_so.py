@@ -18,8 +18,8 @@ from llama_index.core.evaluation import MRR, HitRate
 from llama_index.core.node_parser import SentenceSplitter
 from llama_index.core.schema import QueryBundle
 
-from kho_du_lieu import BANG_KIEN_THUC, BANG_SAN_PHAM
-from nhung_gemini import tao_model_nhung
+from kho_du_lieu import KNOWLEDGE_VECTOR_TABLE, PRODUCT_VECTOR_TABLE
+from nhung_gemini import create_embed_model
 from truy_hoi import lay_nodes, tao_vector
 
 if hasattr(sys.stdout, "reconfigure"):
@@ -35,8 +35,8 @@ for muc in bo_cau_hoi:
     if muc["nhom"] != "NG":
         cau_co_dap_an.append(muc)
 
-model_nhung = tao_model_nhung()
-nodes_kien_thuc = lay_nodes(BANG_KIEN_THUC)
+model_nhung = create_embed_model()
+nodes_kien_thuc = lay_nodes(KNOWLEDGE_VECTOR_TABLE)
 
 
 def ma_cua_node(nws):
@@ -71,8 +71,8 @@ for muc in cau_co_dap_an:
     vector_cau_hoi[muc["id"]] = model_nhung.get_query_embedding(muc["cau_hoi"])
 
 # Lấy sẵn 10 kết quả lớn nhất mỗi bảng; top_k nhỏ hơn chỉ là cắt bớt danh sách này
-bo_tim_san_pham = tao_vector(model_nhung, BANG_SAN_PHAM, top_k=max(CAC_TOP_K))
-bo_tim_kien_thuc = tao_vector(model_nhung, BANG_KIEN_THUC, top_k=max(CAC_TOP_K))
+bo_tim_san_pham = tao_vector(model_nhung, PRODUCT_VECTOR_TABLE, top_k=max(CAC_TOP_K))
+bo_tim_kien_thuc = tao_vector(model_nhung, KNOWLEDGE_VECTOR_TABLE, top_k=max(CAC_TOP_K))
 
 ket_qua_tim = {}
 for muc in cau_co_dap_an:
@@ -100,9 +100,9 @@ if "--chunk" not in sys.argv:
 
 print("=== PHẦN B: ĐỔI chunk_size CỦA KHO KIẾN THỨC (15 câu nhóm CS, Top 3) ===")
 # Đọc kho kiến thức đúng như ingest.py (cùng metadata) để số Node ở 256/30 khớp bảng data_kien_thuc
-from ingest import doc_kien_thuc  # noqa: E402
+from ingest import load_knowledge  # noqa: E402
 
-tai_lieu = doc_kien_thuc()
+tai_lieu = load_knowledge()
 cau_cs = []
 for muc in cau_co_dap_an:
     if muc["nhom"] == "CS":

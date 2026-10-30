@@ -1,13 +1,13 @@
-# Thí nghiệm 8.4.1 - RouterQueryEngine chọn một trong ba công cụ cho mỗi câu hỏi
+# Thí nghiệm 8.4.1 - RouterQueryEngine chọn một trong bốn công cụ cho mỗi câu hỏi
 # Chạy: python exp_841_router.py   (cần PostgreSQL đã nạp đủ, GOOGLE_API_KEY, mô hình reranker)
 
 import _duong_dan  # noqa: F401  (thêm thư mục gốc và loi_rag/ vào đường dẫn tìm module)
-from llm_gemini import tao_llm
-from nhung_gemini import tao_model_nhung
+from llm_gemini import create_answer_llm
+from nhung_gemini import create_embed_model
 from dinh_tuyen import tao_router
 
-router = tao_router(tao_llm(), tao_model_nhung())
-TEN_CONG_CU = ["tra_cuu_so_lieu", "tu_van_va_chinh_sach", "tinh_tra_gop"]
+router = tao_router(create_answer_llm(), create_embed_model())
+TEN_CONG_CU = ["tra_cuu_so_lieu", "tu_van_va_chinh_sach", "tinh_tra_gop", "tu_van_theo_dieu_kien"]
 KIEM_TRA = [
     ("3 điện thoại Samsung còn hàng rẻ nhất là máy nào?", "tra_cuu_so_lieu"),
     ("Có bao nhiêu điện thoại Xiaomi giá dưới 10 triệu?", "tra_cuu_so_lieu"),
@@ -15,6 +15,8 @@ KIEM_TRA = [
     ("Điện thoại bị vào nước có được bảo hành không?", "tu_van_va_chinh_sach"),
     ("Mua iPhone 17 Pro Max 256GB trả trước 30%, góp 12 tháng lãi 0% thì mỗi tháng bao nhiêu?",
      "tinh_tra_gop"),
+    ("Gợi ý máy chụp ảnh đẹp dưới 10 triệu", "tu_van_theo_dieu_kien"),
+    ("Điện thoại Samsung chơi game mượt, RAM từ 8GB", "tu_van_theo_dieu_kien"),
 ]
 
 so_dung = 0

@@ -5,18 +5,18 @@ import _duong_dan  # noqa: F401  (thêm thư mục gốc và loi_rag/ vào đư�
 from llama_index.core.vector_stores import FilterOperator, MetadataFilter, MetadataFilters
 from sqlalchemy import text
 
-from kho_du_lieu import tao_engine
-from nhung_gemini import tao_model_nhung
+from kho_du_lieu import create_db_engine
+from nhung_gemini import create_embed_model
 from truy_hoi import tao_vector
 
 CAU_HOI = "Điện thoại chụp ảnh đêm tốt dưới 15 triệu"
-model_nhung = tao_model_nhung()
+model_nhung = create_embed_model()
 loc_gia = MetadataFilters(filters=[
     MetadataFilter(key="price", operator=FilterOperator.LT, value=15000000),
 ])
 
 print("=== BƯỚC 1: SỐ NODE THỎA BỘ LỌC (ĐẾM BẰNG SQL) ===")
-with tao_engine().connect() as conn:
+with create_db_engine().connect() as conn:
     tong = conn.execute(text("SELECT count(*) FROM data_san_pham")).scalar()
     thoa = conn.execute(text("SELECT count(*) FROM data_san_pham "
                              "WHERE (metadata_->>'price')::float < 15000000")).scalar()

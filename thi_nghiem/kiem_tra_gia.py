@@ -6,12 +6,12 @@ import sys
 
 import pandas as pd
 
-from chuyen_doi_san_pham import GIA_GIU_CHO, PHONE_FILE, co_gia_tri, lay_gia
+from chuyen_doi_san_pham import price_holder, PHONE_FILE, has_value , get_price
 
 sys.stdout.reconfigure(encoding="utf-8")
 df = pd.read_excel(PHONE_FILE)
 co_gia = df[df["price"].notna()]
-co_bang_mau = co_gia["color_prices"].apply(co_gia_tri)
+co_bang_mau = co_gia["color_prices"].apply(has_value )
 
 print("=== BƯỚC 1: TỔNG QUAN CỘT GIÁ ===")
 print("Số máy:", len(df), "| có giá:", len(co_gia), "| có bảng giá theo màu:", int(co_bang_mau.sum()))
@@ -23,8 +23,8 @@ for gia, so_may in khong_mau["price"].value_counts().head(6).items():
     print("%10d đồng | %2d máy | ví dụ: %s" % (gia, so_may, vi_du))
 
 print("=== BƯỚC 3: ÁP DỤNG QUY TẮC LOẠI GIÁ GIỮ CHỖ ===")
-print("Danh sách giá giữ chỗ:", GIA_GIU_CHO)
-gia_sach = df.apply(lay_gia, axis=1)
+print("Danh sách giá giữ chỗ:", price_holder)
+gia_sach = df.apply(get_price, axis=1)
 bi_loai = df[df["price"].notna() & gia_sach.isna()]
 print("Số giá bị loại:", len(bi_loai), "| tình trạng:", bi_loai["stock_status"].value_counts().to_dict())
 print("Giá hợp lệ còn lại:", int(gia_sach.notna().sum()), "| thấp nhất: %d đồng" % gia_sach.min())

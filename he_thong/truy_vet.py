@@ -16,29 +16,14 @@ from llama_index.core.response_synthesizers import get_response_synthesizer
 from llama_index.core.schema import MetadataMode, NodeWithScore, QueryBundle
 
 try:
-    from he_thong.cau_hinh import TOP_K, TOP_N, lay_nguong_tu_choi
+    from he_thong.cau_hinh import TOP_K, TOP_N, get_refusal_threshold
 except ImportError:
-    from cau_hinh import TOP_K, TOP_N, lay_nguong_tu_choi
+    from cau_hinh import TOP_K, TOP_N, get_refusal_threshold
 
-try:
-    from bao_ve import CAU_TU_CHOI_TAN_CONG, ap_dung_guardrails, kiem_tra_regex
-except ImportError:
-    from he_thong.bao_ve import CAU_TU_CHOI_TAN_CONG, ap_dung_guardrails, kiem_tra_regex
-
-try:
-    from tro_ly import CAU_TU_CHOI, PROMPT_TRA_LOI, PROMPT_VIET_LAI, van_ban_tra_loi
-except ImportError:
-    from he_thong.tro_ly import CAU_TU_CHOI, PROMPT_TRA_LOI, PROMPT_VIET_LAI, van_ban_tra_loi
-
-try:
-    from dinh_tuyen import DANH_SACH_CONG_CU, lay_cau_sql
-except ImportError:
-    from he_thong.dinh_tuyen import DANH_SACH_CONG_CU, lay_cau_sql
-
-try:
-    from truy_hoi import ten_ngan
-except ImportError:
-    from he_thong.truy_hoi import ten_ngan
+from bao_ve import CAU_TU_CHOI_TAN_CONG, ap_dung_guardrails, kiem_tra_regex
+from dinh_tuyen import DANH_SACH_CONG_CU, lay_cau_sql
+from tro_ly import NO_DATA_REPLY, PROMPT_TRA_LOI, PROMPT_VIET_LAI, van_ban_tra_loi
+from truy_hoi import ten_ngan
 
 
 TEN_CAC_NHANH = [
@@ -361,6 +346,7 @@ class TaiNguyenTruyVet:
         selector=None,
         router=None,
         query_engine=None,
+        loc_engine=None,
     ):
         self.llm = llm
         self.embed_model = embed_model
@@ -373,6 +359,7 @@ class TaiNguyenTruyVet:
         self.selector = selector
         self.router = router
         self.query_engine = query_engine
+        self.loc_engine = loc_engine
 
 
 def khoi_tao_tai_nguyen_truy_vet(
@@ -394,14 +381,10 @@ def khoi_tao_tai_nguyen_truy_vet(
             retrievers = list(ret_goc._retrievers)
 
     if not retrievers:
-        try:
-            from kho_du_lieu import BANG_KIEN_THUC, BANG_SAN_PHAM
-            from truy_hoi import lay_nodes, tao_bm25, tao_vector
-        except ImportError:
-            from he_thong.kho_du_lieu import BANG_KIEN_THUC, BANG_SAN_PHAM
-            from he_thong.truy_hoi import lay_nodes, tao_bm25, tao_vector
+        from kho_du_lieu import KNOWLEDGE_VECTOR_TABLE, PRODUCT_VECTOR_TABLE
+        from truy_hoi import lay_nodes, tao_bm25, tao_vector
 
-        for ten_bang in [BANG_SAN_PHAM, BANG_KIEN_THUC]:
+        for ten_bang in [PRODUCT_VECTOR_TABLE, KNOWLEDGE_VECTOR_TABLE]:
             retrievers.append(tao_vector(embed_model, ten_bang, top_k=TOP_K))
             if nodes_theo_bang and ten_bang in nodes_theo_bang:
                 cac_node = nodes_theo_bang[ten_bang]
@@ -411,20 +394,21 @@ def khoi_tao_tai_nguyen_truy_vet(
 
     # Reranker và postprocessor
     reranker = None
-    if tro_ly is not None and getattr(tro_ly, "hau_xu_ly", None):
-        for hp in tro_ly.hau_xu_ly:
+    hau_xu_ly_san = None
+    if tro_ly is not None:
+        hau_xu_ly_san = getattr(tro_ly, "hau_xu_ly", None) or getattr(
+            getattr(tro_ly, "query_engine", None), "_node_postprocessors", None)
+    if hau_xu_ly_san:
+        for hp in hau_xu_ly_san:
             if hasattr(hp, "_model") or hasattr(hp, "model"):
                 reranker = hp
                 break
 
     if reranker is None:
-        try:
-            from truy_hoi import tao_reranker
-        except ImportError:
-            from he_thong.truy_hoi import tao_reranker
+        from truy_hoi import tao_reranker
         reranker = tao_reranker(top_n=TOP_N)
 
-    postprocessor = SimilarityPostprocessor(similarity_cutoff=lay_nguong_tu_choi())
+    postprocessor = SimilarityPostprocessor(similarity_cutoff=get_refusal_threshold())
 
     # Response synthesizer
     synthesizer = get_response_synthesizer(
@@ -438,6 +422,7 @@ def khoi_tao_tai_nguyen_truy_vet(
     query_engine = getattr(tro_ly, "query_engine", None) if tro_ly else None
     sql_engine = None
     tragop_engine = None
+    loc_engine = None
     selector = None
 
     if router is not None:
@@ -446,6 +431,8 @@ def khoi_tao_tai_nguyen_truy_vet(
         if len(engines) >= 3:
             sql_engine = engines[0]
             tragop_engine = engines[2]
+        if len(engines) >= 4:
+            loc_engine = engines[3]
 
     return TaiNguyenTruyVet(
         llm=llm,
@@ -459,6 +446,7 @@ def khoi_tao_tai_nguyen_truy_vet(
         selector=selector,
         router=router,
         query_engine=query_engine,
+        loc_engine=loc_engine,
     )
 
 
@@ -724,6 +712,8 @@ def truy_vet_cau_hoi(
                     resp_tg = tai_nguyen.tragop_engine.query(query_bundle)
                     tham_so_tra_gop = getattr(tai_nguyen.tragop_engine, "tham_so_gan_nhat", None)
                     phan_hoi_theo_cong_cu[ten_cong_cu] = resp_tg
+                elif ten_cong_cu == "tu_van_theo_dieu_kien" and tai_nguyen.loc_engine is not None:
+                    phan_hoi_theo_cong_cu[ten_cong_cu] = tai_nguyen.loc_engine.query(query_bundle)
         except Exception as e:
             if not bat_loi:
                 raise
@@ -763,11 +753,19 @@ def truy_vet_cau_hoi(
                 ds_phan_hoi.append(phan_hoi_theo_cong_cu[ten_cong_cu])
         cau_tra_loi_khac = ""
         if len(ds_phan_hoi) == 1:
-            cau_tra_loi_khac = str(ds_phan_hoi[0])
+            # Như luồng gốc: phản hồi rỗng (không máy nào qua bộ lọc và ngưỡng) thành câu từ chối
+            cau_tra_loi_khac = van_ban_tra_loi(str(ds_phan_hoi[0]))
         elif len(ds_phan_hoi) > 1:
             cau_tra_loi_khac = str(gop_cac_phan_hoi(tai_nguyen, ds_phan_hoi, query_bundle))
+        # Công cụ lọc theo điều kiện trả về các node nguồn; SQL và trả góp thì không có
+        ds_nguon_khac = []
+        ds_doi_chieu_khac = []
+        resp_loc = phan_hoi_theo_cong_cu.get("tu_van_theo_dieu_kien")
+        if resp_loc is not None:
+            ds_nguon_khac = tao_thong_tin_nguon_chi_tiet(list(getattr(resp_loc, "source_nodes", None) or []))
+            ds_doi_chieu_khac = doi_chieu_nguon_voi_cau_tra_loi(ds_nguon_khac, cau_tra_loi_khac)
         thoi_gian_ms["tong"] = round((time.perf_counter() - t_tong_dau) * 1000, 2)
-        vet = {
+        vet: Dict[str, Any] = {
             "dau_vao": dau_vao,
             "bao_ve": bao_ve_dict,
             "dinh_tuyen": dinh_tuyen_dict,
@@ -779,11 +777,11 @@ def truy_vet_cau_hoi(
                 "prompt": None,
                 "cau_tra_loi": cau_tra_loi_khac,
                 "co_goi_llm": True,
-                "che_do": "day_du",
+                "che_do": "tu_choi" if cau_tra_loi_khac == NO_DATA_REPLY else "day_du",
                 "gop_nhieu_cong_cu": len(ds_phan_hoi) > 1,
             },
-            "nguon": [],
-            "doi_chieu_nguon": [],
+            "nguon": ds_nguon_khac,
+            "doi_chieu_nguon": ds_doi_chieu_khac,
             "thoi_gian_ms": thoi_gian_ms,
         }
         if luu_file:
@@ -866,7 +864,7 @@ def truy_vet_cau_hoi(
     thoi_gian_ms["rrf"] = round(t_rrf_ms, 2)
 
     # 7. TÁI XẾP HẠNG (RERANK) & NGƯỠNG
-    nguong_chuan = lay_nguong_tu_choi()
+    nguong_chuan = get_refusal_threshold()
     nodes_qua_nguong, bang_rerank, t_rerank_ms = tai_xep_hang_va_loc_nguong(
         nodes_rrf=nodes_rrf,
         query_bundle=query_bundle,
@@ -879,7 +877,7 @@ def truy_vet_cau_hoi(
     # 8. TỔNG HỢP CÂU TRẢ LỜI & PROMPT
     t_th_dau = time.perf_counter()
     prompt_cuoi = None
-    cau_tra_loi = CAU_TU_CHOI
+    cau_tra_loi = NO_DATA_REPLY
     co_goi_llm = False
     che_do = "day_du"
     token_usage = {"token_vao": 0, "token_ra": 0, "tong_token": 0, "nguon": "khong_goi"}
@@ -912,7 +910,7 @@ def truy_vet_cau_hoi(
             che_do = "loi"
     else:
         # Không có node nào vượt ngưỡng: không gọi LLM
-        cau_tra_loi = CAU_TU_CHOI
+        cau_tra_loi = NO_DATA_REPLY
         che_do = "tu_choi"
         co_goi_llm = False
 

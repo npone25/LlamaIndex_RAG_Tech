@@ -4,9 +4,9 @@
 import _duong_dan  # noqa: F401  (thêm thư mục gốc và loi_rag/ vào đường dẫn tìm module)
 from bao_ve import ap_dung_guardrails
 from du_lieu_thu_ch10 import CAU_THU_PHAM_VI
-from llm_gemini import tao_llm
+from llm_gemini import create_answer_llm
 
-llm = tao_llm()
+llm = create_answer_llm()
 
 print("=== BƯỚC 1: PHÂN LOẠI %d CÂU HỎI ===" % len(CAU_THU_PHAM_VI))
 dung = 0

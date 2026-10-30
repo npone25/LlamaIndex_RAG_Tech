@@ -6,19 +6,19 @@ from llama_index.core.vector_stores import (FilterCondition, FilterOperator, Met
                                             MetadataFilters)
 from sqlalchemy import text
 
-from kho_du_lieu import tao_engine
-from nhung_gemini import tao_model_nhung
+from kho_du_lieu import create_db_engine
+from nhung_gemini import create_embed_model
 from truy_hoi import tao_vector
 
 CAU_HOI = "Điện thoại chụp ảnh đêm tốt"
-model_nhung = tao_model_nhung()
+model_nhung = create_embed_model()
 dieu_kien = [
     MetadataFilter(key="brand", operator=FilterOperator.EQ, value="Samsung"),
     MetadataFilter(key="price", operator=FilterOperator.LT, value=15000000),
 ]
 
 print("=== BƯỚC 1: SỐ NODE THỎA TỪNG ĐIỀU KIỆN (ĐẾM BẰNG SQL) ===")
-with tao_engine().connect() as conn:
+with create_db_engine().connect() as conn:
     for ten, where in [("brand = Samsung", "metadata_->>'brand' = 'Samsung'"),
                        ("price < 15tr", "(metadata_->>'price')::float < 15000000"),
                        ("cả hai (AND)", "metadata_->>'brand' = 'Samsung' AND "

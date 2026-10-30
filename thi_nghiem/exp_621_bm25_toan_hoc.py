@@ -10,7 +10,7 @@ from importlib.metadata import version
 import bm25s
 from llama_index.core.schema import MetadataMode
 
-from chuyen_doi_san_pham import doc_bang_dien_thoai
+from chuyen_doi_san_pham import load_phones
 
 sys.stdout.reconfigure(encoding="utf-8")
 K1 = 1.5     # giá trị mặc định của bm25s
@@ -43,7 +43,7 @@ print("=== BƯỚC 0: PHIÊN BẢN ===")
 print("bm25s", version("bm25s"), "| retrievers-bm25", version("llama-index-retrievers-bm25"))
 
 print("=== BƯỚC 1: IDF TRÊN 818 SẢN PHẨM - TỪ CÀNG HIẾM CÀNG CÓ TRỌNG SỐ ===")
-van_ban = [d.get_content(metadata_mode=MetadataMode.EMBED) for d in doc_bang_dien_thoai()]
+van_ban = [d.get_content(metadata_mode=MetadataMode.EMBED) for d in load_phones()]
 # Tách từ giống hệt BM25Retriever của đồ án (không rút gọn từ)
 tach_tu = bm25s.tokenize(van_ban, stopwords="en", return_ids=False, show_progress=False)
 N = len(tach_tu)

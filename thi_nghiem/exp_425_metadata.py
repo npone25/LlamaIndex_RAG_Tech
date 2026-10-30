@@ -10,13 +10,13 @@ from llama_index.core import Document
 from llama_index.core.node_parser import SentenceSplitter
 from llama_index.core.schema import MetadataMode
 
-from ham_chung_42 import doc_bang_dien_thoai, doc_chinh_sach, in_phien_ban, rut_gon
+from ham_chung_42 import load_phones, doc_chinh_sach, in_phien_ban, rut_gon
 
 load_dotenv()
 
 print("=== BƯỚC 0: PHIÊN BẢN ===")
 in_phien_ban()
-san_pham = doc_bang_dien_thoai()
+san_pham = load_phones()
 doc_sp = san_pham[0]
 
 # BƯỚC 1: Cùng một Document, mô hình nhúng và LLM thấy phần metadata khác nhau
@@ -60,7 +60,7 @@ if os.environ.get("PG_DSN") is None:
 else:
     from sqlalchemy import create_engine, text
 
-    from chuyen_doi_san_pham import doc_bang_dien_thoai as doc_san_pham_that
+    from chuyen_doi_san_pham import load_phones as doc_san_pham_that
 
     engine = create_engine(os.environ["PG_DSN"])
     with engine.connect() as conn:

@@ -5,9 +5,9 @@ import _duong_dan  # noqa: F401  (thêm thư mục gốc và loi_rag/ vào đư�
 from sqlalchemy import text
 
 from dinh_tuyen import tao_engine_chi_doc, tao_sql_engine
-from llm_gemini import tao_llm
+from llm_gemini import create_answer_llm
 
-sql_engine = tao_sql_engine(tao_llm())
+sql_engine = tao_sql_engine(create_answer_llm())
 # Mỗi câu hỏi kèm câu SQL viết tay để đối chiếu kết quả
 KIEM_TRA = [
     ("3 điện thoại Samsung còn hàng rẻ nhất là máy nào, giá bao nhiêu?",

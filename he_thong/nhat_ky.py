@@ -6,16 +6,16 @@ from pathlib import Path
 from typing import Optional
 
 try:
-    from he_thong.cau_hinh import nhat_ky_dang_bat
+    from he_thong.cau_hinh import LOGGING_ENABLED
 except ImportError:
-    from cau_hinh import nhat_ky_dang_bat
+    from cau_hinh import LOGGING_ENABLED
 
 THU_MUC_LOGS_MAC_DINH = Path(__file__).resolve().parent.parent / "logs"
 
 
 def ghi_nhat_ky(ket_qua, cau_hoi: str, thu_muc_logs: Optional[Path] = None) -> None:
     """Ghi một dòng JSON tóm tắt lượt hỏi-đáp vào hoi_dap.jsonl nếu tính năng đang bật."""
-    if not nhat_ky_dang_bat():
+    if not LOGGING_ENABLED:
         return
 
     thu_muc = Path(thu_muc_logs) if thu_muc_logs else THU_MUC_LOGS_MAC_DINH

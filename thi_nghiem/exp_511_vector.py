@@ -3,7 +3,7 @@
 # Dùng cho cả 5.1.1 (xếp hạng ngữ nghĩa) và 5.1.2 (vi phạm ràng buộc số)
 
 import _duong_dan  # noqa: F401  (thêm thư mục gốc và loi_rag/ vào đường dẫn tìm module)
-from nhung_gemini import tao_model_nhung
+from nhung_gemini import create_embed_model
 from truy_hoi import tao_vector
 
 CAU_HOI = "Điện thoại chụp ảnh đêm tốt dưới 15 triệu"
@@ -11,7 +11,7 @@ NGAN_SACH = 15000000
 
 print("=== BƯỚC 1: TRUY HỒI VECTOR, KHÔNG CÓ BỘ LỌC (Top 3) ===")
 print("Câu hỏi:", CAU_HOI)
-retriever = tao_vector(tao_model_nhung(), top_k=3)
+retriever = tao_vector(create_embed_model(), top_k=3)
 ket_qua = retriever.retrieve(CAU_HOI)
 so_vi_pham = 0
 for i, kq in enumerate(ket_qua, start=1):

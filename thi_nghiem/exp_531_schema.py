@@ -7,7 +7,7 @@ import sys
 
 from sqlalchemy import text
 
-from kho_du_lieu import tao_engine
+from kho_du_lieu import create_db_engine
 from loc_metadata import THONG_TIN_KHO
 
 sys.stdout.reconfigure(encoding="utf-8")
@@ -16,7 +16,7 @@ print("=== BƯỚC 1: SCHEMA DẠNG JSON (ĐÚNG CHUỖI ĐƯỢC CHÈN VÀO PRO
 print(THONG_TIN_KHO.model_dump_json(indent=1))
 
 print("=== BƯỚC 2: ĐỐI CHIẾU SCHEMA VỚI METADATA THẬT TRONG data_san_pham ===")
-with tao_engine().connect() as conn:
+with create_db_engine().connect() as conn:
     tong = conn.execute(text("SELECT count(*) FROM data_san_pham")).scalar()
     for muc in THONG_TIN_KHO.metadata_info:
         so = conn.execute(text("SELECT count(*) FROM data_san_pham WHERE metadata_ ? :k"),

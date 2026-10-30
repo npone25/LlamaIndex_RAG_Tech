@@ -32,6 +32,7 @@ TEN_CONG_CU = {
     "tra_cuu_so_lieu": "Tra cứu số liệu (NLSQL)",
     "tu_van_va_chinh_sach": "Tư vấn & chính sách (RAG)",
     "tinh_tra_gop": "Tính trả góp",
+    "tu_van_theo_dieu_kien": "Tư vấn theo điều kiện (lọc metadata)",
     "bi_chan": "Bị chặn",
 }
 
@@ -209,7 +210,7 @@ def tab_dinh_tuyen(vet):
         return
     cac_chon = dt.get("cac_cong_cu") or [chon]
     o = []
-    for khoa in ["tra_cuu_so_lieu", "tu_van_va_chinh_sach", "tinh_tra_gop"]:
+    for khoa in ["tra_cuu_so_lieu", "tu_van_va_chinh_sach", "tinh_tra_gop", "tu_van_theo_dieu_kien"]:
         lop = "chon" if khoa in cac_chon else ""
         dau = "✅ " if khoa in cac_chon else ""
         o.append('<div class="%s">%s%s<br><span class="mono" style="font-size:12px">%s</span></div>'
@@ -393,8 +394,8 @@ def tab_rerank(vet):
         return
     nguong = None
     try:
-        from he_thong.cau_hinh import lay_nguong_tu_choi
-        nguong = lay_nguong_tu_choi()
+        from he_thong.cau_hinh import get_refusal_threshold
+        nguong = get_refusal_threshold()
     except Exception:
         nguong = 0.10
 

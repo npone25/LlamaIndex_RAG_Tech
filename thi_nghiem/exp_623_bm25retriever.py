@@ -9,7 +9,7 @@ from llama_index.core.embeddings import MockEmbedding
 from llama_index.core.vector_stores import MetadataFilter, MetadataFilters
 from llama_index.retrievers.bm25 import BM25Retriever
 
-from kho_du_lieu import BANG_SAN_PHAM, tao_vector_store
+from kho_du_lieu import PRODUCT_VECTOR_TABLE, create_vector_store
 from truy_hoi import lay_nodes, tao_bm25
 
 warnings.filterwarnings("ignore")  # ẩn cảnh báo numpy khi bm25s gặp kho rỗng ở bước 3
@@ -32,7 +32,7 @@ for kq in ket_qua:
 print("Node được phép:", sum(bm25_loc.corpus_weight_mask), "/", len(nodes), "| hãng Top 5:", hang)
 
 print("=== BƯỚC 3: CA LỖI 1 (DỰNG BM25 TỪ INDEX PGVECTOR) ===")
-index = VectorStoreIndex.from_vector_store(tao_vector_store(BANG_SAN_PHAM),
+index = VectorStoreIndex.from_vector_store(create_vector_store(PRODUCT_VECTOR_TABLE),
                                            embed_model=MockEmbedding(embed_dim=768))
 print("Node trong docstore của index:", len(index.docstore.docs))
 try:

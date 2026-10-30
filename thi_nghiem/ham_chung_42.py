@@ -10,7 +10,7 @@ from pathlib import Path
 from llama_index.core import Document
 from llama_index.core.utils import get_tokenizer
 
-from chuyen_doi_san_pham import doc_bang_dien_thoai, row_to_document, row_to_text
+from chuyen_doi_san_pham import load_phones, row_to_document, row_to_text
 
 sys.stdout.reconfigure(encoding="utf-8")  # để in được tiếng Việt trên Windows
 

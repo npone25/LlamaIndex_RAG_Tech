@@ -27,10 +27,7 @@ except ImportError:
     from dich_vu import KetQuaTraLoi, lam_sach_thong_bao_loi
     from mo_hinh_du_phong import xay_dung_chuoi_mo_hinh
 
-try:
-    from kho_du_lieu import dem_dong_cac_bang, kiem_tra_ket_noi
-except ImportError:
-    from he_thong.kho_du_lieu import dem_dong_cac_bang, kiem_tra_ket_noi
+from kho_du_lieu import check_connnection, count_table_rows
 
 from he_thong.giao_dien import nap_css, the_so_lieu, ve_bang_truy_vet, vet_sang_tin_nhan
 
@@ -45,6 +42,7 @@ NHAN_CONG_CU = {
     "tra_cuu_so_lieu": "Tra cứu số liệu",
     "tu_van_va_chinh_sach": "Tư vấn & chính sách",
     "tinh_tra_gop": "Tính trả góp",
+    "tu_van_theo_dieu_kien": "Tư vấn theo điều kiện",
     "bi_chan": "Bị chặn",
 }
 
@@ -90,10 +88,10 @@ def lay_tai_nguyen_truy_vet(tro_ly):
 @st.cache_resource
 def _cac_node_kien_thuc():
     """Các node tài liệu nhóm theo Document cha, dùng để ghép lại tài liệu gốc khi xem nguồn."""
-    from kho_du_lieu import BANG_KIEN_THUC
+    from kho_du_lieu import KNOWLEDGE_VECTOR_TABLE
     from truy_hoi import lay_nodes
     theo_tai_lieu = {}
-    for node in lay_nodes(BANG_KIEN_THUC):
+    for node in lay_nodes(KNOWLEDGE_VECTOR_TABLE):
         khoa = node.ref_doc_id
         if khoa not in theo_tai_lieu:
             theo_tai_lieu[khoa] = []
@@ -216,8 +214,8 @@ def main():
     nap_css()
 
     # Kiểm tra trạng thái cơ sở dữ liệu trước khi cho phép hội thoại
-    ket_noi_ok, loi_kn = kiem_tra_ket_noi()
-    so_dong = dem_dong_cac_bang()
+    ket_noi_ok, loi_kn = check_connnection()
+    so_dong = count_table_rows()
 
     bang_chua_san_sang = False
     if not ket_noi_ok:

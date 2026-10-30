@@ -7,11 +7,11 @@ import time
 
 from sentence_transformers import CrossEncoder
 
-from nhung_gemini import tao_model_nhung
+from nhung_gemini import create_embed_model
 from truy_hoi import TEN_RERANKER, lay_nodes
 
 nodes = lay_nodes()
-model_nhung = tao_model_nhung()
+model_nhung = create_embed_model()
 cross = CrossEncoder(TEN_RERANKER)
 print("Bi-Encoder: gemini-embedding-2 | Cross-Encoder:", TEN_RERANKER)
 

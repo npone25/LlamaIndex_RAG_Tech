@@ -6,14 +6,14 @@ import _duong_dan  # noqa: F401  (thêm thư mục gốc và loi_rag/ vào đư�
 from llama_index.core import Document, SimpleDirectoryReader
 from llama_index.core.node_parser import SentenceSplitter
 
-from ham_chung_42 import PDF_FILE, doc_bang_dien_thoai, hide_path, in_phien_ban, rut_gon
+from ham_chung_42 import PDF_FILE, load_phones, hide_path, in_phien_ban, rut_gon
 
 # Cấu hình nhỏ có overlap lớn, chỉ để thử xem chữ của hai bản ghi có bị trộn không
 splitter_thu = SentenceSplitter(chunk_size=128, chunk_overlap=60)
 
 print("=== BƯỚC 0: PHIÊN BẢN ===")
 in_phien_ban()
-san_pham = doc_bang_dien_thoai()
+san_pham = load_phones()
 a = san_pham[0]
 b = san_pham[1]
 print("Bản ghi A:", a.doc_id, "| bản ghi B:", b.doc_id)

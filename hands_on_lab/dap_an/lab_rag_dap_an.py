@@ -73,9 +73,9 @@ def tao_bo_tim(nodes, che_do, top_k, filters=None):
     sys.path.insert(0, str(FOLDER.parent / "loi_rag"))
     from dotenv import load_dotenv
 
-    from nhung_gemini import tao_model_nhung
+    from nhung_gemini import create_embed_model
     load_dotenv(FOLDER.parent / ".env")
-    chi_muc = VectorStoreIndex(nodes, embed_model=tao_model_nhung())
+    chi_muc = VectorStoreIndex(nodes, embed_model=create_embed_model())
     return chi_muc.as_retriever(similarity_top_k=top_k, filters=filters)
 
 

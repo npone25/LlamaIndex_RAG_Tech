@@ -1,125 +1,110 @@
-# Model nhúng gemini-embedding-2 dùng chung cho các thí nghiệm 4.3 và 4.4
+# Model nhúng gemini-embedding-2 dùng chung cho cả ứng dụng (nạp dữ liệu, hỏi đáp) và các thí nghiệm.
 # gemini-embedding-2 không nhận trường task_type, nhiệm vụ phải ghi thẳng vào văn bản:
 #   câu hỏi : "task: search result | query: <câu hỏi>"
 #   tài liệu: "title: none | text: <nội dung>"
-# Lớp GoogleGenAIEmbedding gốc của LlamaIndex vẫn gửi task_type, nên lớp con dưới đây
+# Lớp GoogleGenAIEmbedding gốc của LlamaIndex vẫn gửi task_type, nên các lớp con dưới đây
 # gọi _embed_texts với task_type=None và tự thêm tiền tố vào văn bản.
 
+import math
+import re
 import time
-from typing import List
 
 from google.genai.errors import ClientError
 from llama_index.embeddings.google_genai import GoogleGenAIEmbedding
 
-TEN_MODEL = "gemini-embedding-2"
-# HNSW của pgvector chỉ nhận tối đa 2000 chiều, nên không dùng mức mặc định 3072 (khai báo ở he_thong/cau_hinh.py)
-from he_thong.cau_hinh import SO_CHIEU_VECTOR as SO_CHIEU  # noqa: E402
+from he_thong.cau_hinh import VECTOR_SIZE
 
+MODEL_EMBEDDING_NAME = "gemini-embedding-2"
 
 # Gói miễn phí của Gemini chỉ cho tối đa 100 lần nhúng mỗi phút (mỗi văn bản tính một lần).
-# Giữ dưới mức đó để không bị lỗi 429 khi nạp hàng trăm Node.
-GIOI_HAN_MOI_PHUT = 90
-moc_da_gui = []   # thời điểm gửi từng văn bản, dùng chung cho mọi model nhúng trong chương trình
+# Giữ tốc độ trung bình dưới mức đó để không bị lỗi 429 khi nạp hàng trăm Node.
+EMBED_LIMIT_PER_MINUTE = 90
+SECONDS_PER_TEXT = 60 / EMBED_LIMIT_PER_MINUTE   # mỗi văn bản "chiếm" 60/90 = 0,67 giây
+MAX_ATTEMPTS = 5                                  # gặp lỗi 429 thì thử tối đa 5 lần
+next_allowed_at = 0.0   # thời điểm sớm nhất được gửi lần kế tiếp, dùng chung cho mọi model nhúng trong chương trình
 
 
-def doi_neu_qua_gioi_han(so_van_ban):
-    """Nếu gửi thêm so_van_ban văn bản sẽ vượt giới hạn trong 60 giây gần nhất thì ngủ chờ."""
-    global moc_da_gui
+def wait_if_over_limit(text_count):
+    """Canh tốc độ gửi: chưa tới giờ được gửi thì ngủ chờ, rồi tính giờ sớm nhất được gửi lần kế tiếp."""
+    global next_allowed_at
+    seconds_to_wait = next_allowed_at - time.time()
+    if seconds_to_wait > 0:
+        print("  Giữ tốc độ nhúng dưới giới hạn, đợi", round(seconds_to_wait), "giây", flush=True)
+        time.sleep(seconds_to_wait)
+    next_allowed_at = time.time() + text_count * SECONDS_PER_TEXT
+
+
+def get_retry_hint(message):
+    """Lấy số giây Gemini gợi ý chờ từ thông báo lỗi, làm tròn lên ('Please retry in 12.3s' -> '13s'); không có thì ''."""
+    found = re.search(r"Please retry in ([\d.]+)s", message)
+    if found is None:
+        return ""
+    return str(math.ceil(float(found.group(1)))) + "s"
+
+
+def embed_with_retry(model, texts):
+    """Gọi API nhúng cho danh sách texts. Gặp 429 theo phút thì đợi 60 giây rồi thử lại, tối đa MAX_ATTEMPTS lần.
+    Không cần tự chia lô: LlamaIndex đã chia sẵn theo embed_batch_size trước khi gọi tới đây."""
+    attempt = 1
     while True:
-        bay_gio = time.time()
-        moc_da_gui = [t for t in moc_da_gui if bay_gio - t < 60]
-        if len(moc_da_gui) + so_van_ban <= GIOI_HAN_MOI_PHUT:
-            break
-        cho = 60 - (bay_gio - moc_da_gui[0]) + 1
-        print("  Đã gửi", len(moc_da_gui), "văn bản trong 1 phút, đợi", round(cho), "giây", flush=True)
-        time.sleep(cho)
-    moc_da_gui = moc_da_gui + [time.time()] * so_van_ban
+        wait_if_over_limit(len(texts))
+        try:
+            return model._embed_texts(texts, task_type=None)
+        except ClientError as error:
+            message = str(error)
+            if error.code == 429 and "PerDay" in message:
+                # Hết hạn mức theo ngày: chờ 60 giây cũng vô ích, dừng ngay và báo lại
+                print("  Gemini báo hết hạn mức NGÀY của gemini-embedding-2 (gói miễn phí: 1.000 lần/ngày).",
+                      "Gợi ý chờ:", get_retry_hint(message), "- dừng, không thử lại.", flush=True)
+                raise SystemExit(1)
+            if error.code != 429 or attempt == MAX_ATTEMPTS:
+                raise   # lỗi khác 429, hoặc đã thử hết số lần: không cứu được, báo lỗi lên
+            print("  Gemini báo 429 (vượt hạn mức), đợi 60 giây rồi thử lại, lần", attempt, flush=True)
+            time.sleep(60)
+            attempt = attempt + 1
 
 
-def nhung_co_gioi_han(model, van_ban):
-    """Gọi API nhúng theo từng phần nhỏ, đợi khi gần chạm giới hạn, thử lại khi gặp 429."""
-    ket_qua = []
-    for i in range(0, len(van_ban), 50):
-        phan = van_ban[i:i + 50]
-        for lan in range(1, 6):
-            doi_neu_qua_gioi_han(len(phan))
-            try:
-                ket_qua = ket_qua + model._embed_texts(phan, task_type=None)
-                break
-            except ClientError as loi:
-                thong_bao = str(loi)
-                if loi.code == 429 and "PerDay" in thong_bao:
-                    # Hết hạn mức theo ngày: chờ 60 giây cũng vô ích, dừng ngay và báo lại
-                    cho = ""
-                    if "Please retry in" in thong_bao:
-                        cho = thong_bao.split("Please retry in")[1].split(".")[0].strip() + "s"
-                    print("  Gemini báo hết hạn mức NGÀY của gemini-embedding-2 (gói miễn phí: 1.000 lần/ngày).",
-                          "Gợi ý chờ:", cho, "- dừng, không thử lại.", flush=True)
-                    raise SystemExit(1)
-                if loi.code != 429 or lan == 5:
-                    raise
-                print("  Gemini báo 429 (vượt hạn mức), đợi 60 giây rồi thử lại, lần", lan, flush=True)
-                time.sleep(60)
-    return ket_qua
+def add_query_prefix(query):
+    return "task: search result | query: " + query
 
 
-def tien_to_cau_hoi(cau_hoi):
-    return "task: search result | query: " + cau_hoi
+def add_document_prefix(text):
+    return "title: none | text: " + text
 
 
-def tien_to_tai_lieu(noi_dung):
-    return "title: none | text: " + noi_dung
+class GeminiPrefixedEmbedding(GoogleGenAIEmbedding):
+    """Gọi gemini-embedding-2 đúng cách: không gửi task_type, ghi nhiệm vụ vào đầu văn bản."""
+
+    def _get_query_embedding(self, query: str) -> list[float]:
+        return embed_with_retry(self, [add_query_prefix(query)])[0]
+
+    def _get_text_embedding(self, text: str) -> list[float]:
+        return embed_with_retry(self, [add_document_prefix(text)])[0]
+
+    def _get_text_embeddings(self, texts: list[str]) -> list[list[float]]:
+        prefixed_texts = []
+        for text in texts:
+            prefixed_texts.append(add_document_prefix(text))
+        return embed_with_retry(self, prefixed_texts)
 
 
-class GeminiNhungCoTienTo(GoogleGenAIEmbedding):
-    """Gọi gemini-embedding-2 đúng cách: không gửi task_type, ghi nhiệm vụ vào văn bản."""
+class GeminiPlainEmbedding(GoogleGenAIEmbedding):
+    """Chỉ dùng để so sánh trong thí nghiệm 4.3.1: câu hỏi và tài liệu được nhúng giống hệt nhau, không tiền tố."""
 
-    def _get_query_embedding(self, query: str) -> List[float]:
-        return nhung_co_gioi_han(self, [tien_to_cau_hoi(query)])[0]
+    def _get_query_embedding(self, query: str) -> list[float]:
+        return embed_with_retry(self, [query])[0]
 
-    def _get_text_embedding(self, text: str) -> List[float]:
-        return nhung_co_gioi_han(self, [tien_to_tai_lieu(text)])[0]
+    def _get_text_embedding(self, text: str) -> list[float]:
+        return embed_with_retry(self, [text])[0]
 
-    def _get_text_embeddings(self, texts: List[str]) -> List[List[float]]:
-        co_tien_to = []
-        for t in texts:
-            co_tien_to.append(tien_to_tai_lieu(t))
-        return nhung_co_gioi_han(self, co_tien_to)
-
-    async def _aget_query_embedding(self, query: str) -> List[float]:
-        doi_neu_qua_gioi_han(1)
-        ket_qua = await self._aembed_texts([tien_to_cau_hoi(query)], task_type=None)
-        return ket_qua[0]
-
-    async def _aget_text_embedding(self, text: str) -> List[float]:
-        doi_neu_qua_gioi_han(1)
-        ket_qua = await self._aembed_texts([tien_to_tai_lieu(text)], task_type=None)
-        return ket_qua[0]
-
-    async def _aget_text_embeddings(self, texts: List[str]) -> List[List[float]]:
-        co_tien_to = []
-        for t in texts:
-            co_tien_to.append(tien_to_tai_lieu(t))
-        doi_neu_qua_gioi_han(len(co_tien_to))
-        return await self._aembed_texts(co_tien_to, task_type=None)
+    def _get_text_embeddings(self, texts: list[str]) -> list[list[float]]:
+        return embed_with_retry(self, texts)
 
 
-class GeminiNhungKhongTienTo(GoogleGenAIEmbedding):
-    """Chỉ dùng để so sánh trong thí nghiệm: câu hỏi và tài liệu được nhúng giống hệt nhau."""
-
-    def _get_query_embedding(self, query: str) -> List[float]:
-        return nhung_co_gioi_han(self, [query])[0]
-
-    def _get_text_embedding(self, text: str) -> List[float]:
-        return nhung_co_gioi_han(self, [text])[0]
-
-    def _get_text_embeddings(self, texts: List[str]) -> List[List[float]]:
-        return nhung_co_gioi_han(self, texts)
-
-
-def tao_model_nhung(co_tien_to=True, so_chieu=SO_CHIEU):
-    # API key lấy từ biến môi trường GOOGLE_API_KEY (nạp từ file .env), không ghi vào code
-    cau_hinh = {"output_dimensionality": so_chieu}
-    if co_tien_to:
-        return GeminiNhungCoTienTo(model_name=TEN_MODEL, embedding_config=cau_hinh)
-    return GeminiNhungKhongTienTo(model_name=TEN_MODEL, embedding_config=cau_hinh)
+def create_embed_model(with_prefix=True, dimensions=VECTOR_SIZE):
+    """Tạo model nhúng; with_prefix=False chỉ dùng để so sánh trong thí nghiệm.
+    API key lấy từ biến môi trường GOOGLE_API_KEY (nạp từ file .env), không ghi vào code."""
+    config = {"output_dimensionality": dimensions}
+    if with_prefix:
+        return GeminiPrefixedEmbedding(model_name=MODEL_EMBEDDING_NAME, embedding_config=config)
+    return GeminiPlainEmbedding(model_name=MODEL_EMBEDDING_NAME, embedding_config=config)

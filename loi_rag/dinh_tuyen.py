@@ -1,6 +1,6 @@
 # Chương 8: công cụ truy vấn SQL (NLSQL), công cụ trả góp và bộ định tuyến RouterQueryEngine
 
-from typing import Optional
+from typing import Any, Optional
 
 from llama_index.core import PromptTemplate, SQLDatabase
 from llama_index.core.embeddings import MockEmbedding
@@ -10,7 +10,9 @@ from llama_index.core.tools import QueryEngineTool
 from pydantic import BaseModel, Field
 from sqlalchemy import create_engine, text
 
-from kho_du_lieu import lay_dsn
+from he_thong.cau_hinh import TOP_K
+from kho_du_lieu import get_dsn
+from loc_metadata import tao_auto_retriever
 from tra_gop import tao_cong_cu_tra_gop
 from tro_ly import tao_query_engine
 
@@ -26,7 +28,7 @@ MO_TA_BANG = (
 
 def tao_engine_chi_doc():
     # Phiên kết nối chỉ đọc: câu SQL do LLM sinh không thể sửa hay xóa dữ liệu
-    return create_engine(lay_dsn(), connect_args={"options": "-c default_transaction_read_only=on"})
+    return create_engine(get_dsn(), connect_args={"options": "-c default_transaction_read_only=on"})
 
 
 def tao_sql_engine(llm):
@@ -84,6 +86,26 @@ class TraGopEngine(CustomQueryEngine):
                 "{:,}".format(so["tra_moi_thang"]), "{:,}".format(so["tien_lai"])))
 
 
+class LocMetadataEngine(CustomQueryEngine):
+    """Tư vấn theo điều kiện: LLM tách điều kiện số thành bộ lọc metadata, lọc xong mới tìm theo nghĩa.
+
+    Bộ truy hồi chỉ dựng ở lần hỏi đầu tiên, nên tạo router không cần kết nối cơ sở dữ liệu.
+    """
+
+    llm: object
+    embed_model: object
+    hau_xu_ly: Optional[list] = None
+    engine_con: Optional[Any] = None
+
+    def custom_query(self, query_str: str):
+        if self.engine_con is None:
+            auto = tao_auto_retriever(self.llm, self.embed_model, top_k=TOP_K)
+            self.engine_con = tao_query_engine(self.llm, self.embed_model, retriever=auto,
+                                               hau_xu_ly=self.hau_xu_ly)
+        # Trả nguyên Response để giữ source_nodes cho phần trích nguồn
+        return self.engine_con.query(query_str)
+
+
 def tao_router(
     llm,
     embed_model,
@@ -100,23 +122,37 @@ def tao_router(
             hau_xu_ly=hau_xu_ly,
             nodes_theo_bang=nodes_theo_bang,
         )
+    if hau_xu_ly is None:
+        # Nhánh tư vấn theo điều kiện dùng chung reranker và ngưỡng với nhánh tư vấn,
+        # để không nạp mô hình Cross-Encoder lần thứ hai vào RAM
+        hau_xu_ly = getattr(query_engine_rag, "_node_postprocessors", None)
     cong_cu = [
         QueryEngineTool.from_defaults(
             query_engine=tao_sql_engine(llm),
             name="tra_cuu_so_lieu",
-            description="Câu hỏi cần lọc, đếm, sắp xếp, tính trung bình hoặc so sánh số liệu "
-                        "trong bảng sản phẩm: giá, RAM, bộ nhớ, pin, điểm đánh giá, còn hàng.",
+            description="Câu hỏi chỉ cần số liệu: đếm, liệt kê đầy đủ, sắp xếp, tính trung bình hoặc "
+                        "so sánh số liệu trong bảng sản phẩm (giá, RAM, bộ nhớ, pin, điểm đánh giá, còn hàng). "
+                        "Không dùng khi khách nhờ tư vấn chọn máy.",
         ),
         QueryEngineTool.from_defaults(
             query_engine=query_engine_rag,
             name="tu_van_va_chinh_sach",
             description="Tư vấn chọn máy theo nhu cầu và tính năng mô tả bằng lời (chụp ảnh, "
-                        "chơi game, màn hình gập...) và chính sách bảo hành, đổi trả.",
+                        "chơi game, màn hình gập...) khi KHÔNG kèm điều kiện cụ thể về giá, hãng, RAM; "
+                        "và chính sách bảo hành, đổi trả.",
         ),
         QueryEngineTool.from_defaults(
             query_engine=TraGopEngine(llm=llm),
             name="tinh_tra_gop",
             description="Tính tiền trả trước và tiền góp mỗi tháng khi mua máy trả góp.",
+        ),
+        QueryEngineTool.from_defaults(
+            query_engine=LocMetadataEngine(llm=llm, embed_model=embed_model, hau_xu_ly=hau_xu_ly),
+            name="tu_van_theo_dieu_kien",
+            description="Tư vấn, gợi ý vài máy phù hợp khi câu hỏi vừa nêu nhu cầu hoặc tính năng bằng lời "
+                        "(chụp ảnh đẹp, chơi game, pin trâu...) vừa có điều kiện cụ thể về giá, hãng, RAM, "
+                        "điểm đánh giá hoặc còn hàng. Ví dụ: máy chụp ảnh đẹp dưới 10 triệu, "
+                        "điện thoại Samsung chơi game RAM từ 8GB.",
         ),
     ]
     return RouterQueryEngine(
@@ -126,7 +162,8 @@ def tao_router(
     )
 
 
-DANH_SACH_CONG_CU = ["tra_cuu_so_lieu", "tu_van_va_chinh_sach", "tinh_tra_gop"]
+# Thứ tự phải khớp với danh sách công cụ trong tao_router; truy_vet.py cũng lấy công cụ theo chỉ số này
+DANH_SACH_CONG_CU = ["tra_cuu_so_lieu", "tu_van_va_chinh_sach", "tinh_tra_gop", "tu_van_theo_dieu_kien"]
 
 
 def lay_ten_cong_cu_da_chon(response) -> str:

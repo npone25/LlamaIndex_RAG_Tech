@@ -22,9 +22,9 @@ st.set_page_config(page_title="Kho dữ liệu", page_icon="🗂️", layout="wi
 @st.cache_resource
 def doc_cac_node():
     """Đọc toàn bộ Node của hai bảng vector một lần (818 + 204 Node)."""
-    from kho_du_lieu import BANG_KIEN_THUC, BANG_SAN_PHAM
+    from kho_du_lieu import KNOWLEDGE_VECTOR_TABLE, PRODUCT_VECTOR_TABLE
     from truy_hoi import lay_nodes
-    return {"san_pham": lay_nodes(BANG_SAN_PHAM), "kien_thuc": lay_nodes(BANG_KIEN_THUC)}
+    return {"san_pham": lay_nodes(PRODUCT_VECTOR_TABLE), "kien_thuc": lay_nodes(KNOWLEDGE_VECTOR_TABLE)}
 
 
 @st.cache_resource
@@ -45,9 +45,9 @@ def dem_token(van_ban):
 
 def lay_vector(ten_bang, node_id):
     """Đọc vector của một Node từ cột embedding trong PostgreSQL."""
-    from kho_du_lieu import tao_engine
+    from kho_du_lieu import create_db_engine
     from sqlalchemy import text
-    with tao_engine().connect() as conn:
+    with create_db_engine().connect() as conn:
         dong = conn.execute(text("SELECT embedding FROM data_" + ten_bang + " WHERE node_id = :ma"),
                             {"ma": node_id}).fetchone()
     if dong is None or dong[0] is None:

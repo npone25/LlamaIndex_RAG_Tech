@@ -14,11 +14,11 @@ from llama_index.core.llms import ChatMessage, MockLLM
 from llama_index.core.retrievers import QueryFusionRetriever
 from llama_index.core.schema import MetadataMode
 
-from chuyen_doi_san_pham import doc_bang_dien_thoai
-from kho_du_lieu import BANG_KIEN_THUC, BANG_SAN_PHAM
-from llm_gemini import tao_llm
-from nhung_gemini import TEN_MODEL, tao_model_nhung, tien_to_tai_lieu
-from tro_ly import CAU_TU_CHOI, NGUONG_TU_CHOI, PROMPT_TRA_LOI
+from chuyen_doi_san_pham import load_phones
+from kho_du_lieu import KNOWLEDGE_VECTOR_TABLE, PRODUCT_VECTOR_TABLE
+from llm_gemini import create_answer_llm
+from nhung_gemini import MODEL_EMBEDDING_NAME, create_embed_model, add_document_prefix
+from tro_ly import NO_DATA_REPLY, NGUONG_TU_CHOI, PROMPT_TRA_LOI
 from truy_hoi import TOP_K, TOP_N, lay_nodes, tao_bm25, tao_reranker, tao_vector
 
 sys.stdout.reconfigure(encoding="utf-8")
@@ -54,16 +54,16 @@ def dem_token(llm, ten_model, van_ban):
 
 
 print("=== BƯỚC 0: CẤU HÌNH ===")
-model_nhung = tao_model_nhung()
-llm = tao_llm()
+model_nhung = create_embed_model()
+llm = create_answer_llm()
 TEN_LLM = getattr(llm, "model", "?")
-print("Mô hình nhúng:", TEN_MODEL, "| LLM:", TEN_LLM, "| temperature:", getattr(llm, "temperature", "?"))
+print("Mô hình nhúng:", MODEL_EMBEDDING_NAME, "| LLM:", TEN_LLM, "| temperature:", getattr(llm, "temperature", "?"))
 print("Truy hồi: 4 nhánh (vector + BM25 trên 2 bảng), RRF Top", TOP_K, "-> rerank Top", TOP_N,
       "| ngưỡng từ chối:", NGUONG_TU_CHOI)
 
 bat_dau = time.perf_counter()
-nhanh_vector = [tao_vector(model_nhung, BANG_SAN_PHAM), tao_vector(model_nhung, BANG_KIEN_THUC)]
-nhanh_bm25 = [tao_bm25(lay_nodes(BANG_SAN_PHAM)), tao_bm25(lay_nodes(BANG_KIEN_THUC))]
+nhanh_vector = [tao_vector(model_nhung, PRODUCT_VECTOR_TABLE), tao_vector(model_nhung, KNOWLEDGE_VECTOR_TABLE)]
+nhanh_bm25 = [tao_bm25(lay_nodes(PRODUCT_VECTOR_TABLE)), tao_bm25(lay_nodes(KNOWLEDGE_VECTOR_TABLE))]
 ms_bm25_dung = ms(bat_dau)
 bat_dau = time.perf_counter()
 reranker = tao_reranker()
@@ -115,7 +115,7 @@ for ma in MA_CAU:
 
     vao, ra = 0, 0
     if len(giu_lai) == 0:
-        tra_loi = CAU_TU_CHOI          # không còn Node nào: từ chối, không gọi LLM
+        tra_loi = NO_DATA_REPLY          # không còn Node nào: từ chối, không gọi LLM
         moc["llm"] = 0.0
     else:
         ngu_canh = "\n\n".join(n.node.get_content(metadata_mode=MetadataMode.LLM) for n in giu_lai)
@@ -170,11 +170,11 @@ if len(token_vao) > 0:
 print("Gói miễn phí: 0 đồng, giới hạn bởi hạn mức (nhúng: 100 lần/phút, 1.000 lần/ngày)")
 
 print("=== BƯỚC 4: CHI PHÍ NẠP DỮ LIỆU MỘT LẦN (ĐẾM TOKEN BẰNG count_tokens) ===")
-van_ban_sp = [tien_to_tai_lieu(d.get_content(MetadataMode.EMBED)) for d in doc_bang_dien_thoai()]
-van_ban_kt = [tien_to_tai_lieu(n.get_content(MetadataMode.EMBED)) for n in lay_nodes(BANG_KIEN_THUC)]
+van_ban_sp = [add_document_prefix(d.get_content(MetadataMode.EMBED)) for d in load_phones()]
+van_ban_kt = [add_document_prefix(n.get_content(MetadataMode.EMBED)) for n in lay_nodes(KNOWLEDGE_VECTOR_TABLE)]
 tong_token = 0
 for ten, ds in [("Sản phẩm", van_ban_sp), ("Kiến thức", van_ban_kt)]:
-    so_token, model_dem = dem_token(llm, TEN_MODEL, "\n".join(ds))
+    so_token, model_dem = dem_token(llm, MODEL_EMBEDDING_NAME, "\n".join(ds))
     if so_token is None:
         print(ten, "| không đếm được token")
         continue

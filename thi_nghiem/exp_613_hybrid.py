@@ -4,10 +4,10 @@
 import _duong_dan  # noqa: F401  (thêm thư mục gốc và loi_rag/ vào đường dẫn tìm module)
 from llama_index.core.retrievers import QueryFusionRetriever
 
-from nhung_gemini import tao_model_nhung
+from nhung_gemini import create_embed_model
 from truy_hoi import lay_nodes, tao_bm25, tao_hybrid, tao_vector, ten_ngan
 
-nhanh_vector = tao_vector(tao_model_nhung())
+nhanh_vector = tao_vector(create_embed_model())
 nhanh_bm25 = tao_bm25(lay_nodes())
 hybrid = tao_hybrid(nhanh_vector, nhanh_bm25)
 

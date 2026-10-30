@@ -12,7 +12,7 @@ from llama_index.core import StorageContext, VectorStoreIndex
 from llama_index.vector_stores.postgres import PGVectorStore
 from sqlalchemy import create_engine, make_url, text
 
-from ham_chung_42 import doc_bang_dien_thoai, in_phien_ban
+from ham_chung_42 import load_phones, in_phien_ban
 from vector_gia import VectorGia
 
 load_dotenv()
@@ -53,7 +53,7 @@ with engine.connect() as conn:
     so_dong_truoc = dem_dong(conn)
 print("Bảng", BANG, ":", "chưa có (lần chạy đầu)" if so_dong_truoc is None else str(so_dong_truoc) + " dòng có sẵn")
 
-documents = doc_bang_dien_thoai()[:SO_SAN_PHAM]
+documents = load_phones()[:SO_SAN_PHAM]
 model = VectorGia()
 
 # BƯỚC 1: Index mặc định - vector và văn bản nằm trong biến Python (RAM)

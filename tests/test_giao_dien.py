@@ -110,8 +110,8 @@ def test_ghep_tai_lieu_goc_thieu_vi_tri_tra_ve_none():
 
 
 def test_app_bat_che_do_truy_vet_ve_du_8_the(monkeypatch):
-    monkeypatch.setattr("kho_du_lieu.kiem_tra_ket_noi", lambda *a, **kw: (True, ""))
-    monkeypatch.setattr("kho_du_lieu.dem_dong_cac_bang",
+    monkeypatch.setattr("kho_du_lieu.check_connnection", lambda *a, **kw: (True, ""))
+    monkeypatch.setattr("kho_du_lieu.count_table_rows",
                         lambda *a, **kw: {"products": 818, "data_san_pham": 818, "data_kien_thuc": 204})
     monkeypatch.setattr("he_thong.truy_vet.khoi_tao_tai_nguyen_truy_vet", lambda *a, **kw: None)
     monkeypatch.setattr("he_thong.truy_vet.truy_vet_cau_hoi", lambda *a, **kw: tao_vet_gia())
@@ -129,8 +129,8 @@ def test_app_bat_che_do_truy_vet_ve_du_8_the(monkeypatch):
 
 
 def test_app_che_do_truy_vet_cau_bi_chan(monkeypatch):
-    monkeypatch.setattr("kho_du_lieu.kiem_tra_ket_noi", lambda *a, **kw: (True, ""))
-    monkeypatch.setattr("kho_du_lieu.dem_dong_cac_bang",
+    monkeypatch.setattr("kho_du_lieu.check_connnection", lambda *a, **kw: (True, ""))
+    monkeypatch.setattr("kho_du_lieu.count_table_rows",
                         lambda *a, **kw: {"products": 818, "data_san_pham": 818, "data_kien_thuc": 204})
     monkeypatch.setattr("he_thong.truy_vet.khoi_tao_tai_nguyen_truy_vet", lambda *a, **kw: None)
     monkeypatch.setattr("he_thong.truy_vet.truy_vet_cau_hoi", lambda *a, **kw: tao_vet_gia(bi_chan=True))

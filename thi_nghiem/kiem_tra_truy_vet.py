@@ -14,7 +14,7 @@ import time
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
 
-from he_thong.cau_hinh import lay_nguong_tu_choi
+from he_thong.cau_hinh import get_refusal_threshold
 from he_thong.truy_vet import khoi_tao_tai_nguyen_truy_vet, truy_vet_cau_hoi
 from he_thong.dich_vu import xay_dung_tro_ly_thuc
 from tro_ly import tao_query_engine

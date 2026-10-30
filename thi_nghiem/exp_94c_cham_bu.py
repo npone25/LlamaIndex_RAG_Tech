@@ -18,8 +18,8 @@ from ragas import EvaluationDataset, RunConfig, SingleTurnSample, evaluate  # no
 from ragas.llms import LlamaIndexLLMWrapper  # noqa: E402
 from ragas.metrics import Faithfulness, LLMContextPrecisionWithReference  # noqa: E402
 
-from llm_gemini import tao_llm, tao_llm_giam_khao  # noqa: E402
-from nhung_gemini import tao_model_nhung  # noqa: E402
+from llm_gemini import create_answer_llm, create_judge_model  # noqa: E402
+from nhung_gemini import create_embed_model  # noqa: E402
 from tro_ly import tao_query_engine, van_ban_tra_loi  # noqa: E402
 
 sys.stdout.reconfigure(encoding="utf-8")
@@ -52,7 +52,7 @@ if len(can_cham) == 0:
     sys.exit(0)
 
 print("=== BƯỚC 2: HỎI LẠI CÁC CÂU NÀY (cùng query engine với exp_94_ragas.py) ===")
-engine = tao_query_engine(tao_llm(), tao_model_nhung())
+engine = tao_query_engine(create_answer_llm(), create_embed_model())
 mau_theo_id = {}
 for ma in can_cham:
     muc = cau_theo_id[ma]
@@ -77,7 +77,7 @@ for ma in can_cham:
                                        retrieved_contexts=ngu_canh, reference=muc["tra_loi_mau"])
 
 print("=== BƯỚC 3: CHẤM BÙ, TỐI ĐA %d LƯỢT CHO CÁC Ô CÒN TRỐNG ===" % SO_LUOT_TOI_DA)
-giam_khao = LlamaIndexLLMWrapper(tao_llm_giam_khao())
+giam_khao = LlamaIndexLLMWrapper(create_judge_model())
 cau_hinh = RunConfig(max_workers=1, max_retries=10, max_wait=60, timeout=180)
 for luot in range(1, SO_LUOT_TOI_DA + 1):
     con_lai = []

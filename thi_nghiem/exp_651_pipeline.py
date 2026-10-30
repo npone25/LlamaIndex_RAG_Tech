@@ -9,11 +9,11 @@ from llama_index.core.query_engine import RetrieverQueryEngine
 from llama_index.core.schema import QueryBundle
 from llama_index.core.vector_stores import MetadataFilter, MetadataFilters
 
-from nhung_gemini import tao_model_nhung
+from nhung_gemini import create_embed_model
 from truy_hoi import (TOP_K, lay_nodes, tao_bm25, tao_bo_truy_hoi, tao_hybrid, tao_reranker,
                       tao_vector, ten_ngan)
 
-model_nhung = tao_model_nhung()
+model_nhung = create_embed_model()
 reranker = tao_reranker()
 cau_hoi = "điện thoại chụp ảnh đẹp"
 loc = MetadataFilters(filters=[MetadataFilter(key="brand", value="Samsung")])

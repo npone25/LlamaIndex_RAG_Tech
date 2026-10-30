@@ -14,7 +14,7 @@ from llama_index.core.vector_stores.utils import metadata_dict_to_node
 from llama_index.retrievers.bm25 import BM25Retriever
 from sqlalchemy import text
 
-from kho_du_lieu import BANG_SAN_PHAM, tao_engine, tao_vector_store
+from kho_du_lieu import PRODUCT_VECTOR_TABLE, create_db_engine, create_vector_store
 
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")  # để in được tiếng Việt trên Windows
@@ -25,9 +25,9 @@ from he_thong.cau_hinh import TOP_K, TOP_N  # noqa: E402
 TEN_RERANKER = os.environ.get("RERANKER_MODEL", "BAAI/bge-reranker-base")
 
 
-def lay_nodes(ten_bang=BANG_SAN_PHAM):
+def lay_nodes(ten_bang=PRODUCT_VECTOR_TABLE):
     """Đọc lại các Node đã nạp ở chương 4 (bảng data_<ten_bang>) để dựng BM25."""
-    engine = tao_engine()
+    engine = create_db_engine()
     with engine.connect() as conn:
         sql = "SELECT text, metadata_ FROM data_" + ten_bang + " ORDER BY id"
         dong = conn.execute(text(sql)).fetchall()
@@ -45,8 +45,8 @@ def tao_bm25(nodes, top_k=TOP_K, filters=None):
                                        skip_stemming=True, filters=filters)
 
 
-def tao_vector(embed_model, ten_bang=BANG_SAN_PHAM, top_k=TOP_K, filters=None):
-    index = VectorStoreIndex.from_vector_store(tao_vector_store(ten_bang), embed_model=embed_model)
+def tao_vector(embed_model, ten_bang=PRODUCT_VECTOR_TABLE, top_k=TOP_K, filters=None):
+    index = VectorStoreIndex.from_vector_store(create_vector_store(ten_bang), embed_model=embed_model)
     return index.as_retriever(similarity_top_k=top_k, filters=filters)
 
 
@@ -62,7 +62,7 @@ def tao_reranker(top_n=TOP_N):
     return SentenceTransformerRerank(model=TEN_RERANKER, top_n=top_n)
 
 
-def tao_bo_truy_hoi(embed_model, ten_bang=BANG_SAN_PHAM, filters=None):
+def tao_bo_truy_hoi(embed_model, ten_bang=PRODUCT_VECTOR_TABLE, filters=None):
     """Bộ truy hồi lai ghép hoàn chỉnh; filters được đưa vào CẢ HAI nhánh (xem 6.5.1)."""
     nhanh_vector = tao_vector(embed_model, ten_bang, filters=filters)
     nhanh_bm25 = tao_bm25(lay_nodes(ten_bang), filters=filters)
@@ -94,9 +94,9 @@ def la_dap_an(nws, muc):
 
 def tao_bo_truy_hoi_tat_ca(embed_model, nodes_theo_bang=None):
     """Truy hồi trên cả sản phẩm và tài liệu chính sách: 4 nhánh, hợp nhất bằng RRF (chương 7)."""
-    from kho_du_lieu import BANG_KIEN_THUC
+    from kho_du_lieu import KNOWLEDGE_VECTOR_TABLE
     nhanh = []
-    for ten_bang in [BANG_SAN_PHAM, BANG_KIEN_THUC]:
+    for ten_bang in [PRODUCT_VECTOR_TABLE, KNOWLEDGE_VECTOR_TABLE]:
         nhanh.append(tao_vector(embed_model, ten_bang))
         if nodes_theo_bang and ten_bang in nodes_theo_bang:
             cac_node = nodes_theo_bang[ten_bang]
@@ -112,9 +112,9 @@ def tao_bo_truy_hoi_bm25_tat_ca(nodes_theo_bang=None, top_k=TOP_K):
 
     Chạy hoàn toàn trên máy nội bộ, không cần gọi API nhúng của Gemini khi API gặp sự cố.
     """
-    from kho_du_lieu import BANG_KIEN_THUC
+    from kho_du_lieu import KNOWLEDGE_VECTOR_TABLE
     nhanh = []
-    for ten_bang in [BANG_SAN_PHAM, BANG_KIEN_THUC]:
+    for ten_bang in [PRODUCT_VECTOR_TABLE, KNOWLEDGE_VECTOR_TABLE]:
         if nodes_theo_bang and ten_bang in nodes_theo_bang:
             cac_node = nodes_theo_bang[ten_bang]
         else:

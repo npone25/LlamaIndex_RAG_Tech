@@ -3,51 +3,51 @@
 import numpy as np
 import pandas as pd
 
-from chuyen_doi_san_pham import co_gia_tri, lay_gia, row_to_document, row_to_text
+from chuyen_doi_san_pham import has_value , get_price, row_to_document, row_to_text
 
 
 def test_co_gia_tri():
     """Kiểm tra hàm co_gia_tri nhận diện ô trống và dữ liệu hợp lệ."""
-    assert co_gia_tri("Samsung") is True
-    assert co_gia_tri(123) is True
-    assert co_gia_tri(0) is True
+    assert has_value ("Samsung") is True
+    assert has_value (123) is True
+    assert has_value (0) is True
 
-    assert co_gia_tri(None) is False
-    assert co_gia_tri(np.nan) is False
-    assert co_gia_tri("") is False
-    assert co_gia_tri("   ") is False
+    assert has_value (None) is False
+    assert has_value (np.nan) is False
+    assert has_value ("") is False
+    assert has_value ("   ") is False
 
 
 def test_lay_gia_gia_tri_binh_thuong():
     """Giá thông thường được giữ nguyên dưới dạng số nguyên."""
     row = pd.Series({"price": 15000000, "color_prices": None})
-    assert lay_gia(row) == 15000000
+    assert get_price(row) == 15000000
 
     row_float = pd.Series({"price": 15000000.0, "color_prices": None})
-    assert lay_gia(row_float) == 15000000
+    assert get_price(row_float) == 15000000
 
 
 def test_lay_gia_trong():
     """Ô giá trống hoặc NaN trả về None."""
-    assert lay_gia(pd.Series({"price": None, "color_prices": None})) is None
-    assert lay_gia(pd.Series({"price": np.nan, "color_prices": None})) is None
-    assert lay_gia(pd.Series({"price": "", "color_prices": None})) is None
+    assert get_price(pd.Series({"price": None, "color_prices": None})) is None
+    assert get_price(pd.Series({"price": np.nan, "color_prices": None})) is None
+    assert get_price(pd.Series({"price": "", "color_prices": None})) is None
 
 
 def test_lay_gia_giu_cho_khong_co_color_prices():
     """Giá trong danh sách giữ chỗ mà không có color_prices thì coi là không có giá (None)."""
     for gia_giu_cho in [500000, 520000, 650000, 820000, 840000]:
         row = pd.Series({"price": gia_giu_cho, "color_prices": None})
-        assert lay_gia(row) is None
+        assert get_price(row) is None
 
         row_rong = pd.Series({"price": gia_giu_cho, "color_prices": "   "})
-        assert lay_gia(row_rong) is None
+        assert get_price(row_rong) is None
 
 
 def test_lay_gia_giu_cho_nhung_co_color_prices():
     """Giá giữ chỗ nhưng CÓ bảng giá theo màu (color_prices) thì là giá thật."""
     row = pd.Series({"price": 500000, "color_prices": "Đen: 500000 | Xanh: 500000"})
-    assert lay_gia(row) == 500000
+    assert get_price(row) == 500000
 
 
 def test_row_to_text_khong_chua_gia_va_bo_qua_thieu(du_lieu_mau_df):
@@ -87,9 +87,9 @@ def test_row_to_document_metadata_va_keys(du_lieu_mau_df):
     assert doc1.metadata["rating"] == 4.8
     assert doc1.metadata["stock_status"] == "InStock"
 
-    # Kiểm tra excluded keys theo đặc tả G.4
+    # Mọi khóa metadata đều không đưa vào văn bản nhúng, vì tên máy và hãng đã có sẵn trong text
     assert doc1.excluded_embed_metadata_keys == [
-        "product_id", "product_name", "price", "ram_gb", "rating", "stock_status"
+        "product_id", "product_name", "brand", "price", "ram_gb", "rating", "stock_status"
     ]
     assert doc1.excluded_llm_metadata_keys == ["product_id"]
 
