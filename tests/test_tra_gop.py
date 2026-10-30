@@ -2,102 +2,102 @@
 
 import pytest
 
-from tra_gop import tao_cong_cu_tra_gop, tinh_tra_gop
+from tra_gop import create_installment_tool, compute_installment
 
 
-def test_tinh_tra_gop_khong_lai_suat():
+def test_compute_installment_without_interest():
     """Ca kiểm thử bắt buộc: 20 triệu, trả trước 30%, 12 tháng, lãi 0%."""
-    kq = tinh_tra_gop(
+    res = compute_installment(
         gia_san_pham=20000000,
         ty_le_tra_truoc=0.3,
         ky_han_thang=12,
         lai_suat_nam_phan_tram=0.0,
     )
-    assert kq["tra_truoc"] == 6000000
-    assert kq["goc_vay"] == 14000000
-    assert kq["tra_moi_thang"] == 1166667
-    assert kq["thang_cuoi"] == 1166663
-    assert kq["tong_tien_gop"] == 14000000
-    assert kq["tien_lai"] == 0
+    assert res["tra_truoc"] == 6000000
+    assert res["goc_vay"] == 14000000
+    assert res["tra_moi_thang"] == 1166667
+    assert res["thang_cuoi"] == 1166663
+    assert res["tong_tien_gop"] == 14000000
+    assert res["tien_lai"] == 0
 
 
-def test_tinh_tra_gop_co_lai_suat():
+def test_compute_installment_with_interest():
     """Ca kiểm thử có lãi 12%/năm (1%/tháng), 12 tháng theo công thức niên kim."""
-    gia = 20000000
-    ty_le = 0.3
-    ky_han = 12
-    lai_nam = 12.0
+    price = 20000000
+    ratio = 0.3
+    term_months = 12
+    annual_rate = 12.0
 
-    kq = tinh_tra_gop(
-        gia_san_pham=gia,
-        ty_le_tra_truoc=ty_le,
-        ky_han_thang=ky_han,
-        lai_suat_nam_phan_tram=lai_nam,
+    res = compute_installment(
+        gia_san_pham=price,
+        ty_le_tra_truoc=ratio,
+        ky_han_thang=term_months,
+        lai_suat_nam_phan_tram=annual_rate,
     )
     # Tính tay bằng công thức niên kim để đối chiếu
-    tra_truoc_ky_vong = round(gia * ty_le)
-    goc_vay_ky_vong = gia - tra_truoc_ky_vong
-    r = lai_nam / 100 / 12
-    moi_thang_chuan = goc_vay_ky_vong * r * (1 + r) ** ky_han / ((1 + r) ** ky_han - 1)
-    tong_gop_ky_vong = round(moi_thang_chuan * ky_han)
-    moi_thang_ky_vong = round(moi_thang_chuan)
-    thang_cuoi_ky_vong = tong_gop_ky_vong - moi_thang_ky_vong * (ky_han - 1)
+    expected_down_payment = round(price * ratio)
+    expected_principal = price - expected_down_payment
+    r = annual_rate / 100 / 12
+    standard_monthly = expected_principal * r * (1 + r) ** term_months / ((1 + r) ** term_months - 1)
+    expected_total_paid = round(standard_monthly * term_months)
+    expected_monthly = round(standard_monthly)
+    expected_last_month = expected_total_paid - expected_monthly * (term_months - 1)
 
-    assert kq["tra_truoc"] == tra_truoc_ky_vong
-    assert kq["goc_vay"] == goc_vay_ky_vong
-    assert kq["tra_moi_thang"] == moi_thang_ky_vong
-    assert kq["thang_cuoi"] == thang_cuoi_ky_vong
-    assert kq["tong_tien_gop"] == tong_gop_ky_vong
-    assert kq["tien_lai"] == tong_gop_ky_vong - goc_vay_ky_vong
-    assert kq["tien_lai"] > 0
-
-
-def test_tinh_tra_gop_tra_truoc_khong_dong():
-    """Trả trước 0% (tỷ lệ 0.0) là hợp lệ: tra_truoc=0, goc_vay=gia."""
-    kq = tinh_tra_gop(10000000, 0.0, 6, 0.0)
-    assert kq["tra_truoc"] == 0
-    assert kq["goc_vay"] == 10000000
-    assert kq["tong_tien_gop"] == 10000000
-    assert kq["tien_lai"] == 0
+    assert res["tra_truoc"] == expected_down_payment
+    assert res["goc_vay"] == expected_principal
+    assert res["tra_moi_thang"] == expected_monthly
+    assert res["thang_cuoi"] == expected_last_month
+    assert res["tong_tien_gop"] == expected_total_paid
+    assert res["tien_lai"] == expected_total_paid - expected_principal
+    assert res["tien_lai"] > 0
 
 
-def test_tinh_tra_gop_loi_ty_le_tra_truoc():
+def test_compute_installment_zero_down_payment():
+    """Trả trước 0% (tỷ lệ 0.0) là hợp lệ: down_payment=0, principal=gia."""
+    res = compute_installment(10000000, 0.0, 6, 0.0)
+    assert res["tra_truoc"] == 0
+    assert res["goc_vay"] == 10000000
+    assert res["tong_tien_gop"] == 10000000
+    assert res["tien_lai"] == 0
+
+
+def test_compute_installment_invalid_down_payment_ratio():
     """Tỷ lệ trả trước phải nằm trong khoảng [0, 1)."""
     with pytest.raises(ValueError, match="Tỷ lệ trả trước"):
-        tinh_tra_gop(10000000, 1.0, 12)
+        compute_installment(10000000, 1.0, 12)
     with pytest.raises(ValueError, match="Tỷ lệ trả trước"):
-        tinh_tra_gop(10000000, -0.1, 12)
+        compute_installment(10000000, -0.1, 12)
     with pytest.raises(ValueError, match="Tỷ lệ trả trước"):
-        tinh_tra_gop(10000000, 1.5, 12)
+        compute_installment(10000000, 1.5, 12)
 
 
-def test_tinh_tra_gop_loi_ky_han():
+def test_compute_installment_invalid_term():
     """Kỳ hạn phải là số nguyên dương."""
     with pytest.raises(ValueError, match="Kỳ hạn"):
-        tinh_tra_gop(10000000, 0.2, 0)
+        compute_installment(10000000, 0.2, 0)
     with pytest.raises(ValueError, match="Kỳ hạn"):
-        tinh_tra_gop(10000000, 0.2, -3)
+        compute_installment(10000000, 0.2, -3)
     with pytest.raises(ValueError, match="Kỳ hạn"):
-        tinh_tra_gop(10000000, 0.2, 2.5)
+        compute_installment(10000000, 0.2, 2.5)
 
 
-def test_tinh_tra_gop_loi_gia_san_pham():
+def test_compute_installment_invalid_price():
     """Giá sản phẩm phải lớn hơn 0."""
     with pytest.raises(ValueError, match="Giá sản phẩm"):
-        tinh_tra_gop(0, 0.2, 6)
+        compute_installment(0, 0.2, 6)
     with pytest.raises(ValueError, match="Giá sản phẩm"):
-        tinh_tra_gop(-5000000, 0.2, 6)
+        compute_installment(-5000000, 0.2, 6)
 
 
-def test_tinh_tra_gop_loi_lai_suat_am():
+def test_compute_installment_negative_interest():
     """Lãi suất không được âm."""
     with pytest.raises(ValueError, match="Lãi suất"):
-        tinh_tra_gop(10000000, 0.2, 6, lai_suat_nam_phan_tram=-1.0)
+        compute_installment(10000000, 0.2, 6, lai_suat_nam_phan_tram=-1.0)
 
 
-def test_tao_cong_cu_tra_gop():
-    """FunctionTool trả góp có tên tinh_tra_gop và gọi thành công."""
-    tool = tao_cong_cu_tra_gop()
+def test_create_installment_tool():
+    """FunctionTool trả góp có tên compute_installment và gọi thành công."""
+    tool = create_installment_tool()
     assert tool.metadata.name == "tinh_tra_gop"
-    kq = tool.call(gia_san_pham=10000000, ty_le_tra_truoc=0.2, ky_han_thang=6, lai_suat_nam_phan_tram=0.0)
-    assert "tra_moi_thang" in kq.raw_output
+    res = tool.call(gia_san_pham=10000000, ty_le_tra_truoc=0.2, ky_han_thang=6, lai_suat_nam_phan_tram=0.0)
+    assert "tra_moi_thang" in res.raw_output

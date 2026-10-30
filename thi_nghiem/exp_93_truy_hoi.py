@@ -14,86 +14,86 @@ from llama_index.core.schema import QueryBundle
 
 from kho_du_lieu import KNOWLEDGE_VECTOR_TABLE, PRODUCT_VECTOR_TABLE
 from nhung_gemini import create_embed_model
-from truy_hoi import TOP_N, lay_nodes, tao_bo_truy_hoi_tat_ca, tao_reranker, tao_vector
+from truy_hoi import TOP_N, load_table_nodes, create_all_retriever, create_reranker, create_vector
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 
 FOLDER = Path(__file__).parent
-GOC = FOLDER.parent  # thư mục gốc dự án, nơi có logs/ và hinh/
-bo = json.loads((FOLDER / "golden_set_ch9.json").read_text(encoding="utf-8"))
-model_nhung = create_embed_model()
-nodes_chinh_sach = lay_nodes(KNOWLEDGE_VECTOR_TABLE)
+ROOT_FOLDER = FOLDER.parent  # thư mục gốc dự án, nơi có logs/ và hinh/
+eval_set = json.loads((FOLDER / "golden_set_ch9.json").read_text(encoding="utf-8"))
+embed_model_obj = create_embed_model()
+policy_nodes = load_table_nodes(KNOWLEDGE_VECTOR_TABLE)
 
 # Cơ sở: chỉ vector trên hai bảng; cùng mô hình nhúng nên điểm cosine so sánh trực tiếp được
-co_so = QueryFusionRetriever([tao_vector(model_nhung, PRODUCT_VECTOR_TABLE, top_k=TOP_N),
-                              tao_vector(model_nhung, KNOWLEDGE_VECTOR_TABLE, top_k=TOP_N)],
+numeric_count = QueryFusionRetriever([create_vector(embed_model_obj, PRODUCT_VECTOR_TABLE, top_k=TOP_N),
+                              create_vector(embed_model_obj, KNOWLEDGE_VECTOR_TABLE, top_k=TOP_N)],
                              mode="simple", num_queries=1, similarity_top_k=TOP_N,
                              use_async=False, llm=MockLLM())
-nang_cao = tao_bo_truy_hoi_tat_ca(model_nhung)
-reranker = tao_reranker()
+advanced = create_all_retriever(embed_model_obj)
+reranker = create_reranker()
 
 
-def ma(nws):
+def item_id(nws):
     # Sản phẩm so theo product_id, đoạn chính sách so theo node_id
     return nws.node.metadata.get("product_id") or nws.node.node_id
 
 
-def dap_an(muc):
-    if muc["nhom"] == "TS":
-        return muc["dap_an_product_id"]
-    cum_tu = muc["cum_tu_dap_an"].lower()
-    return [n.node_id for n in nodes_chinh_sach if cum_tu in n.get_content().lower()]
+def answer_ids(item):
+    if item["nhom"] == "TS":
+        return item["dap_an_product_id"]
+    phrase = item["cum_tu_dap_an"].lower()
+    return [n.node_id for n in policy_nodes if phrase in n.get_content().lower()]
 
 
 print("=== BƯỚC 1: TỪNG CÂU (hạng của đáp án đúng đầu tiên trong Top 3, 0 = không có) ===")
-diem = {"co_so": {}, "nang_cao": {}}
-for muc in bo:
-    if muc["nhom"] == "NG":
+score_value = {"co_so": {}, "nang_cao": {}}
+for item in eval_set:
+    if item["nhom"] == "NG":
         # Câu ngoài tài liệu: không có đáp án đúng để tính Hit/MRR; in điểm reranker cao nhất
         # để thấy ngưỡng từ chối (7.3) có loại được hay không
-        sau = reranker.postprocess_nodes(nang_cao.retrieve(muc["cau_hoi"]),
-                                         query_bundle=QueryBundle(muc["cau_hoi"]))
+        after = reranker.postprocess_nodes(advanced.retrieve(item["cau_hoi"]),
+                                         query_bundle=QueryBundle(item["cau_hoi"]))
         print("%s | ngoài tài liệu | điểm reranker cao nhất %.3f | %s"
-              % (muc["id"], sau[0].score, muc["cau_hoi"][:45]))
+              % (item["id"], after[0].score, item["cau_hoi"][:45]))
         continue
-    q, dung = muc["cau_hoi"], dap_an(muc)
-    lay_ra = {"co_so": [ma(n) for n in co_so.retrieve(q)][:TOP_N]}
-    sau = reranker.postprocess_nodes(nang_cao.retrieve(q), query_bundle=QueryBundle(q))
-    lay_ra["nang_cao"] = [ma(n) for n in sau][:TOP_N]
-    hang = {}
-    for ch in diem:
-        hit = HitRate().compute(expected_ids=dung, retrieved_ids=lay_ra[ch]).score
-        mrr = MRR().compute(expected_ids=dung, retrieved_ids=lay_ra[ch]).score
-        diem[ch][muc["id"]] = (hit, mrr)
-        hang[ch] = round(1 / mrr) if mrr > 0 else 0
-    print("%s | %d đáp án | cơ sở %d | nâng cao %d | %s" % (muc["id"], len(dung), hang["co_so"],
-          hang["nang_cao"], q[:45]))
+    q, correct = item["cau_hoi"], answer_ids(item)
+    retrieved = {"co_so": [item_id(n) for n in numeric_count.retrieve(q)][:TOP_N]}
+    after = reranker.postprocess_nodes(advanced.retrieve(q), query_bundle=QueryBundle(q))
+    retrieved["nang_cao"] = [item_id(n) for n in after][:TOP_N]
+    rank = {}
+    for ch in score_value:
+        hit = HitRate().compute(expected_ids=correct, retrieved_ids=retrieved[ch]).score
+        mrr = MRR().compute(expected_ids=correct, retrieved_ids=retrieved[ch]).score
+        score_value[ch][item["id"]] = (hit, mrr)
+        rank[ch] = round(1 / mrr) if mrr > 0 else 0
+    print("%s | %d đáp án | cơ sở %d | nâng cao %d | %s" % (item["id"], len(correct), rank["co_so"],
+          rank["nang_cao"], q[:45]))
 
 print("=== BƯỚC 2: TỔNG HỢP Hit Rate@3 / MRR@3 ===")
-tong_hop = {}
-for nhom in ["TS", "CS", "Tất cả"]:
-    ma_nhom = [m["id"] for m in bo if m["nhom"] != "NG" and (nhom == "Tất cả" or m["nhom"] == nhom)]
-    dong = []
-    for ch in diem:
-        hit = sum(diem[ch][x][0] for x in ma_nhom) / len(ma_nhom)
-        mrr = sum(diem[ch][x][1] for x in ma_nhom) / len(ma_nhom)
-        tong_hop[(nhom, ch)] = (hit, mrr)
-        dong.append("%s Hit %.2f MRR %.2f" % ("cơ sở" if ch == "co_so" else "nâng cao", hit, mrr))
-    print("%-6s (%2d câu) | %s" % (nhom, len(ma_nhom), " | ".join(dong)))
+synthesis = {}
+for group in ["TS", "CS", "Tất cả"]:
+    group_code = [m["id"] for m in eval_set if m["nhom"] != "NG" and (group == "Tất cả" or m["nhom"] == group)]
+    fetched = []
+    for ch in score_value:
+        hit = sum(score_value[ch][x][0] for x in group_code) / len(group_code)
+        mrr = sum(score_value[ch][x][1] for x in group_code) / len(group_code)
+        synthesis[(group, ch)] = (hit, mrr)
+        fetched.append("%s Hit %.2f MRR %.2f" % ("cơ sở" if ch == "co_so" else "nâng cao", hit, mrr))
+    print("%-6s (%2d câu) | %s" % (group, len(group_code), " | ".join(fetched)))
 
 # Biểu đồ cột cho báo cáo (Hình 9.1)
-fig, truc = plt.subplots(1, 2, figsize=(9, 3.5))
-for k, chi_so in enumerate(["Hit Rate@3", "MRR@3"]):
-    for j, ch in enumerate(diem):
-        gia_tri = [tong_hop[(n, ch)][k] for n in ["TS", "CS", "Tất cả"]]
-        truc[k].bar([x + 0.38 * j for x in range(3)], gia_tri, width=0.38,
+fig, axes = plt.subplots(1, 2, figsize=(9, 3.5))
+for k, pos in enumerate(["Hit Rate@3", "MRR@3"]):
+    for j, ch in enumerate(score_value):
+        val = [synthesis[(n, ch)][k] for n in ["TS", "CS", "Tất cả"]]
+        axes[k].bar([x + 0.38 * j for x in range(3)], val, width=0.38,
                     label="Chỉ vector" if ch == "co_so" else "Hybrid + Rerank")
-    truc[k].set_xticks([x + 0.19 for x in range(3)], ["Thông số", "Chính sách", "Tất cả"])
-    truc[k].set_ylim(0, 1.05)
-    truc[k].set_title(chi_so)
-truc[0].legend(loc="lower left")
+    axes[k].set_xticks([x + 0.19 for x in range(3)], ["Thông số", "Chính sách", "Tất cả"])
+    axes[k].set_ylim(0, 1.05)
+    axes[k].set_title(pos)
+axes[0].legend(filter_value="lower left")
 fig.tight_layout()
-(GOC / "hinh").mkdir(exist_ok=True)
-fig.savefig(GOC / "hinh" / "fig_retrieval.png", dpi=150)
+(ROOT_FOLDER / "hinh").mkdir(exist_ok=True)
+fig.savefig(ROOT_FOLDER / "hinh" / "fig_retrieval.png", dpi=150)
 print("Đã lưu biểu đồ hinh/fig_retrieval.png")

@@ -10,7 +10,7 @@ except ImportError:
     ServerError = Exception
 
 
-def phan_loai_loi(loi: Any) -> str:
+def classify_error(error: Any) -> str:
     """Phân loại lỗi từ Gemini hoặc hệ thống nhúng:
 
     - 'qua_tai': ServerError 500/503/504
@@ -18,15 +18,15 @@ def phan_loai_loi(loi: Any) -> str:
     - 'khoa_sai': ClientError 400/401/403 liên quan khóa API
     - 'khac': các lỗi còn lại
     """
-    if isinstance(loi, SystemExit):
+    if isinstance(error, SystemExit):
         return "het_han_muc"
 
     # Lấy mã lỗi từ thuộc tính nếu có
-    code = getattr(loi, "code", None)
+    code = getattr(error, "code", None)
     if code is None:
-        code = getattr(loi, "status_code", None)
+        code = getattr(error, "status_code", None)
 
-    thong_bao = str(loi).lower()
+    message = str(error).lower()
 
     if code in (500, 503, 504):
         return "qua_tai"
@@ -36,66 +36,66 @@ def phan_loai_loi(loi: Any) -> str:
         return "khoa_sai"
 
     # Nhận diện theo kiểu hoặc nội dung chuỗi nếu không có thuộc tính code
-    if "503" in thong_bao or "unavailable" in thong_bao or "overloaded" in thong_bao:
+    if "503" in message or "unavailable" in message or "overloaded" in message:
         return "qua_tai"
-    if "429" in thong_bao or "resource_exhausted" in thong_bao or "quota" in thong_bao:
+    if "429" in message or "resource_exhausted" in message or "quota" in message:
         return "het_han_muc"
-    if "api_key_invalid" in thong_bao or "api key" in thong_bao or "401" in thong_bao or "403" in thong_bao:
+    if "api_key_invalid" in message or "api key" in message or "401" in message or "403" in message:
         return "khoa_sai"
 
     return "khac"
 
 
-class ChuoiMoHinh:
+class ModelChain:
     """Chuỗi mô hình thử lần lượt khi gặp lỗi quá tải hoặc hết hạn mức."""
 
     def __init__(
         self,
-        danh_sach_ten_model: List[str],
-        ham_tao_tro_ly: Callable[[str], Any],
-        thoi_gian_cho: float = 2.0,
+        model_names: List[str],
+        assistant_factory: Callable[[str], Any],
+        wait_times: float = 2.0,
     ):
-        self.danh_sach_ten_model = list(danh_sach_ten_model)
-        self.ten_model = self.danh_sach_ten_model[0] if self.danh_sach_ten_model else "Gemini"
-        self.mo_hinh_gan_nhat = None
-        self.ham_tao_tro_ly = ham_tao_tro_ly
-        self.thoi_gian_cho = thoi_gian_cho
-        self._tro_ly_cache = {}
-        self.nhat_ky_thu = []
+        self.model_names = list(model_names)
+        self.model_name = self.model_names[0] if self.model_names else "Gemini"
+        self.last_model = None
+        self.assistant_factory = assistant_factory
+        self.wait_times = wait_times
+        self._assistant_cache = {}
+        self.test_log_dir = []
 
-    def _lay_tro_ly(self, ten_model: str):
-        if ten_model not in self._tro_ly_cache:
-            self._tro_ly_cache[ten_model] = self.ham_tao_tro_ly(ten_model)
-        return self._tro_ly_cache[ten_model]
+    def _get_assistant(self, model_name: str):
+        if model_name not in self._assistant_cache:
+            self._assistant_cache[model_name] = self.assistant_factory(model_name)
+        return self._assistant_cache[model_name]
 
-    def hoi(self, cau_hoi: str, lich_su: Optional[List[dict]] = None):
+    def ask(self, cau_hoi: str, history: Optional[List[dict]] = None):
         """Thử lần lượt từng mô hình.
 
         Nếu gặp 'qua_tai' hoặc 'het_han_muc': thử mô hình tiếp theo.
         Nếu gặp 'khoa_sai': dừng ngay và báo lỗi.
-        Hết mô hình: chuyển sang chế độ chi_truy_hoi của trợ lý đầu tiên.
+        Hết mô hình: chuyển sang chế độ retrieve_only của trợ lý đầu tiên.
         """
-        self.nhat_ky_thu = []
-        ket_qua = None
+        self.test_log_dir = []
+        result = None
 
-        for idx, ten_model in enumerate(self.danh_sach_ten_model):
-            tro_ly = self._lay_tro_ly(ten_model)
+        for idx, model_name in enumerate(self.model_names):
+            tro_ly = self._get_assistant(model_name)
             try:
-                ket_qua = tro_ly.hoi(cau_hoi, lich_su=lich_su, bat_loi=False)
-                self.mo_hinh_gan_nhat = getattr(ket_qua, "mo_hinh", ten_model)
-                return ket_qua
-            except (Exception, SystemExit) as loi:
-                loai_loi = phan_loai_loi(loi)
-                self.nhat_ky_thu.append((ten_model, loai_loi, str(loi)))
+                result = tro_ly.ask(cau_hoi, history=history, catch_errors=False)
+                self.last_model = getattr(result, "mo_hinh", model_name)
+                return result
+            except (Exception, SystemExit) as error:
+                error_kind = classify_error(error)
+                self.test_log_dir.append((model_name, error_kind, str(error)))
 
-                if loai_loi == "khoa_sai":
+                if error_kind == "khoa_sai":
                     # Báo lỗi nhập khóa và dừng ngay
                     try:
-                        from he_thong.dich_vu import KetQuaTraLoi
+                        from he_thong.dich_vu import AnswerResult
                     except ImportError:
-                        from dich_vu import KetQuaTraLoi
+                        from dich_vu import AnswerResult
 
-                    kq = KetQuaTraLoi(
+                    res = AnswerResult(
                         cau_tra_loi="Khóa API Gemini không hợp lệ, kiểm tra GOOGLE_API_KEY",
                         nguon=[],
                         lop_bao_ve="khong_ro",
@@ -103,37 +103,37 @@ class ChuoiMoHinh:
                         cau_sql=None,
                         cau_hoi_viet_lai=None,
                         thoi_gian_ms={"tong": 0.0},
-                        mo_hinh=ten_model,
+                        mo_hinh=model_name,
                         che_do="loi",
                         thong_bao_loi="Khóa API Gemini không hợp lệ, kiểm tra GOOGLE_API_KEY",
                     )
-                    self.mo_hinh_gan_nhat = kq.mo_hinh
-                    return kq
+                    self.last_model = res.mo_hinh
+                    return res
 
-                if loai_loi in ("qua_tai", "het_han_muc"):
-                    if idx < len(self.danh_sach_ten_model) - 1 and self.thoi_gian_cho > 0:
-                        time.sleep(self.thoi_gian_cho)
+                if error_kind in ("qua_tai", "het_han_muc"):
+                    if idx < len(self.model_names) - 1 and self.wait_times > 0:
+                        time.sleep(self.wait_times)
                     continue
 
                 # Lỗi khác thì ném lại
                 raise
 
-        # Hết danh sách mô hình -> rơi về chi_truy_hoi của trợ lý đầu tiên
-        if self.danh_sach_ten_model:
-            tro_ly_dau = self._lay_tro_ly(self.danh_sach_ten_model[0])
+        # Hết danh sách mô hình -> rơi về retrieve_only của trợ lý đầu tiên
+        if self.model_names:
+            first_assistant = self._get_assistant(self.model_names[0])
             try:
-                kq = tro_ly_dau.chi_truy_hoi(cau_hoi)
-                self.mo_hinh_gan_nhat = getattr(kq, "mo_hinh", "khong_goi_llm")
-                return kq
+                res = first_assistant.retrieve_only(cau_hoi)
+                self.last_model = getattr(res, "mo_hinh", "khong_goi_llm")
+                return res
             except (Exception, SystemExit):
                 pass
 
         try:
-            from he_thong.dich_vu import KetQuaTraLoi
+            from he_thong.dich_vu import AnswerResult
         except ImportError:
-            from dich_vu import KetQuaTraLoi
+            from dich_vu import AnswerResult
 
-        kq = KetQuaTraLoi(
+        res = AnswerResult(
             cau_tra_loi="Gemini tạm thời không dùng được, vui lòng thử lại sau.",
             nguon=[],
             lop_bao_ve="khong_ro",
@@ -145,28 +145,28 @@ class ChuoiMoHinh:
             che_do="loi",
             thong_bao_loi="Gemini tạm thời không dùng được, vui lòng thử lại sau",
         )
-        self.mo_hinh_gan_nhat = kq.mo_hinh
-        return kq
+        self.last_model = res.mo_hinh
+        return res
 
 
-def nhung_cau_hoi_an_toan(model_nhung, cau_hoi: str) -> Optional[List[float]]:
+def embed_query_safely(embed_model_obj, cau_hoi: str) -> Optional[List[float]]:
     """Bọc gọi get_query_embedding an toàn, trả về None khi hết hạn mức hoặc lỗi API."""
     try:
-        if hasattr(model_nhung, "get_query_embedding"):
-            return model_nhung.get_query_embedding(cau_hoi)
-        if hasattr(model_nhung, "get_text_embedding"):
-            return model_nhung.get_text_embedding(cau_hoi)
+        if hasattr(embed_model_obj, "get_query_embedding"):
+            return embed_model_obj.get_query_embedding(cau_hoi)
+        if hasattr(embed_model_obj, "get_text_embedding"):
+            return embed_model_obj.get_text_embedding(cau_hoi)
         return None
     except (Exception, SystemExit):
         return None
 
 
-def xay_dung_chuoi_mo_hinh(
-    danh_sach_ten_model: Optional[List[str]] = None,
+def build_model_chain(
+    model_names: Optional[List[str]] = None,
     embed_model=None,
-    thoi_gian_cho: float = 2.0,
-) -> ChuoiMoHinh:
-    """Xây dựng ChuoiMoHinh dùng chung nodes, retriever và reranker cho tất cả mô hình."""
+    wait_times: float = 2.0,
+) -> ModelChain:
+    """Xây dựng ModelChain dùng chung nodes, retriever và reranker cho tất cả mô hình."""
     # cau_hinh và dich_vu nằm trong he_thong/, các module còn lại nằm ở thư mục gốc của dự án
     try:
         from he_thong.cau_hinh import (
@@ -174,63 +174,63 @@ def xay_dung_chuoi_mo_hinh(
             get_refusal_threshold,
             get_answer_model_name,
         )
-        from he_thong.dich_vu import TroLy
+        from he_thong.dich_vu import Assistant
     except ImportError:
         from cau_hinh import (
             get_fallback_models,
             get_refusal_threshold,
             get_answer_model_name,
         )
-        from dich_vu import TroLy
+        from dich_vu import Assistant
 
     from llama_index.core.postprocessor import SimilarityPostprocessor
 
     from kho_du_lieu import KNOWLEDGE_VECTOR_TABLE, PRODUCT_VECTOR_TABLE
     from llm_gemini import create_llm_by_name 
     from nhung_gemini import create_embed_model
-    from tro_ly import NGUONG_TU_CHOI
-    from truy_hoi import lay_nodes, tao_bo_truy_hoi_tat_ca, tao_reranker
+    from tro_ly import REFUSAL_CUTOFF
+    from truy_hoi import load_table_nodes, create_all_retriever, create_reranker
 
-    if danh_sach_ten_model is None:
-        ds = [get_answer_model_name()] + get_fallback_models()
-        danh_sach_ten_model = list(dict.fromkeys(ds))
+    if model_names is None:
+        rows = [get_answer_model_name()] + get_fallback_models()
+        model_names = list(dict.fromkeys(rows))
     if embed_model is None:
         embed_model = create_embed_model()
 
     # 1. Đọc nodes MỘT LẦN DUY NHẤT
-    nodes_theo_bang = {
-        PRODUCT_VECTOR_TABLE: lay_nodes(PRODUCT_VECTOR_TABLE),
-        KNOWLEDGE_VECTOR_TABLE: lay_nodes(KNOWLEDGE_VECTOR_TABLE),
+    nodes_by_table = {
+        PRODUCT_VECTOR_TABLE: load_table_nodes(PRODUCT_VECTOR_TABLE),
+        KNOWLEDGE_VECTOR_TABLE: load_table_nodes(KNOWLEDGE_VECTOR_TABLE),
     }
 
     # 2. Dựng retriever MỘT LẦN DUY NHẤT
-    retriever_chung = tao_bo_truy_hoi_tat_ca(embed_model, nodes_theo_bang=nodes_theo_bang)
+    shared_retriever = create_all_retriever(embed_model, nodes_by_table=nodes_by_table)
 
     # 3. Nạp reranker MỘT LẦN DUY NHẤT
     try:
-        nguong = get_refusal_threshold()
+        cutoff = get_refusal_threshold()
     except Exception:
-        nguong = NGUONG_TU_CHOI
+        cutoff = REFUSAL_CUTOFF
 
-    hau_xu_ly_chung = [
-        tao_reranker(),
-        SimilarityPostprocessor(similarity_cutoff=nguong),
+    shared_postprocessors = [
+        create_reranker(),
+        SimilarityPostprocessor(similarity_cutoff=cutoff),
     ]
 
-    def ham_tao_tro_ly(ten_model: str) -> TroLy:
-        llm = create_llm_by_name (ten_model)
-        return TroLy(
+    def assistant_factory(model_name: str) -> Assistant:
+        llm = create_llm_by_name (model_name)
+        return Assistant(
             llm=llm,
             embed_model=embed_model,
-            dung_router=True,
-            retriever=retriever_chung,
-            hau_xu_ly=hau_xu_ly_chung,
-            nodes_theo_bang=nodes_theo_bang,
-            ten_model=ten_model,
+            use_router=True,
+            retriever=shared_retriever,
+            postprocessors=shared_postprocessors,
+            nodes_by_table=nodes_by_table,
+            model_name=model_name,
         )
 
-    return ChuoiMoHinh(
-        danh_sach_ten_model=danh_sach_ten_model,
-        ham_tao_tro_ly=ham_tao_tro_ly,
-        thoi_gian_cho=thoi_gian_cho,
+    return ModelChain(
+        model_names=model_names,
+        assistant_factory=assistant_factory,
+        wait_times=wait_times,
     )

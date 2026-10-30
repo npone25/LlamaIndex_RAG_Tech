@@ -8,47 +8,47 @@ from llama_index.core.schema import QueryBundle
 
 from llm_gemini import create_answer_llm
 from nhung_gemini import create_embed_model
-from truy_hoi import tao_bo_truy_hoi_tat_ca, tao_reranker
-from tro_ly import NGUONG_TU_CHOI, tao_query_engine, trich_nguon, van_ban_tra_loi
+from truy_hoi import create_all_retriever, create_reranker
+from tro_ly import REFUSAL_CUTOFF, create_query_engine, extract_sources, answer_text
 
-dem = TokenCountingHandler()
-Settings.callback_manager = CallbackManager([dem])
+counts = TokenCountingHandler()
+Settings.callback_manager = CallbackManager([counts])
 llm = create_answer_llm()
-model_nhung = create_embed_model()
-TRONG_PHAM_VI = ["Galaxy Z Fold7 có pin bao nhiêu mAh?", "điện thoại chip Helio G99",
+embed_model_obj = create_embed_model()
+IN_SCOPE_QUESTIONS = ["Galaxy Z Fold7 có pin bao nhiêu mAh?", "điện thoại chip Helio G99",
                  "Redmi Note 14 Pro giá bao nhiêu?", "điện thoại cho người lớn tuổi nghe gọi",
                  "Sản phẩm lỗi được đổi trả trong bao lâu?"]
-NGOAI_PHAM_VI = ["Thời tiết Sài Gòn hôm nay thế nào?", "Cách nấu phở bò",
+OUT_OF_SCOPE_QUESTIONS = ["Thời tiết Sài Gòn hôm nay thế nào?", "Cách nấu phở bò",
                  "Máy giặt nào tiết kiệm điện?", "Giá vàng hôm nay bao nhiêu?",
                  "Laptop nào tốt cho lập trình?"]
 
 print("=== BƯỚC 1: CÂU TRẢ LỜI KÈM NGUỒN TRÍCH DẪN ===")
-engine = tao_query_engine(llm, model_nhung)
+engine = create_query_engine(llm, embed_model_obj)
 response = engine.query("Redmi Note 14 Pro giá bao nhiêu?")
-print("Trả lời:", van_ban_tra_loi(response).replace("\n", " ")[:90])
-for i, n in enumerate(trich_nguon(response), start=1):
+print("Trả lời:", answer_text(response).replace("\n", " ")[:90])
+for i, n in enumerate(extract_sources(response), start=1):
     print("[%d] %s | %s | điểm %.3f | giá %s" % (i, n["loai"], n["ten"], n["diem"], n["gia"]))
     print("    Đoạn gốc: %s" % n["doan_goc"].replace("\n", " ")[:80])
 
 print("=== BƯỚC 2: ĐIỂM RERANKER CAO NHẤT CỦA TỪNG CÂU HỎI ===")
-bo_truy_hoi = tao_bo_truy_hoi_tat_ca(model_nhung)
-reranker = tao_reranker(top_n=1)
-diem_cao_nhat = {}
-for nhom, ds in [("trong", TRONG_PHAM_VI), ("ngoài", NGOAI_PHAM_VI)]:
-    diem_cao_nhat[nhom] = []
-    for cau in ds:
-        top1 = reranker.postprocess_nodes(bo_truy_hoi.retrieve(cau), query_bundle=QueryBundle(cau))
-        diem_cao_nhat[nhom].append(top1[0].score)
-        print("%-5s | %.3f | %s" % (nhom, top1[0].score, cau))
+retriever_all = create_all_retriever(embed_model_obj)
+reranker = create_reranker(top_n=1)
+top_score = {}
+for group, rows in [("trong", IN_SCOPE_QUESTIONS), ("ngoài", OUT_OF_SCOPE_QUESTIONS)]:
+    top_score[group] = []
+    for sentence in rows:
+        top1 = reranker.postprocess_nodes(retriever_all.retrieve(sentence), query_bundle=QueryBundle(sentence))
+        top_score[group].append(top1[0].score)
+        print("%-5s | %.3f | %s" % (group, top1[0].score, sentence))
 print("Thấp nhất nhóm trong: %.3f | cao nhất nhóm ngoài: %.3f | ngưỡng đang dùng: %.2f"
-      % (min(diem_cao_nhat["trong"]), max(diem_cao_nhat["ngoài"]),
-         NGUONG_TU_CHOI))
+      % (min(top_score["trong"]), max(top_score["ngoài"]),
+         REFUSAL_CUTOFF))
 
 print("=== BƯỚC 3: CÓ NGƯỠNG VÀ KHÔNG CÓ NGƯỠNG ===")
-khong_nguong = tao_query_engine(llm, model_nhung, nguong=None)
-for cau in ["Máy giặt nào tiết kiệm điện?", "Galaxy Z Fold7 có pin bao nhiêu mAh?"]:
-    for ten, eng in [("có ngưỡng", engine), ("không ngưỡng", khong_nguong)]:
-        dem.reset_counts()
-        r = eng.query(cau)
-        print("%-12s | %d lần gọi LLM | %d nguồn | %s -> %s" % (ten, len(dem.llm_token_counts),
-              len(r.source_nodes), cau[:20], van_ban_tra_loi(r).replace("\n", " ")[:40]))
+no_cutoff = create_query_engine(llm, embed_model_obj, cutoff=None)
+for sentence in ["Máy giặt nào tiết kiệm điện?", "Galaxy Z Fold7 có pin bao nhiêu mAh?"]:
+    for item_name, eng in [("có ngưỡng", engine), ("không ngưỡng", no_cutoff)]:
+        counts.reset_counts()
+        r = eng.query(sentence)
+        print("%-12s | %d lần gọi LLM | %d nguồn | %s -> %s" % (item_name, len(counts.llm_token_counts),
+              len(r.source_nodes), sentence[:20], answer_text(r).replace("\n", " ")[:40]))

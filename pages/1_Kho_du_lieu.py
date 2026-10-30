@@ -5,30 +5,30 @@ import sys
 from pathlib import Path
 
 # Trang con chạy từ thư mục pages/, thêm thư mục dự án vào đường dẫn tìm module
-THU_MUC_DU_AN = Path(__file__).resolve().parent.parent
-for thu_muc in [THU_MUC_DU_AN, THU_MUC_DU_AN / "loi_rag"]:
-    if str(thu_muc) not in sys.path:
-        sys.path.insert(0, str(thu_muc))
+PROJECT_FOLDER = Path(__file__).resolve().parent.parent
+for folder in [PROJECT_FOLDER, PROJECT_FOLDER / "loi_rag"]:
+    if str(folder) not in sys.path:
+        sys.path.insert(0, str(folder))
 
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
-from he_thong.giao_dien import MAU, e, nap_css, nhan, the_so_lieu, van_ban_html
+from he_thong.giao_dien import COLORS, e, load_css, badge, metric_card, html_text
 
 st.set_page_config(page_title="Kho dữ liệu", page_icon="🗂️", layout="wide")
 
 
 @st.cache_resource
-def doc_cac_node():
+def load_nodes():
     """Đọc toàn bộ Node của hai bảng vector một lần (818 + 204 Node)."""
     from kho_du_lieu import KNOWLEDGE_VECTOR_TABLE, PRODUCT_VECTOR_TABLE
-    from truy_hoi import lay_nodes
-    return {"san_pham": lay_nodes(PRODUCT_VECTOR_TABLE), "kien_thuc": lay_nodes(KNOWLEDGE_VECTOR_TABLE)}
+    from truy_hoi import load_table_nodes
+    return {"san_pham": load_table_nodes(PRODUCT_VECTOR_TABLE), "kien_thuc": load_table_nodes(KNOWLEDGE_VECTOR_TABLE)}
 
 
 @st.cache_resource
-def bo_dem_token():
+def token_counter():
     try:
         from llama_index.core.utils import get_tokenizer
         return get_tokenizer()
@@ -36,154 +36,154 @@ def bo_dem_token():
         return None
 
 
-def dem_token(van_ban):
-    dem = bo_dem_token()
-    if dem is None:
+def count_tokens(text_body):
+    counts = token_counter()
+    if counts is None:
         return None
-    return len(dem(van_ban))
+    return len(counts(text_body))
 
 
-def lay_vector(ten_bang, node_id):
+def get_vector(table_name, node_id):
     """Đọc vector của một Node từ cột embedding trong PostgreSQL."""
     from kho_du_lieu import create_db_engine
     from sqlalchemy import text
     with create_db_engine().connect() as conn:
-        dong = conn.execute(text("SELECT embedding FROM data_" + ten_bang + " WHERE node_id = :ma"),
+        fetched = conn.execute(text("SELECT embedding FROM data_" + table_name + " WHERE node_id = :ma"),
                             {"ma": node_id}).fetchone()
-    if dong is None or dong[0] is None:
+    if fetched is None or fetched[0] is None:
         return None
-    gia_tri = dong[0]
-    if isinstance(gia_tri, str):
-        gia_tri = json.loads(gia_tri)
-    return list(gia_tri)
+    val = fetched[0]
+    if isinstance(val, str):
+        val = json.loads(val)
+    return list(val)
 
 
-def nhom_theo_document(cac_node):
-    nhom = {}
-    for node in cac_node:
-        khoa = node.ref_doc_id or node.node_id
-        if khoa not in nhom:
-            nhom[khoa] = []
-        nhom[khoa].append(node)
-    for khoa in nhom:
-        nhom[khoa].sort(key=lambda n: n.start_char_idx or 0)
-    return nhom
+def group_by_document(node_list):
+    group = {}
+    for node in node_list:
+        key_name = node.ref_doc_id or node.node_id
+        if key_name not in group:
+            group[key_name] = []
+        group[key_name].append(node)
+    for key_name in group:
+        group[key_name].sort(key=lambda n: n.start_char_idx or 0)
+    return group
 
 
-def ten_ngan_node(node):
+def node_short_label(node):
     if node is None:
         return "không có"
     return node.node_id[:8] + "…"
 
 
 def main():
-    nap_css()
+    load_css()
     st.title("🗂️ Kho dữ liệu")
     st.caption("Document và Node thật trong PostgreSQL + pgvector · Document là đơn vị đọc từ nguồn, "
                "Node là đoạn được cắt ra để nhúng và truy hồi")
 
     try:
-        du_lieu = doc_cac_node()
+        data = load_nodes()
     except Exception:
         st.error("Không đọc được dữ liệu từ PostgreSQL. Kiểm tra Docker (docker compose up -d) và đã chạy ingest.py.")
         return
 
-    nodes_sp = du_lieu["san_pham"]
-    nodes_kt = du_lieu["kien_thuc"]
-    nhom_kt = nhom_theo_document(nodes_kt)
-    the_so_lieu([
-        ("Node sản phẩm", str(len(nodes_sp)), False),
-        ("Node tài liệu", str(len(nodes_kt)), False),
-        ("Document tài liệu", str(len(nhom_kt)), False),
+    product_nodes = data["san_pham"]
+    knowledge_node_list = data["kien_thuc"]
+    knowledge_group = group_by_document(knowledge_node_list)
+    metric_card([
+        ("Node sản phẩm", str(len(product_nodes)), False),
+        ("Node tài liệu", str(len(knowledge_node_list)), False),
+        ("Document tài liệu", str(len(knowledge_group)), False),
         ("Chiều vector", "768", False),
     ])
     st.write("")
 
-    cot_trai, cot_phai = st.columns([4, 8], gap="large")
-    with cot_trai:
-        loai = st.radio("Loại dữ liệu", ["Tài liệu (20 file .md)", "Sản phẩm (phones.xlsx)"], horizontal=True)
-        if loai.startswith("Tài liệu"):
-            ten_bang = "kien_thuc"
-            dem_loai = {}
-            for node in nodes_kt:
-                loai_tl = node.metadata.get("doc_type", "chung")
-                dem_loai[loai_tl] = dem_loai.get(loai_tl, 0) + 1
-            hinh = go.Figure(go.Bar(x=list(dem_loai.values()), y=list(dem_loai.keys()), orientation="h",
-                                    marker_color=MAU["tai_lieu"], text=list(dem_loai.values()),
+    left_col, right_col = st.columns([4, 8], gap="large")
+    with left_col:
+        kind_label = st.radio("Loại dữ liệu", ["Tài liệu (20 file .md)", "Sản phẩm (phones.xlsx)"], horizontal=True)
+        if kind_label.startswith("Tài liệu"):
+            table_name = "kien_thuc"
+            type_counts = {}
+            for node in knowledge_node_list:
+                document_kind = node.metadata.get("doc_type", "chung")
+                type_counts[document_kind] = type_counts.get(document_kind, 0) + 1
+            figure = go.Figure(go.Bar(x=list(type_counts.values()), y=list(type_counts.keys()), orientation="h",
+                                    marker_color=COLORS["tai_lieu"], text=list(type_counts.values()),
                                     textposition="outside"))
-            hinh.update_layout(height=200, margin=dict(l=10, r=30, t=10, b=10), xaxis=dict(title="số Node"),
+            figure.update_layout(height=200, margin=dict(l=10, r=30, t=10, b=10), xaxis=dict(title="số Node"),
                                paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
                                font=dict(family="Be Vietnam Pro, Arial, sans-serif", size=13))
-            st.plotly_chart(hinh, use_container_width=True, config={"displayModeBar": False})
-            loc_loai = st.selectbox("Lọc theo doc_type", ["tất cả"] + sorted(dem_loai.keys()))
-            cac_doc = []
-            for khoa in sorted(nhom_kt.keys()):
-                if loc_loai == "tất cả" or nhom_kt[khoa][0].metadata.get("doc_type") == loc_loai:
-                    cac_doc.append(khoa)
-            doc_chon = st.selectbox("Document", cac_doc)
-            cac_node_doc = nhom_kt.get(doc_chon, [])
+            st.plotly_chart(figure, use_container_width=True, config={"displayModeBar": False})
+            type_filter = st.selectbox("Lọc theo doc_type", ["tất cả"] + sorted(type_counts.keys()))
+            docs_list = []
+            for key_name in sorted(knowledge_group.keys()):
+                if type_filter == "tất cả" or knowledge_group[key_name][0].metadata.get("doc_type") == type_filter:
+                    docs_list.append(key_name)
+            chosen_doc = st.selectbox("Document", docs_list)
+            document_nodes = knowledge_group.get(chosen_doc, [])
         else:
-            ten_bang = "san_pham"
-            tu_khoa = st.text_input("Tìm theo tên máy", value="Galaxy")
-            khop = []
-            for node in nodes_sp:
-                if tu_khoa.lower() in str(node.metadata.get("product_name", "")).lower():
-                    khop.append(node)
-            st.caption("%d sản phẩm khớp" % len(khop))
-            if not khop:
+            table_name = "san_pham"
+            keyword = st.text_input("Tìm theo tên máy", value="Galaxy")
+            matched = []
+            for node in product_nodes:
+                if keyword.lower() in str(node.metadata.get("product_name", "")).lower():
+                    matched.append(node)
+            st.caption("%d sản phẩm khớp" % len(matched))
+            if not matched:
                 return
-            ten_hien = []
-            for node in khop[:200]:
-                ten_hien.append(node.metadata.get("product_name", node.node_id))
-            vi_tri = st.selectbox("Sản phẩm", list(range(len(ten_hien))), format_func=lambda k: ten_hien[k])
-            doc_chon = khop[vi_tri].ref_doc_id or khop[vi_tri].node_id
-            cac_node_doc = [khop[vi_tri]]
+            display_name = []
+            for node in matched[:200]:
+                display_name.append(node.metadata.get("product_name", node.node_id))
+            location = st.selectbox("Sản phẩm", list(range(len(display_name))), format_func=lambda k: display_name[k])
+            chosen_doc = matched[location].ref_doc_id or matched[location].node_id
+            document_nodes = [matched[location]]
 
-    with cot_phai:
-        if not cac_node_doc:
+    with right_col:
+        if not document_nodes:
             st.info("Chọn một Document ở bên trái.")
             return
         meta = {}
-        for k, v in cac_node_doc[0].metadata.items():
+        for k, v in document_nodes[0].metadata.items():
             if not str(k).startswith("_"):
                 meta[k] = v
         st.markdown('<div class="tv-the"><div class="tv-the-tieu-de">Document <span class="mono">%s</span></div>'
                     '<div class="dong">%s %s</div>'
                     '<div class="tv-phu">Document không có embedding; chỉ Node mới được nhúng thành vector. '
                     'Metadata dưới đây được mọi Node con kế thừa nguyên vẹn.</div></div>'
-                    % (e(doc_chon), nhan("%d Node" % len(cac_node_doc), MAU["chu_dao"]),
-                       nhan("bảng data_" + ten_bang, MAU["vector"])), unsafe_allow_html=True)
+                    % (e(chosen_doc), badge("%d Node" % len(document_nodes), COLORS["chu_dao"]),
+                       badge("bảng data_" + table_name, COLORS["vector"])), unsafe_allow_html=True)
         st.json(meta, expanded=False)
 
-        ds = []
-        for i, node in enumerate(cac_node_doc):
-            noi_dung = node.get_content()
-            ds.append({"#": i + 1, "node_id": node.node_id, "start": node.start_char_idx, "end": node.end_char_idx,
-                       "Số ký tự": len(noi_dung), "Số token": dem_token(noi_dung),
-                       "Node trước": ten_ngan_node(node.prev_node), "Node sau": ten_ngan_node(node.next_node)})
+        rows = []
+        for i, node in enumerate(document_nodes):
+            content = node.get_content()
+            rows.append({"#": i + 1, "node_id": node.node_id, "start": node.start_char_idx, "end": node.end_char_idx,
+                       "Số ký tự": len(content), "Số token": count_tokens(content),
+                       "Node trước": node_short_label(node.prev_node), "Node sau": node_short_label(node.next_node)})
         st.markdown("**Các Node con** (`SentenceSplitter`, đo độ dài bằng token `cl100k_base`)")
-        st.dataframe(pd.DataFrame(ds), hide_index=True, use_container_width=True)
+        st.dataframe(pd.DataFrame(rows), hide_index=True, use_container_width=True)
 
-        so_node = st.number_input("Xem Node số", min_value=1, max_value=len(cac_node_doc), value=1, step=1)
-        node = cac_node_doc[int(so_node) - 1]
+        node_count = st.number_input("Xem Node số", min_value=1, max_value=len(document_nodes), value=1, step=1)
+        node = document_nodes[int(node_count) - 1]
         st.markdown('<div class="tv-nguon %s"><div class="tieu-de">Node %d · <span class="mono">%s</span></div>'
                     '<div class="tv-trich">%s</div></div>'
-                    % ("tai-lieu" if ten_bang == "kien_thuc" else "", int(so_node), e(node.node_id),
-                       van_ban_html(node.get_content())), unsafe_allow_html=True)
+                    % ("tai-lieu" if table_name == "kien_thuc" else "", int(node_count), e(node.node_id),
+                       html_text(node.get_content())), unsafe_allow_html=True)
         try:
-            vector = lay_vector(ten_bang, node.node_id)
+            vector = get_vector(table_name, node.node_id)
         except Exception:
             vector = None
         if vector:
-            dau = ", ".join("%.5f" % v for v in vector[:8])
+            head = ", ".join("%.5f" % v for v in vector[:8])
             st.markdown('<div class="tv-the"><div class="tv-the-tieu-de">Embedding của Node · %d chiều</div>'
-                        '<div class="mono" style="font-size:13px">[%s, …]</div></div>' % (len(vector), e(dau)),
+                        '<div class="mono" style="font-size:13px">[%s, …]</div></div>' % (len(vector), e(head)),
                         unsafe_allow_html=True)
-            hinh = go.Figure(go.Bar(y=vector, marker_color=MAU["vector"]))
-            hinh.update_layout(height=180, margin=dict(l=10, r=10, t=10, b=10), xaxis=dict(title="chiều"),
+            figure = go.Figure(go.Bar(y=vector, marker_color=COLORS["vector"]))
+            figure.update_layout(height=180, margin=dict(l=10, r=10, t=10, b=10), xaxis=dict(title="chiều"),
                                paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
                                font=dict(family="Be Vietnam Pro, Arial, sans-serif", size=12))
-            st.plotly_chart(hinh, use_container_width=True, config={"displayModeBar": False})
+            st.plotly_chart(figure, use_container_width=True, config={"displayModeBar": False})
         else:
             st.caption("Không đọc được vector của Node này.")
 

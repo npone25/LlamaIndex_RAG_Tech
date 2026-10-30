@@ -12,7 +12,7 @@ Chatbot tư vấn điện thoại và chính sách bán hàng, xây bằng **Lla
   - Nhúng: `gemini-embedding-2` (768 chiều).
   - Trả lời: `gemini-3.5-flash-lite` (`GEMINI_LLM_MODEL`); dự phòng: `gemini-3.1-flash-lite` (`GEMINI_MODEL_DU_PHONG`); giám khảo chấm điểm chương 9: `gemini-3.1-flash-lite` (`GEMINI_JUDGE_MODEL`, bỏ trống thì dùng mô hình trả lời). Đổi trong `.env`, không cần sửa code.
   - Tái xếp hạng: `BAAI/bge-reranker-base` chạy trên máy.
-- **Luồng một câu hỏi** (`he_thong/dich_vu.py`, hàm `TroLy.hoi`):
+- **Luồng một câu hỏi** (`he_thong/dich_vu.py`, hàm `Assistant.ask`):
   1. Làm sạch câu hỏi (tối đa 500 ký tự).
   2. Viết lại câu hỏi theo 6 tin nhắn gần nhất của phiên.
   3. Lớp bảo vệ 1 (regex) rồi lớp 2 (LLM phân loại tấn công / ngoài phạm vi).
@@ -20,7 +20,7 @@ Chatbot tư vấn điện thoại và chính sách bán hàng, xây bằng **Lla
      - `tra_cuu_so_lieu`: Text-to-SQL trên kết nối chỉ đọc.
      - `tu_van_va_chinh_sach`: Vector + BM25 trên hai bảng → RRF → reranker → ngưỡng từ chối → tổng hợp có trích nguồn.
      - `tinh_tra_gop`: LLM trích tham số, hàm Python tính tiền.
-  5. `ChuoiMoHinh` đổi sang mô hình dự phòng khi gặp lỗi 500/503/504/429; hết mô hình thì trả về các đoạn tài liệu liên quan nhất.
+  5. `ModelChain` đổi sang mô hình dự phòng khi gặp lỗi 500/503/504/429; hết mô hình thì trả về các đoạn tài liệu liên quan nhất.
 - Lịch sử hội thoại giữ trong `st.session_state` của Streamlit (tối đa 40 tin nhắn), không lưu vào cơ sở dữ liệu.
 
 Sơ đồ: `hinh/hinh_3_1_luong_nap.png` (luồng nạp), `hinh/hinh_3_2_luong_truy_van.png` (luồng truy vấn), `hinh/hinh_3_3_module.png` (quan hệ module).
@@ -134,8 +134,8 @@ Mỗi script trong `thi_nghiem/` có dòng `import _duong_dan` ở đầu: dòng
 │   └── bao_ve.py                 hai lớp bảo vệ
 ├── he_thong/                     Lớp ứng dụng
 │   ├── cau_hinh.py               đọc .env và các hằng số cấu hình (chunk, top_k, ngưỡng)
-│   ├── dich_vu.py                lớp TroLy: luồng xử lý một câu hỏi
-│   ├── mo_hinh_du_phong.py       ChuoiMoHinh
+│   ├── dich_vu.py                lớp Assistant: luồng xử lý một câu hỏi
+│   ├── mo_hinh_du_phong.py       ModelChain
 │   ├── nhat_ky.py, truy_vet.py   nhật ký hỏi đáp, ghi vết từng bước
 │   └── giao_dien.py, .css        thành phần hiển thị
 ├── thi_nghiem/                   Thí nghiệm theo mục báo cáo, bộ câu hỏi đánh giá, dữ liệu mẫu chương 4
@@ -155,7 +155,7 @@ Mỗi script trong `thi_nghiem/` có dòng `import _duong_dan` ở đầu: dòng
 - Nhúng: 1.000 lượt mỗi ngày, 100 lượt mỗi phút, tính theo Google Cloud Project (không theo từng khóa).
 - Sinh văn bản: giới hạn riêng cho từng mô hình. Lần chạy chương 9 ngày 22/10/2026 gặp giới hạn 500 lượt mỗi ngày của `gemini-3.1-flash-lite` (mô hình giám khảo), nên chương 9 chỉ chấm 1 lần.
 - Hạn mức làm mới lúc 0 giờ giờ Thái Bình Dương, tức 14 hoặc 15 giờ Việt Nam.
-- Khi gặp 429, `ChuoiMoHinh` thử mô hình kế tiếp; hết mô hình thì chỉ trả về tài liệu liên quan.
+- Khi gặp 429, `ModelChain` thử mô hình kế tiếp; hết mô hình thì chỉ trả về tài liệu liên quan.
 
 ## 9. Lỗi thường gặp
 

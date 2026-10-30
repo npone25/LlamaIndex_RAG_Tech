@@ -8,19 +8,19 @@ import time
 from sentence_transformers import CrossEncoder
 
 from nhung_gemini import create_embed_model
-from truy_hoi import TEN_RERANKER, lay_nodes
+from truy_hoi import RERANKER_NAME, load_table_nodes
 
-nodes = lay_nodes()
-model_nhung = create_embed_model()
-cross = CrossEncoder(TEN_RERANKER)
-print("Bi-Encoder: gemini-embedding-2 | Cross-Encoder:", TEN_RERANKER)
+nodes = load_table_nodes()
+embed_model_obj = create_embed_model()
+cross = CrossEncoder(RERANKER_NAME)
+print("Bi-Encoder: gemini-embedding-2 | Cross-Encoder:", RERANKER_NAME)
 
 
-def tim(chuoi):
+def find(text_value):
     for n in nodes:
-        if chuoi in n.metadata["product_name"]:
+        if text_value in n.metadata["product_name"]:
             return n
-    raise ValueError("Không có máy " + chuoi)
+    raise ValueError("Không có máy " + text_value)
 
 
 def cosine(a, b):
@@ -28,27 +28,27 @@ def cosine(a, b):
 
 
 cau_hoi = "điện thoại màn hình gập của Samsung"
-ung_vien = [tim("Galaxy Z Fold7"), tim("Galaxy S25 Ultra"), tim("Galaxy A56"), tim("Magic V5")]
+candidates = [find("Galaxy Z Fold7"), find("Galaxy S25 Ultra"), find("Galaxy A56"), find("Magic V5")]
 print("Câu hỏi:", cau_hoi)
 
 print("=== BƯỚC 1: BI-ENCODER - NHÚNG RIÊNG RỒI SO COSINE ===")
-v_hoi = model_nhung.get_query_embedding(cau_hoi)
-for n in ung_vien:
-    v_node = model_nhung.get_text_embedding(n.get_content(metadata_mode="embed"))
-    print("cosine %.3f | %s" % (cosine(v_hoi, v_node), n.metadata["product_name"]))
+query_vec = embed_model_obj.get_query_embedding(cau_hoi)
+for n in candidates:
+    v_node = embed_model_obj.get_text_embedding(n.get_content(metadata_mode="embed"))
+    print("cosine %.3f | %s" % (cosine(query_vec, v_node), n.metadata["product_name"]))
 
 print("=== BƯỚC 2: CROSS-ENCODER - ĐỌC CHUNG TỪNG CẶP (câu hỏi, Node) ===")
-cap = [(cau_hoi, n.get_content(metadata_mode="embed")) for n in ung_vien]
-bat_dau = time.perf_counter()
-diem = cross.predict(cap)
-thoi_gian = time.perf_counter() - bat_dau
-for n, d in sorted(zip(ung_vien, diem), key=lambda x: -x[1]):
+pairs = [(cau_hoi, n.get_content(metadata_mode="embed")) for n in candidates]
+start_time = time.perf_counter()
+score_value = cross.predict(pairs)
+duration = time.perf_counter() - start_time
+for n, d in sorted(zip(candidates, score_value), key=lambda x: -x[1]):
     print("điểm %.3f | %s" % (d, n.metadata["product_name"]))
-print("Chấm %d cặp: %.2f giây (%.0f ms/cặp)" % (len(cap), thoi_gian, 1000 * thoi_gian / len(cap)))
+print("Chấm %d cặp: %.2f giây (%.0f ms/cặp)" % (len(pairs), duration, 1000 * duration / len(pairs)))
 
 print("=== BƯỚC 3: CA LỖI (DÙNG CROSS-ENCODER QUÉT TOÀN BỘ KHO) ===")
-bat_dau = time.perf_counter()
+start_time = time.perf_counter()
 cross.predict([(cau_hoi, n.get_content(metadata_mode="embed")) for n in nodes[:100]])
-moi_cap = (time.perf_counter() - bat_dau) / 100
+each_pair = (time.perf_counter() - start_time) / 100
 print("100 cặp: %.2f giây -> ước tính cả %d Node: %.0f giây cho MỘT câu hỏi"
-      % (moi_cap * 100, len(nodes), moi_cap * len(nodes)))
+      % (each_pair * 100, len(nodes), each_pair * len(nodes)))

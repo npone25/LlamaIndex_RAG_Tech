@@ -11,10 +11,10 @@ import time
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
 
-from he_thong.mo_hinh_du_phong import xay_dung_chuoi_mo_hinh
-from he_thong.truy_vet import khoi_tao_tai_nguyen_truy_vet, truy_vet_cau_hoi
+from he_thong.mo_hinh_du_phong import build_model_chain
+from he_thong.truy_vet import init_trace_resources, trace_question
 
-CAC_CAU = [
+QUESTIONS = [
     ("tư vấn sản phẩm", "Máy Samsung nào chụp ảnh đẹp?", None),
     ("chính sách", "Điện thoại bị lỗi được đổi trả trong bao lâu?", None),
     ("số liệu (SQL)", "Có bao nhiêu máy pin từ 6000 mAh trở lên?", None),
@@ -29,25 +29,25 @@ CAC_CAU = [
 
 def main():
     print("Đang khởi tạo (tải reranker lần đầu mất khoảng 1 phút)...")
-    chuoi = xay_dung_chuoi_mo_hinh()
-    tro_ly = chuoi._lay_tro_ly(chuoi.danh_sach_ten_model[0])
-    tai_nguyen = khoi_tao_tai_nguyen_truy_vet(tro_ly=tro_ly)
+    model_chain = build_model_chain()
+    tro_ly = model_chain._get_assistant(model_chain.model_names[0])
+    resources = init_trace_resources(tro_ly=tro_ly)
 
-    for so, muc in enumerate(CAC_CAU, 1):
-        loai, cau_hoi, lich_su = muc
-        print("\n--- Câu %d (%s): %s" % (so, loai, cau_hoi))
-        vet = truy_vet_cau_hoi(cau_hoi, lich_su=lich_su, tai_nguyen=tai_nguyen)
-        bao_ve = vet.get("bao_ve") or {}
-        dinh_tuyen = vet.get("dinh_tuyen") or {}
+    for number, item in enumerate(QUESTIONS, 1):
+        kind_label, cau_hoi, history = item
+        print("\n--- Câu %d (%s): %s" % (number, kind_label, cau_hoi))
+        trace = trace_question(cau_hoi, history=history, resources=resources)
+        bao_ve = trace.get("bao_ve") or {}
+        dinh_tuyen = trace.get("dinh_tuyen") or {}
         print("Lớp bảo vệ :", bao_ve.get("lop"), "| cho phép:", bao_ve.get("cho_phep"))
         print("Công cụ    :", dinh_tuyen.get("cong_cu"))
-        if (vet.get("dau_vao") or {}).get("cau_viet_lai"):
-            print("Viết lại   :", vet["dau_vao"]["cau_viet_lai"])
-        for n in vet.get("nguon") or []:
+        if (trace.get("dau_vao") or {}).get("cau_viet_lai"):
+            print("Viết lại   :", trace["dau_vao"]["cau_viet_lai"])
+        for n in trace.get("nguon") or []:
             print("Nguồn      :", n.get("ten_hien_thi"), "| rerank", n.get("diem_rerank"), "| node", n.get("node_id"))
-        print("Trả lời    :", str((vet.get("tong_hop") or {}).get("cau_tra_loi"))[:150])
-        print("Tổng       :", (vet.get("thoi_gian_ms") or {}).get("tong"), "ms")
-        print("File vết   :", vet.get("file_log"))
+        print("Trả lời    :", str((trace.get("tong_hop") or {}).get("cau_tra_loi"))[:150])
+        print("Tổng       :", (trace.get("thoi_gian_ms") or {}).get("tong"), "ms")
+        print("File vết   :", trace.get("file_log"))
         time.sleep(5)
 
 

@@ -9,24 +9,24 @@ from llama_index.core.node_parser import SentenceSplitter
 from sqlalchemy import text
 
 from chuyen_doi_san_pham import PHONE_FILE
-from ham_chung_42 import load_phones, in_phien_ban, row_to_document
+from ham_chung_42 import load_phones, print_version, row_to_document
 from kho_du_lieu import create_docstore, create_db_engine, create_vector_store
-from vector_gia import VectorGia
+from vector_gia import FakeEmbedding
 
 NAMESPACE = "exp442"
 engine = create_db_engine()
-model = VectorGia()
+model = FakeEmbedding()
 
 
-def don_dep():
+def cleanup():
     with engine.begin() as conn:
         conn.execute(text("DROP TABLE IF EXISTS data_exp442"))
         if conn.execute(text("SELECT to_regclass('data_docstore')")).scalar() is not None:
             conn.execute(text("DELETE FROM data_docstore WHERE namespace LIKE :ns"), {"ns": NAMESPACE + "%"})
 
 
-def chay(documents, co_docstore=True):
-    if co_docstore:
+def run_once(documents, with_docstore=True):
+    if with_docstore:
         pipeline = IngestionPipeline(
             transformations=[SentenceSplitter(chunk_size=1024, chunk_overlap=0), model],
             vector_store=create_vector_store("exp442"),
@@ -38,57 +38,57 @@ def chay(documents, co_docstore=True):
             transformations=[SentenceSplitter(chunk_size=1024, chunk_overlap=0), model],
             vector_store=create_vector_store("exp442"),
         )
-    model.dat_lai_bo_dem()
+    model.reset_counter()
     nodes = pipeline.run(documents=documents)
     with engine.connect() as conn:
-        so_dong = conn.execute(text("SELECT count(*) FROM data_exp442")).scalar()
-    return len(nodes), model.so_van_ban_da_nhung, so_dong
+        row_count_value = conn.execute(text("SELECT count(*) FROM data_exp442")).scalar()
+    return len(nodes), model.embedded_text_count, row_count_value
 
 
-def node_id_cua(product_id):
+def node_id_of(product_id):
     with engine.connect() as conn:
         return conn.execute(text("SELECT node_id FROM data_exp442 WHERE metadata_->>'product_id' = :p"),
                             {"p": product_id}).scalar()[:8]
 
 
-don_dep()
+cleanup()
 print("=== BƯỚC 0: PHIÊN BẢN ===")
-in_phien_ban()
+print_version()
 df = pd.read_excel(PHONE_FILE)
-san_pham = load_phones()
+products_list = load_phones()
 
 # BƯỚC 1 và 2: chạy hai lần trên cùng dữ liệu
 print("=== BƯỚC 1: LẦN NẠP ĐẦU ===")
-print("Node mới: %d | văn bản phải nhúng: %d | số dòng trong bảng: %d" % chay(san_pham))
+print("Node mới: %d | văn bản phải nhúng: %d | số dòng trong bảng: %d" % run_once(products_list))
 print("=== BƯỚC 2: CHẠY LẠI, DỮ LIỆU KHÔNG ĐỔI ===")
-print("Node mới: %d | văn bản phải nhúng: %d | số dòng trong bảng: %d" % chay(san_pham))
+print("Node mới: %d | văn bản phải nhúng: %d | số dòng trong bảng: %d" % run_once(products_list))
 
 # BƯỚC 3: giảm giá một máy -> văn bản nhúng không đổi nhưng hash Document đổi
 row = df[df["price"].notna()].iloc[0].copy()
 row["price"] = row["price"] - 1000000
-vi_tri = [d.doc_id for d in san_pham].index(row["product_id"])
-doc_cu = san_pham[vi_tri]
-san_pham[vi_tri] = row_to_document(row)
-id_truoc = node_id_cua(row["product_id"])
+location = [d.doc_id for d in products_list].index(row["product_id"])
+old_doc = products_list[location]
+products_list[location] = row_to_document(row)
+previous_ids = node_id_of(row["product_id"])
 print("=== BƯỚC 3: GIẢM GIÁ 1 MÁY (" + row["product_id"] + ") ===")
-print("Hash Document đổi:", doc_cu.hash != san_pham[vi_tri].hash)
-print("Node mới: %d | văn bản phải nhúng: %d | số dòng trong bảng: %d" % chay(san_pham))
-print("node_id của máy này:", id_truoc, "->", node_id_cua(row["product_id"]), "(dòng cũ bị xóa, ghi dòng mới)")
+print("Hash Document đổi:", old_doc.hash != products_list[location].hash)
+print("Node mới: %d | văn bản phải nhúng: %d | số dòng trong bảng: %d" % run_once(products_list))
+print("node_id của máy này:", previous_ids, "->", node_id_of(row["product_id"]), "(dòng cũ bị xóa, ghi dòng mới)")
 
 # BƯỚC 4: docstore lưu gì trong PostgreSQL
 with engine.connect() as conn:
-    dem = conn.execute(text("SELECT namespace, count(*) FROM data_docstore WHERE namespace LIKE :ns "
+    counts = conn.execute(text("SELECT namespace, count(*) FROM data_docstore WHERE namespace LIKE :ns "
                             "GROUP BY namespace ORDER BY namespace"), {"ns": NAMESPACE + "%"}).fetchall()
 print("=== BƯỚC 4: DOCSTORE TRONG POSTGRESQL (bảng data_docstore) ===")
-for d in dem:
+for d in counts:
     print("  ", d[0], ":", d[1], "dòng")
 print("Hash lưu trong docstore khớp hash Document:",
-      create_docstore(NAMESPACE).get_document_hash(row["product_id"]) == san_pham[vi_tri].hash)
+      create_docstore(NAMESPACE).get_document_hash(row["product_id"]) == products_list[location].hash)
 
 # BƯỚC 5: Ca lỗi - không gắn docstore thì chạy lại sẽ ghi trùng
-don_dep()
+cleanup()
 print("=== BƯỚC 5: CA LỖI (KHÔNG CÓ DOCSTORE, CHẠY 2 LẦN) ===")
-print("Lần 1 -> Node mới: %d | văn bản phải nhúng: %d | số dòng: %d" % chay(san_pham, co_docstore=False))
-print("Lần 2 -> Node mới: %d | văn bản phải nhúng: %d | số dòng: %d" % chay(san_pham, co_docstore=False))
-don_dep()
+print("Lần 1 -> Node mới: %d | văn bản phải nhúng: %d | số dòng: %d" % run_once(products_list, with_docstore=False))
+print("Lần 2 -> Node mới: %d | văn bản phải nhúng: %d | số dòng: %d" % run_once(products_list, with_docstore=False))
+cleanup()
 print("Đã xóa bảng thử và docstore thử")

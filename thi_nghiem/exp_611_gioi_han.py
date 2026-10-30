@@ -4,17 +4,17 @@
 
 import _duong_dan  # noqa: F401  (thêm thư mục gốc và loi_rag/ vào đường dẫn tìm module)
 from nhung_gemini import create_embed_model
-from truy_hoi import doc_bo_danh_gia, la_dap_an, lay_nodes, tao_bm25, tao_vector, ten_ngan
+from truy_hoi import load_eval_set, is_answer, load_table_nodes, create_bm25, create_vector, short_label
 
-bo = doc_bo_danh_gia()
-nhanh_vector = tao_vector(create_embed_model(), top_k=3)
-nhanh_bm25 = tao_bm25(lay_nodes(), top_k=3)
+eval_set = load_eval_set()
+vector_branch = create_vector(create_embed_model(), top_k=3)
+bm25_branch = create_bm25(load_table_nodes(), top_k=3)
 
-for ma in ["q06", "q07", "q20", "q21"]:
-    muc = bo[ma]
-    print("=== %s [%s] %s ===" % (ma, muc["nhom"], muc["cau_hoi"]))
-    for ten_nhanh, nhanh in [("Vector", nhanh_vector), ("BM25  ", nhanh_bm25)]:
-        ket_qua = nhanh.retrieve(muc["cau_hoi"])
-        so_dung = sum(1 for kq in ket_qua if la_dap_an(kq, muc))
-        print("%s: %d/3 đúng | Top 1: %s (%.3f)" % (ten_nhanh, so_dung, ten_ngan(ket_qua[0]),
-                                                     ket_qua[0].score))
+for item_id in ["q06", "q07", "q20", "q21"]:
+    item = eval_set[item_id]
+    print("=== %s [%s] %s ===" % (item_id, item["nhom"], item["cau_hoi"]))
+    for branch_name, branch in [("Vector", vector_branch), ("BM25  ", bm25_branch)]:
+        result = branch.retrieve(item["cau_hoi"])
+        correct_count = sum(1 for res in result if is_answer(res, item))
+        print("%s: %d/3 đúng | Top 1: %s (%.3f)" % (branch_name, correct_count, short_label(result[0]),
+                                                     result[0].score))

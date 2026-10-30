@@ -7,34 +7,34 @@ import time
 from llama_index.core.schema import QueryBundle
 
 from nhung_gemini import create_embed_model
-from truy_hoi import TEN_RERANKER, TOP_N, tao_bo_truy_hoi, tao_reranker, ten_ngan
+from truy_hoi import RERANKER_NAME, TOP_N, create_hybrid_retriever, create_reranker, short_label
 
-hybrid = tao_bo_truy_hoi(create_embed_model())
-bat_dau = time.perf_counter()
-reranker = tao_reranker()
-print("Mô hình:", TEN_RERANKER, "| top_n =", TOP_N, "| nạp mô hình: %.1f giây"
-      % (time.perf_counter() - bat_dau))
+hybrid = create_hybrid_retriever(create_embed_model())
+start_time = time.perf_counter()
+reranker = create_reranker()
+print("Mô hình:", RERANKER_NAME, "| top_n =", TOP_N, "| nạp mô hình: %.1f giây"
+      % (time.perf_counter() - start_time))
 
 cau_hoi = "điện thoại Samsung chụp ảnh đẹp, pin trâu"
 print("Câu hỏi:", cau_hoi)
 
 print("=== BƯỚC 1: TOP 10 SAU HỢP NHẤT RRF ===")
-truoc = hybrid.retrieve(cau_hoi)
-hang_truoc = {}
-for i, kq in enumerate(truoc, start=1):
-    hang_truoc[kq.node.node_id] = i
-    print("%2d. RRF %.4f | %s" % (i, kq.score, ten_ngan(kq)))
+before = hybrid.retrieve(cau_hoi)
+previous_rank = {}
+for i, res in enumerate(before, start=1):
+    previous_rank[res.node.node_id] = i
+    print("%2d. RRF %.4f | %s" % (i, res.score, short_label(res)))
 
 print("=== BƯỚC 2: SAU SentenceTransformerRerank ===")
-bat_dau = time.perf_counter()
-sau = reranker.postprocess_nodes(truoc, query_bundle=QueryBundle(cau_hoi))
-print("Chấm lại %d Node: %.2f giây" % (len(truoc), time.perf_counter() - bat_dau))
-for i, kq in enumerate(sau, start=1):
-    cu = hang_truoc[kq.node.node_id]
-    print("%d. điểm %.3f | hạng cũ %2d | %s" % (i, kq.score, cu, ten_ngan(kq)))
+start_time = time.perf_counter()
+after = reranker.postprocess_nodes(before, query_bundle=QueryBundle(cau_hoi))
+print("Chấm lại %d Node: %.2f giây" % (len(before), time.perf_counter() - start_time))
+for i, res in enumerate(after, start=1):
+    cu = previous_rank[res.node.node_id]
+    print("%d. điểm %.3f | hạng cũ %2d | %s" % (i, res.score, cu, short_label(res)))
 
 print("=== BƯỚC 3: CA LỖI (GỌI RERANKER KHÔNG KÈM CÂU HỎI) ===")
 try:
-    reranker.postprocess_nodes(truoc)
-except ValueError as loi:
-    print("ValueError -", loi)
+    reranker.postprocess_nodes(before)
+except ValueError as error:
+    print("ValueError -", error)

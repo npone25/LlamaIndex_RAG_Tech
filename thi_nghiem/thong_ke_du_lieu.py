@@ -17,40 +17,40 @@ FOLDER = Path(__file__).parent
 print("=== BƯỚC 1: BẢNG SẢN PHẨM (" + PHONE_FILE.name + ") ===")
 df = pd.read_excel(PHONE_FILE)
 print("Số sản phẩm:", len(df), "| số cột:", len(df.columns), "| số hãng:", df["brand"].nunique())
-gia = df.apply(get_price, axis=1)
-print("Có giá hợp lệ (sau khi bỏ giá giữ chỗ):", gia.notna().sum(), "/", len(df))
-for cot in ["rating", "ram_gb", "chipset", "battery_mah"]:
-    print("Thiếu %-12s: %d / %d" % (cot, df[cot].isna().sum(), len(df)))
-con_hang = (df["stock_status"] == "InStock").sum()
-het_hang = (df["stock_status"] == "OutOfStock").sum()
-print("Tồn kho: InStock", con_hang, "| OutOfStock", het_hang, "| trống", df["stock_status"].isna().sum())
-tin_don = df["category_path"].astype(str).str.contains("Tin đồn").sum()
-print("Thuộc mục 'Tin đồn - Mới ra':", tin_don)
+price = df.apply(get_price, axis=1)
+print("Có giá hợp lệ (sau khi bỏ giá giữ chỗ):", price.notna().sum(), "/", len(df))
+for column in ["rating", "ram_gb", "chipset", "battery_mah"]:
+    print("Thiếu %-12s: %d / %d" % (column, df[column].isna().sum(), len(df)))
+in_stock_count = (df["stock_status"] == "InStock").sum()
+out_of_stock = (df["stock_status"] == "OutOfStock").sum()
+print("Tồn kho: InStock", in_stock_count, "| OutOfStock", out_of_stock, "| trống", df["stock_status"].isna().sum())
+single_message = df["category_path"].astype(str).str.contains("Tin đồn").sum()
+print("Thuộc mục 'Tin đồn - Mới ra':", single_message)
 
 print("=== BƯỚC 2: ĐỘ DÀI VĂN BẢN NHÚNG CỦA MỖI SẢN PHẨM (số từ) ===")
 docs = load_phones()
-do_dai = []
+length = []
 for d in docs:
-    do_dai.append(len(d.get_content(MetadataMode.EMBED).split()))
-do_dai_sap_xep = sorted(do_dai)
-print("Ngắn nhất:", do_dai_sap_xep[0], "| trung vị:", do_dai_sap_xep[len(do_dai) // 2],
-      "| dài nhất:", do_dai_sap_xep[-1])
-for nguong in [20, 40]:
-    print("Dưới %d từ: %d sản phẩm" % (nguong, sum(1 for x in do_dai if x < nguong)))
-ngan_nhat = min(docs, key=lambda d: len(d.get_content(MetadataMode.EMBED).split()))
-print("Ví dụ ngắn nhất:", ngan_nhat.get_content(MetadataMode.EMBED).replace("\n", " "))
-van_ban = {}
+    length.append(len(d.get_content(MetadataMode.EMBED).split()))
+sorted_lengths = sorted(length)
+print("Ngắn nhất:", sorted_lengths[0], "| trung vị:", sorted_lengths[len(length) // 2],
+      "| dài nhất:", sorted_lengths[-1])
+for cutoff in [20, 40]:
+    print("Dưới %d từ: %d sản phẩm" % (cutoff, sum(1 for x in length if x < cutoff)))
+shortest = min(docs, key=lambda d: len(d.get_content(MetadataMode.EMBED).split()))
+print("Ví dụ ngắn nhất:", shortest.get_content(MetadataMode.EMBED).replace("\n", " "))
+text_body = {}
 for d in docs:
-    van_ban.setdefault(d.get_content(MetadataMode.EMBED), []).append(d.doc_id)
-trung = [ma for ma in van_ban.values() if len(ma) > 1]
-print("Văn bản nhúng trùng nhau hoàn toàn:", trung)
+    text_body.setdefault(d.get_content(MetadataMode.EMBED), []).append(d.doc_id)
+duplicates = [item_id for item_id in text_body.values() if len(item_id) > 1]
+print("Văn bản nhúng trùng nhau hoàn toàn:", duplicates)
 
 print("=== BƯỚC 3: KHO KIẾN THỨC (data_kien_thuc) ===")
-thu_muc = FOLDER.parent / "data_kien_thuc"
-tong_kb = 0
-for loai in sorted(p.name for p in thu_muc.iterdir() if p.is_dir()):
-    tep = sorted((thu_muc / loai).glob("*.md"))
-    kb = sum(t.stat().st_size for t in tep) / 1024
-    tong_kb = tong_kb + kb
-    print("%-12s %2d tệp | %5.1f KB" % (loai, len(tep), kb))
-print("Tổng:", len(list(thu_muc.rglob("*.md"))), "tệp | %.1f KB" % tong_kb)
+folder = FOLDER.parent / "data_kien_thuc"
+total_kb = 0
+for kind_label in sorted(p.name for p in folder.iterdir() if p.is_dir()):
+    source_file = sorted((folder / kind_label).glob("*.md"))
+    kb = sum(t.stat().st_size for t in source_file) / 1024
+    total_kb = total_kb + kb
+    print("%-12s %2d tệp | %5.1f KB" % (kind_label, len(source_file), kb))
+print("Tổng:", len(list(folder.rglob("*.md"))), "tệp | %.1f KB" % total_kb)

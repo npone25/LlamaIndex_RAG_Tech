@@ -6,7 +6,7 @@ import pandas as pd
 from chuyen_doi_san_pham import has_value , get_price, row_to_document, row_to_text
 
 
-def test_co_gia_tri():
+def test_has_value():
     """Kiểm tra hàm co_gia_tri nhận diện ô trống và dữ liệu hợp lệ."""
     assert has_value ("Samsung") is True
     assert has_value (123) is True
@@ -18,7 +18,7 @@ def test_co_gia_tri():
     assert has_value ("   ") is False
 
 
-def test_lay_gia_gia_tri_binh_thuong():
+def test_get_price_normal_value():
     """Giá thông thường được giữ nguyên dưới dạng số nguyên."""
     row = pd.Series({"price": 15000000, "color_prices": None})
     assert get_price(row) == 15000000
@@ -27,33 +27,33 @@ def test_lay_gia_gia_tri_binh_thuong():
     assert get_price(row_float) == 15000000
 
 
-def test_lay_gia_trong():
+def test_get_price_empty():
     """Ô giá trống hoặc NaN trả về None."""
     assert get_price(pd.Series({"price": None, "color_prices": None})) is None
     assert get_price(pd.Series({"price": np.nan, "color_prices": None})) is None
     assert get_price(pd.Series({"price": "", "color_prices": None})) is None
 
 
-def test_lay_gia_giu_cho_khong_co_color_prices():
+def test_get_price_placeholder_without_color_prices():
     """Giá trong danh sách giữ chỗ mà không có color_prices thì coi là không có giá (None)."""
-    for gia_giu_cho in [500000, 520000, 650000, 820000, 840000]:
-        row = pd.Series({"price": gia_giu_cho, "color_prices": None})
+    for placeholder_price in [500000, 520000, 650000, 820000, 840000]:
+        row = pd.Series({"price": placeholder_price, "color_prices": None})
         assert get_price(row) is None
 
-        row_rong = pd.Series({"price": gia_giu_cho, "color_prices": "   "})
-        assert get_price(row_rong) is None
+        empty_row = pd.Series({"price": placeholder_price, "color_prices": "   "})
+        assert get_price(empty_row) is None
 
 
-def test_lay_gia_giu_cho_nhung_co_color_prices():
+def test_get_price_placeholder_with_color_prices():
     """Giá giữ chỗ nhưng CÓ bảng giá theo màu (color_prices) thì là giá thật."""
     row = pd.Series({"price": 500000, "color_prices": "Đen: 500000 | Xanh: 500000"})
     assert get_price(row) == 500000
 
 
-def test_row_to_text_khong_chua_gia_va_bo_qua_thieu(du_lieu_mau_df):
+def test_row_to_text_excludes_price_and_skips_missing(sample_df):
     """Văn bản tạo ra không được chứa giá bán, bỏ qua trường thiếu, chuẩn hóa needs."""
     # Dòng 1: Đầy đủ
-    row1 = du_lieu_mau_df.iloc[0]
+    row1 = sample_df.iloc[0]
     text1 = row_to_text(row1)
     assert text1.startswith("Điện thoại Samsung Galaxy S24 Ultra của hãng Samsung.")
     assert "28000000" not in text1
@@ -63,7 +63,7 @@ def test_row_to_text_khong_chua_gia_va_bo_qua_thieu(du_lieu_mau_df):
     assert "Pin 5000 mAh." in text1
 
     # Dòng 12: Thiếu gần hết thông số
-    row12 = du_lieu_mau_df.iloc[11]
+    row12 = sample_df.iloc[11]
     text12 = row_to_text(row12)
     assert text12.startswith("Điện thoại Điện thoại cơ bản X của hãng Nokia.")
     assert "Pin" not in text12
@@ -72,10 +72,10 @@ def test_row_to_text_khong_chua_gia_va_bo_qua_thieu(du_lieu_mau_df):
     assert "nan" not in text12
 
 
-def test_row_to_document_metadata_va_keys(du_lieu_mau_df):
+def test_row_to_document_metadata_and_keys(sample_df):
     """Document có doc_id=product_id, metadata lọc chuẩn và excluded keys đúng."""
     # Dòng 1: Có đầy đủ giá, ram, rating, stock_status
-    row1 = du_lieu_mau_df.iloc[0]
+    row1 = sample_df.iloc[0]
     doc1 = row_to_document(row1)
 
     assert doc1.doc_id == "sp01"
@@ -94,26 +94,26 @@ def test_row_to_document_metadata_va_keys(du_lieu_mau_df):
     assert doc1.excluded_llm_metadata_keys == ["product_id"]
 
     # Dòng 2: Thiếu giá -> metadata không được có khóa 'price'
-    row2 = du_lieu_mau_df.iloc[1]
+    row2 = sample_df.iloc[1]
     doc2 = row_to_document(row2)
     assert "price" not in doc2.metadata
 
     # Dòng 5: Thiếu RAM -> metadata không được có khóa 'ram_gb'
-    row5 = du_lieu_mau_df.iloc[4]
+    row5 = sample_df.iloc[4]
     doc5 = row_to_document(row5)
     assert "ram_gb" not in doc5.metadata
 
     # Dòng 7: Thiếu rating -> metadata không được có khóa 'rating'
-    row7 = du_lieu_mau_df.iloc[6]
+    row7 = sample_df.iloc[6]
     doc7 = row_to_document(row7)
     assert "rating" not in doc7.metadata
 
 
-def test_row_to_document_chay_toan_bo_du_lieu_mau(du_lieu_mau_df):
+def test_row_to_document_on_all_sample_rows(sample_df):
     """Chuyển đổi thành công toàn bộ DataFrame mẫu không phát sinh ngoại lệ."""
     docs = []
-    for _, row in du_lieu_mau_df.iterrows():
+    for _, row in sample_df.iterrows():
         doc = row_to_document(row)
         docs.append(doc)
-    assert len(docs) == len(du_lieu_mau_df)
+    assert len(docs) == len(sample_df)
     assert all(d.doc_id.startswith("sp") for d in docs)

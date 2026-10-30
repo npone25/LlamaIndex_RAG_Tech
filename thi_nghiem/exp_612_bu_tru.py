@@ -4,27 +4,27 @@
 
 import _duong_dan  # noqa: F401  (thêm thư mục gốc và loi_rag/ vào đường dẫn tìm module)
 from nhung_gemini import create_embed_model
-from truy_hoi import TOP_K, doc_bo_danh_gia, la_dap_an, lay_nodes, tao_bm25, tao_vector
+from truy_hoi import TOP_K, load_eval_set, is_answer, load_table_nodes, create_bm25, create_vector
 
-bo = doc_bo_danh_gia()
-nhanh_vector = tao_vector(create_embed_model())
-nhanh_bm25 = tao_bm25(lay_nodes())
+eval_set = load_eval_set()
+vector_branch = create_vector(create_embed_model())
+bm25_branch = create_bm25(load_table_nodes())
 print("Mỗi nhánh lấy Top", TOP_K)
 
-tong_v, tong_b, tong_gop = 0, 0, 0
-for ma, muc in bo.items():
-    dung_v = set()
-    for kq in nhanh_vector.retrieve(muc["cau_hoi"]):
-        if la_dap_an(kq, muc):
-            dung_v.add(kq.node.metadata["product_id"])
-    dung_b = set()
-    for kq in nhanh_bm25.retrieve(muc["cau_hoi"]):
-        if kq.score > 0 and la_dap_an(kq, muc):
-            dung_b.add(kq.node.metadata["product_id"])
-    gop = dung_v | dung_b
-    tong_v, tong_b, tong_gop = tong_v + len(dung_v), tong_b + len(dung_b), tong_gop + len(gop)
+total_vector, total_bm25, total_paid = 0, 0, 0
+for item_id, item in eval_set.items():
+    correct_vector = set()
+    for res in vector_branch.retrieve(item["cau_hoi"]):
+        if is_answer(res, item):
+            correct_vector.add(res.node.metadata["product_id"])
+    correct_bm25 = set()
+    for res in bm25_branch.retrieve(item["cau_hoi"]):
+        if res.score > 0 and is_answer(res, item):
+            correct_bm25.add(res.node.metadata["product_id"])
+    merged = correct_vector | correct_bm25
+    total_vector, total_bm25, total_paid = total_vector + len(correct_vector), total_bm25 + len(correct_bm25), total_paid + len(merged)
     print("%s %-8s | đúng: vector %2d, BM25 %2d, chung %2d, gộp %2d | chỉ vector %2d, chỉ BM25 %2d"
-          % (ma, muc["nhom"], len(dung_v), len(dung_b), len(dung_v & dung_b), len(gop),
-             len(dung_v - dung_b), len(dung_b - dung_v)))
-print("=== TỔNG TRÊN %d CÂU HỎI ===" % len(bo))
-print("Đáp án đúng tìm được: vector %d | BM25 %d | gộp hai nhánh %d" % (tong_v, tong_b, tong_gop))
+          % (item_id, item["nhom"], len(correct_vector), len(correct_bm25), len(correct_vector & correct_bm25), len(merged),
+             len(correct_vector - correct_bm25), len(correct_bm25 - correct_vector)))
+print("=== TỔNG TRÊN %d CÂU HỎI ===" % len(eval_set))
+print("Đáp án đúng tìm được: vector %d | BM25 %d | gộp hai nhánh %d" % (total_vector, total_bm25, total_paid))

@@ -24,8 +24,8 @@ root = Path(__file__).resolve().parent.parent / "thi_nghiem" / "Data_for_exp"
 # ----------------------------------------------------------------------
 # Tạo 3 thư mục con (tên thư mục sẽ trở thành doc_type ở bước 4)
 # ----------------------------------------------------------------------
-for ten_thu_muc in ["bao_hanh", "doi_tra", "tip_su_dung"]:
-    (root / ten_thu_muc).mkdir(parents=True, exist_ok=True)
+for folder_name in ["bao_hanh", "doi_tra", "tip_su_dung"]:
+    (root / folder_name).mkdir(parents=True, exist_ok=True)
 
 # ----------------------------------------------------------------------
 # 1. File .md (có 2 tiêu đề)
@@ -62,8 +62,8 @@ csv_text = (
 # ----------------------------------------------------------------------
 # 4. File .json
 # ----------------------------------------------------------------------
-du_lieu = {"ten_may": "Xiaomi 14", "chip": "Snapdragon 8 Gen 3", "pin_mah": 4610}
-json_text = json.dumps(du_lieu, ensure_ascii=False, indent=2)
+data = {"ten_may": "Xiaomi 14", "chip": "Snapdragon 8 Gen 3", "pin_mah": 4610}
+json_text = json.dumps(data, ensure_ascii=False, indent=2)
 (root / "tip_su_dung" / "thong_so_mau.json").write_text(json_text, encoding="utf-8")
 
 # ----------------------------------------------------------------------
@@ -78,7 +78,7 @@ html_text = (
 (root / "tip_su_dung" / "gioi_thieu.html").write_text(html_text, encoding="utf-8")
 
 print("Đã tạo xong các file mẫu trong:", root)
-for duong_dan in sorted(root.rglob("*")):
-    if duong_dan.is_file():
-        print("  ", duong_dan.relative_to(root).as_posix())
+for path_value in sorted(root.rglob("*")):
+    if path_value.is_file():
+        print("  ", path_value.relative_to(root).as_posix())
 print("Nhớ chép thêm file .pdf vào bao_hanh/ và file .txt vào tip_su_dung/")

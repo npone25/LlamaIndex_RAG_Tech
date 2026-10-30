@@ -6,160 +6,160 @@ from unittest.mock import MagicMock, patch
 from llama_index.core.base.response.schema import Response
 
 from dinh_tuyen import (
-    DANH_SACH_CONG_CU,
-    LocMetadataEngine,
-    TraGopEngine,
-    YeuCauTraGop,
-    lay_cau_sql,
-    lay_ten_cong_cu_da_chon,
-    tao_engine_chi_doc,
-    tao_router,
+    TOOL_NAMES,
+    MetadataFilterEngine,
+    InstallmentEngine,
+    InstallmentRequest,
+    get_sql_query,
+    get_chosen_tool_name,
+    create_readonly_engine,
+    create_router,
 )
-from tests.conftest import LLMGia
+from tests.conftest import FakeLLM
 
 
-def test_tao_engine_chi_doc():
-    """tao_engine_chi_doc có tùy chọn default_transaction_read_only=on."""
+def test_create_readonly_engine():
+    """create_readonly_engine có tùy chọn default_transaction_read_only=on."""
     with patch("dinh_tuyen.create_engine") as mock_create:
-        tao_engine_chi_doc()
+        create_readonly_engine()
         mock_create.assert_called_once()
         _, kwargs = mock_create.call_args
         assert kwargs["connect_args"]["options"] == "-c default_transaction_read_only=on"
 
 
-def test_lay_ten_cong_cu_da_chon():
+def test_get_chosen_tool_name():
     """Xác định đúng tên công cụ từ selector_result của response."""
     # Ca 1: Công cụ 0 -> tra_cuu_so_lieu
     resp_0 = SimpleNamespace(metadata={"selector_result": SimpleNamespace(selections=[SimpleNamespace(index=0)])})
-    assert lay_ten_cong_cu_da_chon(resp_0) == "tra_cuu_so_lieu"
+    assert get_chosen_tool_name(resp_0) == "tra_cuu_so_lieu"
 
     # Ca 2: Công cụ 1 -> tu_van_va_chinh_sach
     resp_1 = SimpleNamespace(metadata={"selector_result": SimpleNamespace(selections=[SimpleNamespace(index=1)])})
-    assert lay_ten_cong_cu_da_chon(resp_1) == "tu_van_va_chinh_sach"
+    assert get_chosen_tool_name(resp_1) == "tu_van_va_chinh_sach"
 
-    # Ca 3: Công cụ 2 -> tinh_tra_gop
+    # Ca 3: Công cụ 2 -> compute_installment
     resp_2 = SimpleNamespace(metadata={"selector_result": SimpleNamespace(selections=[SimpleNamespace(index=2)])})
-    assert lay_ten_cong_cu_da_chon(resp_2) == "tinh_tra_gop"
+    assert get_chosen_tool_name(resp_2) == "tinh_tra_gop"
 
     # Ca 3b: Công cụ 3 -> tu_van_theo_dieu_kien
     resp_3 = SimpleNamespace(metadata={"selector_result": SimpleNamespace(selections=[SimpleNamespace(index=3)])})
-    assert lay_ten_cong_cu_da_chon(resp_3) == "tu_van_theo_dieu_kien"
+    assert get_chosen_tool_name(resp_3) == "tu_van_theo_dieu_kien"
 
     # Ca 4: Dữ liệu không hợp lệ hoặc thiếu -> trả khong_ro
-    resp_loi = SimpleNamespace(metadata={})
-    assert lay_ten_cong_cu_da_chon(resp_loi) == "khong_ro"
+    resp_error = SimpleNamespace(metadata={})
+    assert get_chosen_tool_name(resp_error) == "khong_ro"
 
-    resp_rong = SimpleNamespace(metadata={"selector_result": SimpleNamespace(selections=[])})
-    assert lay_ten_cong_cu_da_chon(resp_rong) == "khong_ro"
+    resp_empty = SimpleNamespace(metadata={"selector_result": SimpleNamespace(selections=[])})
+    assert get_chosen_tool_name(resp_empty) == "khong_ro"
 
-    sel_ngoai = SimpleNamespace(selections=[SimpleNamespace(index=99)])
-    resp_ngoai_pham_vi = SimpleNamespace(metadata={"selector_result": sel_ngoai})
-    assert lay_ten_cong_cu_da_chon(resp_ngoai_pham_vi) == "khong_ro"
+    out_of_range_selection = SimpleNamespace(selections=[SimpleNamespace(index=99)])
+    resp_out_of_scope = SimpleNamespace(metadata={"selector_result": out_of_range_selection})
+    assert get_chosen_tool_name(resp_out_of_scope) == "khong_ro"
 
-    assert lay_ten_cong_cu_da_chon(None) == "khong_ro"
-
-
-def test_router_co_bon_cong_cu_dung_thu_tu(monkeypatch):
-    """Tên công cụ trong router phải khớp DANH_SACH_CONG_CU: truy_vet.py lấy công cụ theo chỉ số."""
-    monkeypatch.setattr("dinh_tuyen.tao_sql_engine", lambda llm: MagicMock())
-    router = tao_router(LLMGia(), MagicMock(), query_engine_rag=MagicMock())
-
-    assert [m.name for m in router._metadatas] == DANH_SACH_CONG_CU
-    assert isinstance(router._query_engines[3], LocMetadataEngine)
+    assert get_chosen_tool_name(None) == "khong_ro"
 
 
-def test_router_nhanh_dieu_kien_dung_chung_reranker(monkeypatch):
-    """hau_xu_ly=None (như trong app): nhánh tư vấn theo điều kiện dùng lại đúng reranker của nhánh tư vấn,
+def test_router_has_four_tools_in_order(monkeypatch):
+    """Tên công cụ trong router phải khớp TOOL_NAMES: truy_vet.py lấy công cụ theo chỉ số."""
+    monkeypatch.setattr("dinh_tuyen.create_sql_engine", lambda llm: MagicMock())
+    router = create_router(FakeLLM(), MagicMock(), query_engine_rag=MagicMock())
+
+    assert [m.name for m in router._metadatas] == TOOL_NAMES
+    assert isinstance(router._query_engines[3], MetadataFilterEngine)
+
+
+def test_router_condition_branch_shares_reranker(monkeypatch):
+    """postprocessors=None (như trong app): nhánh tư vấn theo điều kiện dùng lại đúng reranker của nhánh tư vấn,
     không tạo reranker thứ hai (mỗi reranker nạp một mô hình Cross-Encoder vào RAM)."""
-    monkeypatch.setattr("dinh_tuyen.tao_sql_engine", lambda llm: MagicMock())
-    reranker, nguong = MagicMock(name="reranker"), MagicMock(name="nguong")
-    engine_rag = SimpleNamespace(_node_postprocessors=[reranker, nguong])
+    monkeypatch.setattr("dinh_tuyen.create_sql_engine", lambda llm: MagicMock())
+    reranker, cutoff = MagicMock(name="reranker"), MagicMock(name="nguong")
+    engine_rag = SimpleNamespace(_node_postprocessors=[reranker, cutoff])
 
-    router = tao_router(LLMGia(), MagicMock(), query_engine_rag=engine_rag)
+    router = create_router(FakeLLM(), MagicMock(), query_engine_rag=engine_rag)
 
-    nhanh_dieu_kien = router._query_engines[3]
-    assert isinstance(nhanh_dieu_kien, LocMetadataEngine)
-    hau_xu_ly = nhanh_dieu_kien.hau_xu_ly
-    assert hau_xu_ly is not None and len(hau_xu_ly) == 2
-    assert hau_xu_ly[0] is reranker and hau_xu_ly[1] is nguong
+    condition_branch = router._query_engines[3]
+    assert isinstance(condition_branch, MetadataFilterEngine)
+    postprocessors = condition_branch.postprocessors
+    assert postprocessors is not None and len(postprocessors) == 2
+    assert postprocessors[0] is reranker and postprocessors[1] is cutoff
 
 
-def test_loc_metadata_engine_chi_dung_bo_truy_hoi_khi_co_cau_hoi():
+def test_metadata_filter_engine_builds_retriever_on_first_query():
     """Tạo engine không chạm cơ sở dữ liệu; bộ truy hồi dựng ở lần hỏi đầu, dùng lại, và giữ nguyên Response."""
     phan_hoi = Response(response="Sony Xperia 10 VII", source_nodes=[])
-    engine_con = MagicMock()
-    engine_con.query.return_value = phan_hoi
-    xu_ly = ["reranker_dung_chung"]
+    inner_engine = MagicMock()
+    inner_engine.query.return_value = phan_hoi
+    handled = ["reranker_dung_chung"]
 
-    with patch("dinh_tuyen.tao_auto_retriever") as mock_auto, \
-            patch("dinh_tuyen.tao_query_engine", return_value=engine_con) as mock_qe:
-        engine = LocMetadataEngine(llm=LLMGia(), embed_model=MagicMock(), hau_xu_ly=xu_ly)
+    with patch("dinh_tuyen.create_auto_retriever") as mock_auto, \
+            patch("dinh_tuyen.create_query_engine", return_value=inner_engine) as mock_qe:
+        engine = MetadataFilterEngine(llm=FakeLLM(), embed_model=MagicMock(), postprocessors=handled)
         mock_auto.assert_not_called()
         mock_qe.assert_not_called()
 
-        kq = engine.query("máy chụp ảnh đẹp dưới 10 triệu")
+        res = engine.query("máy chụp ảnh đẹp dưới 10 triệu")
         engine.query("máy Samsung RAM từ 8GB")
 
         mock_auto.assert_called_once()
         mock_qe.assert_called_once()
-        assert mock_qe.call_args.kwargs["hau_xu_ly"] == xu_ly
+        assert mock_qe.call_args.kwargs["postprocessors"] == handled
         assert mock_qe.call_args.kwargs["retriever"] is mock_auto.return_value
-        assert kq is phan_hoi
+        assert res is phan_hoi
 
 
-def test_lay_cau_sql():
+def test_get_sql_query():
     """Lấy câu SQL từ metadata của response."""
     resp = SimpleNamespace(metadata={"sql_query": "SELECT * FROM products WHERE price < 10000000;"})
-    assert lay_cau_sql(resp) == "SELECT * FROM products WHERE price < 10000000;"
+    assert get_sql_query(resp) == "SELECT * FROM products WHERE price < 10000000;"
 
-    resp_khong_sql = SimpleNamespace(metadata={})
-    assert lay_cau_sql(resp_khong_sql) is None
+    resp_without_sql = SimpleNamespace(metadata={})
+    assert get_sql_query(resp_without_sql) is None
 
-    assert lay_cau_sql(None) is None
+    assert get_sql_query(None) is None
 
 
-def test_tragop_engine_thieu_gia():
-    """TraGopEngine khi không trích được giá và không tìm thấy giá máy."""
-    yc = YeuCauTraGop(
+def test_installment_engine_missing_price():
+    """InstallmentEngine khi không trích được giá và không tìm thấy giá máy."""
+    request = InstallmentRequest(
         ten_may=None,
         gia_san_pham=None,
         ty_le_tra_truoc=0.3,
         ky_han_thang=12,
         lai_suat_nam_phan_tram=0.0,
     )
-    llm = LLMGia(ket_qua_structured=[yc])
-    engine = TraGopEngine(llm=llm)
-    kq = engine.custom_query("Tôi muốn mua trả góp 12 tháng")
-    assert "Chưa xác định được giá máy" in kq
+    llm = FakeLLM(structured_results=[request])
+    engine = InstallmentEngine(llm=llm)
+    res = engine.custom_query("Tôi muốn mua trả góp 12 tháng")
+    assert "Chưa xác định được giá máy" in res
 
 
-def test_tragop_engine_tinh_thanh_cong():
-    """TraGopEngine khi có giá sản phẩm cụ thể, tính tiền chính xác."""
-    yc = YeuCauTraGop(
+def test_installment_engine_success():
+    """InstallmentEngine khi có giá sản phẩm cụ thể, tính tiền chính xác."""
+    request = InstallmentRequest(
         ten_may="iPhone 15",
         gia_san_pham=20000000,
         ty_le_tra_truoc=0.3,
         ky_han_thang=12,
         lai_suat_nam_phan_tram=0.0,
     )
-    llm = LLMGia(ket_qua_structured=[yc])
-    engine = TraGopEngine(llm=llm)
-    kq = engine.custom_query("Mua iPhone 15 giá 20 triệu trả trước 30% góp 12 tháng")
-    assert "20,000,000" in kq
-    assert "6,000,000" in kq
-    assert "1,166,667" in kq
+    llm = FakeLLM(structured_results=[request])
+    engine = InstallmentEngine(llm=llm)
+    res = engine.custom_query("Mua iPhone 15 giá 20 triệu trả trước 30% góp 12 tháng")
+    assert "20,000,000" in res
+    assert "6,000,000" in res
+    assert "1,166,667" in res
 
 
-def test_tragop_engine_loi_value_error():
-    """TraGopEngine khi tham số không hợp lệ gây lỗi ValueError -> trả chuỗi thông báo lỗi."""
-    yc = YeuCauTraGop(
+def test_installment_engine_value_error():
+    """InstallmentEngine khi tham số không hợp lệ gây lỗi ValueError -> trả chuỗi thông báo lỗi."""
+    request = InstallmentRequest(
         ten_may="Máy Test",
         gia_san_pham=20000000,
         ty_le_tra_truoc=1.5,  # tỷ lệ > 1 gây ValueError
         ky_han_thang=12,
         lai_suat_nam_phan_tram=0.0,
     )
-    llm = LLMGia(ket_qua_structured=[yc])
-    engine = TraGopEngine(llm=llm)
-    kq = engine.custom_query("Tham số lỗi")
-    assert "Không tính được trả góp:" in kq
+    llm = FakeLLM(structured_results=[request])
+    engine = InstallmentEngine(llm=llm)
+    res = engine.custom_query("Tham số lỗi")
+    assert "Không tính được trả góp:" in res

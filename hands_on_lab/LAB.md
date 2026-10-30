@@ -45,7 +45,7 @@ Nội dung thư mục:
 
 ### Bước 1. Đọc dữ liệu thành Document (5 phút)
 
-Mở hàm `doc_san_pham()`. Mỗi dòng CSV thành một `Document`:
+Mở hàm `load_products()`. Mỗi dòng CSV thành một `Document`:
 
 - `text`: câu mô tả máy bằng tiếng Việt, là phần BM25 (hoặc mô hình nhúng) dùng để tìm.
 - `metadata`: `product_id`, `hang`, `gia` (số nguyên), `loai`. Phần này dùng để lọc và để chấm đúng sai.
@@ -90,7 +90,7 @@ Trả lời: tăng `top_k` thì Hit Rate và MRR thay đổi thế nào? Vì sao
 
 ### Bài tập 2. Lọc theo giá bằng metadata
 
-Viết hàm `loc_theo_gia(gia_toi_da)` trả về `MetadataFilters` chỉ giữ máy có `gia <= gia_toi_da`. Kiểm tra:
+Viết hàm `filter_by_price(max_price)` trả về `MetadataFilters` chỉ giữ máy có `gia <= max_price`. Kiểm tra:
 
 ```bash
 python lab_rag.py --hoi "điện thoại chip Snapdragon 8 Elite" --top-k 5
@@ -101,7 +101,7 @@ Trả lời: vì sao lọc giá bằng metadata chắc chắn hơn việc ghi "d
 
 ### Bài tập 3. Ngưỡng từ chối
 
-Viết hàm `co_nen_tu_choi(ket_qua, nguong)` trả về `True` khi không có kết quả hoặc điểm cao nhất nhỏ hơn ngưỡng. Thử với `--top-k 1`:
+Viết hàm `should_refuse(result, cutoff)` trả về `True` khi không có kết quả hoặc điểm cao nhất nhỏ hơn ngưỡng. Thử với `--top-k 1`:
 
 ```bash
 python lab_rag.py --top-k 1 --nguong 1.5 --hoi "cách nấu phở bò"
@@ -132,11 +132,11 @@ Số liệu dưới đây đo bằng chế độ `bm25` trên đúng bộ dữ l
 **Bài tập 2.**
 
 ```python
-def loc_theo_gia(gia_toi_da):
-    bo_loc = MetadataFilters(filters=[
-        MetadataFilter(key="gia", value=gia_toi_da, operator=FilterOperator.LTE),
+def filter_by_price(max_price):
+    filters_obj = MetadataFilters(filters=[
+        MetadataFilter(key="gia", value=max_price, operator=FilterOperator.LTE),
     ])
-    return bo_loc
+    return filters_obj
 ```
 
 - Không lọc: 4 trong 5 kết quả đầu có giá trên 30 triệu (HONOR Magic V5, OPPO Find N6, Xiaomi 17 Ultra, Galaxy Z Fold8 Ultra).
@@ -146,16 +146,16 @@ def loc_theo_gia(gia_toi_da):
 **Bài tập 3.**
 
 ```python
-def co_nen_tu_choi(ket_qua, nguong):
-    if len(ket_qua) == 0:
+def should_refuse(result, cutoff):
+    if len(result) == 0:
         return True
-    diem_cao_nhat = ket_qua[0].score if ket_qua[0].score is not None else 0
-    return diem_cao_nhat < nguong
+    top_score = result[0].score if result[0].score is not None else 0
+    return top_score < cutoff
 ```
 
 - Điểm BM25 cao nhất đo được: "cách nấu phở bò" 1,085 (bị từ chối), "giá vàng hôm nay" 0,271 (bị từ chối), "trả góp 0%" 1,762 (được trả lời), "iPhone 15 giá bao nhiêu" 4,033 (được trả lời).
 - Ngưỡng 1,5 tách được bốn câu này nhưng khoảng cách giữa 1,085 và 1,762 hẹp: câu hỏi trong phạm vi mà ngắn có thể bị từ chối nhầm.
-- Không dùng lại được cho chế độ `gemini`: điểm BM25 không có giới hạn trên và phụ thuộc độ dài câu hỏi, còn điểm cosine nằm trong khoảng −1 đến 1. Mỗi loại điểm phải đặt ngưỡng riêng. Đồ án đặt ngưỡng trên điểm của reranker (`NGUONG_TU_CHOI=0.10`, mục 7.3) vì điểm này ổn định hơn giữa các câu hỏi.
+- Không dùng lại được cho chế độ `gemini`: điểm BM25 không có giới hạn trên và phụ thuộc độ dài câu hỏi, còn điểm cosine nằm trong khoảng −1 đến 1. Mỗi loại điểm phải đặt ngưỡng riêng. Đồ án đặt ngưỡng trên điểm của reranker (`REFUSAL_CUTOFF=0.10`, mục 7.3) vì điểm này ổn định hơn giữa các câu hỏi.
 
 ## 6. Lỗi thường gặp
 
@@ -163,7 +163,7 @@ def co_nen_tu_choi(ket_qua, nguong):
 
 - `ModuleNotFoundError: llama_index.retrievers.bm25`: chưa cài `llama-index-retrievers-bm25`.
 - In tiếng Việt bị lỗi font trên Windows: code đã đặt `sys.stdout.reconfigure(encoding="utf-8")`; nếu vẫn lỗi, chạy `chcp 65001` trước.
-- Hit Rate không đổi sau khi viết bài tập 2: hàm `loc_theo_gia` vẫn trả về `None`, hoặc quên truyền `--gia-toi-da`.
+- Hit Rate không đổi sau khi viết bài tập 2: hàm `filter_by_price` vẫn trả về `None`, hoặc quên truyền `--gia-toi-da`.
 - Chế độ `gemini` báo thiếu khóa: tạo file `.env` ở thư mục gốc repo có `GOOGLE_API_KEY`. Chế độ này nhúng khoảng 51 Node và 10 câu hỏi, tốn khoảng 61 lượt trong hạn mức 1.000 lượt mỗi ngày.
 
 ## 7. Mở rộng (nếu còn thời gian)

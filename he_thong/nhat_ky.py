@@ -10,35 +10,35 @@ try:
 except ImportError:
     from cau_hinh import LOGGING_ENABLED
 
-THU_MUC_LOGS_MAC_DINH = Path(__file__).resolve().parent.parent / "logs"
+DEFAULT_LOG_DIR = Path(__file__).resolve().parent.parent / "logs"
 
 
-def ghi_nhat_ky(ket_qua, cau_hoi: str, thu_muc_logs: Optional[Path] = None) -> None:
+def write_log(result, cau_hoi: str, log_dir: Optional[Path] = None) -> None:
     """Ghi một dòng JSON tóm tắt lượt hỏi-đáp vào hoi_dap.jsonl nếu tính năng đang bật."""
     if not LOGGING_ENABLED:
         return
 
-    thu_muc = Path(thu_muc_logs) if thu_muc_logs else THU_MUC_LOGS_MAC_DINH
+    folder = Path(log_dir) if log_dir else DEFAULT_LOG_DIR
     try:
-        thu_muc.mkdir(parents=True, exist_ok=True)
-        tep_log = thu_muc / "hoi_dap.jsonl"
-        thoi_gian_tong = 0.0
-        if hasattr(ket_qua, "thoi_gian_ms") and isinstance(ket_qua.thoi_gian_ms, dict):
-            thoi_gian_tong = ket_qua.thoi_gian_ms.get("tong", 0.0)
+        folder.mkdir(parents=True, exist_ok=True)
+        log_file = folder / "hoi_dap.jsonl"
+        total_time = 0.0
+        if hasattr(result, "thoi_gian_ms") and isinstance(result.thoi_gian_ms, dict):
+            total_time = result.thoi_gian_ms.get("tong", 0.0)
 
-        ban_ghi = {
+        record = {
             "thoi_diem": datetime.now().isoformat(),
             "cau_hoi": str(cau_hoi),
-            "cong_cu": getattr(ket_qua, "cong_cu", "khong_ro"),
-            "che_do": getattr(ket_qua, "che_do", "khong_ro"),
-            "lop_bao_ve": getattr(ket_qua, "lop_bao_ve", "khong_ro"),
-            "mo_hinh": getattr(ket_qua, "mo_hinh", "khong_ro"),
-            "thoi_gian_tong_ms": thoi_gian_tong,
-            "so_nguon": len(getattr(ket_qua, "nguon", []) or []),
+            "cong_cu": getattr(result, "cong_cu", "khong_ro"),
+            "che_do": getattr(result, "che_do", "khong_ro"),
+            "lop_bao_ve": getattr(result, "lop_bao_ve", "khong_ro"),
+            "mo_hinh": getattr(result, "mo_hinh", "khong_ro"),
+            "thoi_gian_tong_ms": total_time,
+            "so_nguon": len(getattr(result, "nguon", []) or []),
         }
 
-        with open(tep_log, "a", encoding="utf-8") as f:
-            f.write(json.dumps(ban_ghi, ensure_ascii=False) + "\n")
+        with open(log_file, "a", encoding="utf-8") as f:
+            f.write(json.dumps(record, ensure_ascii=False) + "\n")
     except Exception:
         # Lỗi ghi file nhật ký không được làm gián đoạn hệ thống
         pass

@@ -10,23 +10,23 @@ from chuyen_doi_san_pham import price_holder, PHONE_FILE, has_value , get_price
 
 sys.stdout.reconfigure(encoding="utf-8")
 df = pd.read_excel(PHONE_FILE)
-co_gia = df[df["price"].notna()]
-co_bang_mau = co_gia["color_prices"].apply(has_value )
+with_price_count = df[df["price"].notna()]
+has_color_prices = with_price_count["color_prices"].apply(has_value )
 
 print("=== BƯỚC 1: TỔNG QUAN CỘT GIÁ ===")
-print("Số máy:", len(df), "| có giá:", len(co_gia), "| có bảng giá theo màu:", int(co_bang_mau.sum()))
+print("Số máy:", len(df), "| có giá:", len(with_price_count), "| có bảng giá theo màu:", int(has_color_prices.sum()))
 
 print("=== BƯỚC 2: CÁC MỨC GIÁ LẶP LẠI NHIỀU NHẤT Ở MÁY KHÔNG CÓ BẢNG GIÁ THEO MÀU ===")
-khong_mau = co_gia[~co_bang_mau]
-for gia, so_may in khong_mau["price"].value_counts().head(6).items():
-    vi_du = khong_mau[khong_mau["price"] == gia]["product_name"].head(2).tolist()
-    print("%10d đồng | %2d máy | ví dụ: %s" % (gia, so_may, vi_du))
+no_color = with_price_count[~has_color_prices]
+for price, phone_count in no_color["price"].value_counts().head(6).items():
+    example = no_color[no_color["price"] == price]["product_name"].head(2).tolist()
+    print("%10d đồng | %2d máy | ví dụ: %s" % (price, phone_count, example))
 
 print("=== BƯỚC 3: ÁP DỤNG QUY TẮC LOẠI GIÁ GIỮ CHỖ ===")
 print("Danh sách giá giữ chỗ:", price_holder)
-gia_sach = df.apply(get_price, axis=1)
-bi_loai = df[df["price"].notna() & gia_sach.isna()]
-print("Số giá bị loại:", len(bi_loai), "| tình trạng:", bi_loai["stock_status"].value_counts().to_dict())
-print("Giá hợp lệ còn lại:", int(gia_sach.notna().sum()), "| thấp nhất: %d đồng" % gia_sach.min())
+clean_prices = df.apply(get_price, axis=1)
+dropped = df[df["price"].notna() & clean_prices.isna()]
+print("Số giá bị loại:", len(dropped), "| tình trạng:", dropped["stock_status"].value_counts().to_dict())
+print("Giá hợp lệ còn lại:", int(clean_prices.notna().sum()), "| thấp nhất: %d đồng" % clean_prices.min())
 print("Máy dưới 15 triệu: trước khi loại %d | sau khi loại %d"
-      % ((df["price"] < 15000000).sum(), (gia_sach < 15000000).sum()))
+      % ((df["price"] < 15000000).sum(), (clean_prices < 15000000).sum()))

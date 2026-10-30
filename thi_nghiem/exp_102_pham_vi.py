@@ -2,22 +2,22 @@
 # Chạy: python exp_102_pham_vi.py   (cần GOOGLE_API_KEY)
 
 import _duong_dan  # noqa: F401  (thêm thư mục gốc và loi_rag/ vào đường dẫn tìm module)
-from bao_ve import ap_dung_guardrails
-from du_lieu_thu_ch10 import CAU_THU_PHAM_VI
+from bao_ve import apply_guardrails
+from du_lieu_thu_ch10 import SCOPE_TEST_QUESTIONS
 from llm_gemini import create_answer_llm
 
 llm = create_answer_llm()
 
-print("=== BƯỚC 1: PHÂN LOẠI %d CÂU HỎI ===" % len(CAU_THU_PHAM_VI))
-dung = 0
-for cau, trong_pham_vi in CAU_THU_PHAM_VI:
-    kq = ap_dung_guardrails(cau, llm)
-    du_doan = kq.cho_phep
-    if du_doan == trong_pham_vi:
-        dung = dung + 1
-    print("%-11s | chủ đề: %-18s | %-4s | %s" % (kq.lop, (kq.chu_de or "-")[:18],
-          "đúng" if du_doan == trong_pham_vi else "SAI", cau[:55]))
-print("Phân loại đúng: %d/%d" % (dung, len(CAU_THU_PHAM_VI)))
+print("=== BƯỚC 1: PHÂN LOẠI %d CÂU HỎI ===" % len(SCOPE_TEST_QUESTIONS))
+correct = 0
+for sentence, trong_pham_vi in SCOPE_TEST_QUESTIONS:
+    res = apply_guardrails(sentence, llm)
+    prediction = res.cho_phep
+    if prediction == trong_pham_vi:
+        correct = correct + 1
+    print("%-11s | chủ đề: %-18s | %-4s | %s" % (res.lop, (res.chu_de or "-")[:18],
+          "đúng" if prediction == trong_pham_vi else "SAI", sentence[:55]))
+print("Phân loại đúng: %d/%d" % (correct, len(SCOPE_TEST_QUESTIONS)))
 
 print("=== BƯỚC 2: PHẢN HỒI ĐIỀU HƯỚNG CHO CÂU NGOÀI PHẠM VI ===")
-print(ap_dung_guardrails("Chỉ cho tôi công thức nấu món phở bò", llm).phan_hoi)
+print(apply_guardrails("Chỉ cho tôi công thức nấu món phở bò", llm).phan_hoi)

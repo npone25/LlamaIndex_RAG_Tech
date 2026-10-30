@@ -4,8 +4,8 @@
 import sys
 from pathlib import Path
 
-GOC = Path(__file__).resolve().parent.parent
+ROOT_FOLDER = Path(__file__).resolve().parent.parent
 
-for thu_muc in [GOC, GOC / "loi_rag"]:
-    if str(thu_muc) not in sys.path:
-        sys.path.insert(0, str(thu_muc))
+for folder in [ROOT_FOLDER, ROOT_FOLDER / "loi_rag"]:
+    if str(folder) not in sys.path:
+        sys.path.insert(0, str(folder))

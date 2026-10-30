@@ -17,60 +17,60 @@ dotenv.load_dotenv = lambda *args, **kwargs: False
 
 
 
-class LLMGia(CustomLLM):
+class FakeLLM(CustomLLM):
     """Mô hình LLM giả lập cho kiểm thử: kịch bản trả lời, đếm lượt gọi, mô phỏng lỗi."""
-    cau_tra_loi_kich_ban: list[str] = Field(default_factory=list)
-    ket_qua_structured: list[Any] = Field(default_factory=list)
-    loi_nem_ra: Optional[Exception] = None
-    lan_nem_loi: Optional[int] = None
+    scripted_answers: list[str] = Field(default_factory=list)
+    structured_results: list[Any] = Field(default_factory=list)
+    error_to_raise: Optional[Exception] = None
+    raise_on_calls: Optional[int] = None
 
-    _so_lan_goi: int = PrivateAttr(default=0)
-    _cac_prompt: list[str] = PrivateAttr(default_factory=list)
-    _so_lan_structured: int = PrivateAttr(default=0)
+    _call_count: int = PrivateAttr(default=0)
+    _prompts: list[str] = PrivateAttr(default_factory=list)
+    _structured_count: int = PrivateAttr(default=0)
 
     @property
     def metadata(self) -> LLMMetadata:
         return LLMMetadata(model_name="llm_gia")
 
     @property
-    def so_lan_goi(self) -> int:
-        return self._so_lan_goi
+    def call_count_of(self) -> int:
+        return self._call_count
 
     @property
-    def cac_prompt(self) -> list[str]:
-        return self._cac_prompt
+    def prompts(self) -> list[str]:
+        return self._prompts
 
-    def _kiem_tra_nem_loi(self):
-        if self.loi_nem_ra is not None and (self.lan_nem_loi is None or self._so_lan_goi == self.lan_nem_loi):
-            raise self.loi_nem_ra
+    def _check_raise(self):
+        if self.error_to_raise is not None and (self.raise_on_calls is None or self._call_count == self.raise_on_calls):
+            raise self.error_to_raise
 
     def complete(self, prompt: str, **kwargs: Any) -> CompletionResponse:
-        self._so_lan_goi += 1
-        self._cac_prompt.append(str(prompt))
-        self._kiem_tra_nem_loi()
-        if self.cau_tra_loi_kich_ban:
-            idx = min(self._so_lan_goi - 1, len(self.cau_tra_loi_kich_ban) - 1)
-            tra_loi = self.cau_tra_loi_kich_ban[idx]
+        self._call_count += 1
+        self._prompts.append(str(prompt))
+        self._check_raise()
+        if self.scripted_answers:
+            idx = min(self._call_count - 1, len(self.scripted_answers) - 1)
+            answer = self.scripted_answers[idx]
         else:
-            tra_loi = "Câu trả lời giả lập từ LLMGia"
-        return CompletionResponse(text=tra_loi)
+            answer = "Câu trả lời giả lập từ FakeLLM"
+        return CompletionResponse(text=answer)
 
     def stream_complete(self, prompt: str, **kwargs: Any):
         raise NotImplementedError("Không dùng stream trong test")
 
     def chat(self, messages: Any, **kwargs: Any) -> ChatResponse:
-        chuoi_prompt = " ".join(getattr(m, "content", str(m)) for m in messages)
-        resp = self.complete(chuoi_prompt, **kwargs)
+        prompt_text = " ".join(getattr(m, "content", str(m)) for m in messages)
+        resp = self.complete(prompt_text, **kwargs)
         return ChatResponse(message=ChatMessage(role=MessageRole.ASSISTANT, content=resp.text))
 
     def structured_predict(self, output_cls: Any, prompt: Any, **prompt_args: Any) -> Any:
-        self._so_lan_goi += 1
-        self._so_lan_structured += 1
-        self._cac_prompt.append(str(prompt))
-        self._kiem_tra_nem_loi()
-        if self.ket_qua_structured:
-            idx = min(self._so_lan_structured - 1, len(self.ket_qua_structured) - 1)
-            return self.ket_qua_structured[idx]
+        self._call_count += 1
+        self._structured_count += 1
+        self._prompts.append(str(prompt))
+        self._check_raise()
+        if self.structured_results:
+            idx = min(self._structured_count - 1, len(self.structured_results) - 1)
+            return self.structured_results[idx]
         if hasattr(output_cls, "model_construct"):
             return output_cls.model_construct()
         return output_cls()
@@ -80,9 +80,9 @@ class LLMGia(CustomLLM):
 
 
 @pytest.fixture
-def du_lieu_mau_df():
+def sample_df():
     """Tạo DataFrame ~12 dòng chứa đầy đủ các ca biên theo đặc tả G.14."""
-    du_lieu = [
+    data = [
         # 1. Điện thoại tiêu chuẩn đầy đủ thông tin, còn hàng
         {
             "product_id": "sp01", "product_name": "Samsung Galaxy S24 Ultra", "brand": "Samsung",
@@ -205,11 +205,11 @@ def du_lieu_mau_df():
             "color_prices": "Xanh: 1200000", "url": "http://example.com/nokiax"
         },
     ]
-    return pd.DataFrame(du_lieu)
+    return pd.DataFrame(data)
 
 
 @pytest.fixture
-def tao_nodes_mau():
+def sample_nodes():
     """Tạo danh sách Node mẫu gồm cả sản phẩm và tài liệu chính sách cho test truy hồi."""
     return [
         TextNode(

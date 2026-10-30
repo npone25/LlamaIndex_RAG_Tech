@@ -59,8 +59,8 @@ def ensure_hnsw_index(engine, table_name):
 
 #kiểm tra phiên bản vì chỉ có 0.8.0 mới thực hiện quét lặp được 
 def pgvector_version(conn):
-    ban = conn.execute(text("SELECT extversion FROM pg_extension WHERE extname = 'vector'")).scalar()
-    return tuple(int(x) for x in ban.split(".")[:2]), ban
+    version_str = conn.execute(text("SELECT extversion FROM pg_extension WHERE extname = 'vector'")).scalar()
+    return tuple(int(x) for x in version_str.split(".")[:2]), version_str
 
 
 def enable_hnsw_iterative_scan(engine):
@@ -80,11 +80,11 @@ def create_docstore(namespace):
     return PostgresDocumentStore.from_uri(uri=get_dsn(), namespace=namespace, use_jsonb=True)
 
 
-def create_cache(collection, ten_bang_cache="cache"):
+def create_cache(collection, cache_table_name="cache"):
     # Bộ nhớ đệm kết quả biến đổi (bảng data_cache), còn nguyên khi chương trình tắt.
     # Dùng kiểu JSON (use_jsonb=False): JSONB tự sắp xếp lại thứ tự khóa metadata, làm mã băm
     # của Node đọc ra khác lúc ghi vào và cache không bao giờ trúng (xem thí nghiệm 4.4.3)
-    kvstore = PostgresKVStore.from_uri(uri=get_dsn(), table_name=ten_bang_cache, use_jsonb=False)
+    kvstore = PostgresKVStore.from_uri(uri=get_dsn(), table_name=cache_table_name, use_jsonb=False)
     return IngestionCache(cache=kvstore, collection=collection)
 
 

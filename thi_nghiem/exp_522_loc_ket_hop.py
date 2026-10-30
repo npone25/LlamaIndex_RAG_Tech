@@ -8,28 +8,28 @@ from sqlalchemy import text
 
 from kho_du_lieu import create_db_engine
 from nhung_gemini import create_embed_model
-from truy_hoi import tao_vector
+from truy_hoi import create_vector
 
-CAU_HOI = "Điện thoại chụp ảnh đêm tốt"
-model_nhung = create_embed_model()
-dieu_kien = [
+QUESTION_LIST = "Điện thoại chụp ảnh đêm tốt"
+embed_model_obj = create_embed_model()
+conditions = [
     MetadataFilter(key="brand", operator=FilterOperator.EQ, value="Samsung"),
     MetadataFilter(key="price", operator=FilterOperator.LT, value=15000000),
 ]
 
 print("=== BƯỚC 1: SỐ NODE THỎA TỪNG ĐIỀU KIỆN (ĐẾM BẰNG SQL) ===")
 with create_db_engine().connect() as conn:
-    for ten, where in [("brand = Samsung", "metadata_->>'brand' = 'Samsung'"),
+    for item_name, where in [("brand = Samsung", "metadata_->>'brand' = 'Samsung'"),
                        ("price < 15tr", "(metadata_->>'price')::float < 15000000"),
                        ("cả hai (AND)", "metadata_->>'brand' = 'Samsung' AND "
                                         "(metadata_->>'price')::float < 15000000")]:
-        so = conn.execute(text("SELECT count(*) FROM data_san_pham WHERE " + where)).scalar()
-        print("%-16s: %d Node" % (ten, so))
+        number = conn.execute(text("SELECT count(*) FROM data_san_pham WHERE " + where)).scalar()
+        print("%-16s: %d Node" % (item_name, number))
 
-for ten, dk in [("AND", FilterCondition.AND), ("OR", FilterCondition.OR)]:
-    print("=== BƯỚC: TRUY HỒI VỚI condition = %s (Top 3) ===" % ten)
-    loc = MetadataFilters(filters=dieu_kien, condition=dk)
-    for i, kq in enumerate(tao_vector(model_nhung, top_k=3, filters=loc).retrieve(CAU_HOI), 1):
-        m = kq.node.metadata
-        print("%d. %.4f | %-8s | %-30s | giá %s" % (i, kq.score, m["brand"], m["product_name"][:30],
+for item_name, logic_op in [("AND", FilterCondition.AND), ("OR", FilterCondition.OR)]:
+    print("=== BƯỚC: TRUY HỒI VỚI condition = %s (Top 3) ===" % item_name)
+    filter_value = MetadataFilters(filters=conditions, condition=logic_op)
+    for i, res in enumerate(create_vector(embed_model_obj, top_k=3, filters=filter_value).retrieve(QUESTION_LIST), 1):
+        m = res.node.metadata
+        print("%d. %.4f | %-8s | %-30s | giá %s" % (i, res.score, m["brand"], m["product_name"][:30],
               "{:,}".format(m["price"]) if m.get("price") else "không có"))

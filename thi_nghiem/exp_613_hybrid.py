@@ -5,11 +5,11 @@ import _duong_dan  # noqa: F401  (thêm thư mục gốc và loi_rag/ vào đư�
 from llama_index.core.retrievers import QueryFusionRetriever
 
 from nhung_gemini import create_embed_model
-from truy_hoi import lay_nodes, tao_bm25, tao_hybrid, tao_vector, ten_ngan
+from truy_hoi import load_table_nodes, create_bm25, create_fusion, create_vector, short_label
 
-nhanh_vector = tao_vector(create_embed_model())
-nhanh_bm25 = tao_bm25(lay_nodes())
-hybrid = tao_hybrid(nhanh_vector, nhanh_bm25)
+vector_branch = create_vector(create_embed_model())
+bm25_branch = create_bm25(load_table_nodes())
+hybrid = create_fusion(vector_branch, bm25_branch)
 
 print("=== BƯỚC 1: CẤU HÌNH BỘ TRUY HỒI LAI GHÉP ===")
 print("mode:", hybrid.mode, "| số nhánh:", len(hybrid._retrievers),
@@ -18,19 +18,19 @@ print("mode:", hybrid.mode, "| số nhánh:", len(hybrid._retrievers),
 print("=== BƯỚC 2: VỊ TRÍ CỦA TỪNG KẾT QUẢ TRONG HAI NHÁNH ===")
 cau_hoi = "Samsung màn hình gập chụp ảnh đẹp"
 print("Câu hỏi:", cau_hoi)
-hang_v, hang_b = {}, {}
-for i, kq in enumerate(nhanh_vector.retrieve(cau_hoi), start=1):
-    hang_v[kq.node.node_id] = i
-for i, kq in enumerate(nhanh_bm25.retrieve(cau_hoi), start=1):
-    hang_b[kq.node.node_id] = i
-for i, kq in enumerate(hybrid.retrieve(cau_hoi), start=1):
-    v = hang_v.get(kq.node.node_id, "-")
-    b = hang_b.get(kq.node.node_id, "-")
+rank_vector, rank_bm25 = {}, {}
+for i, res in enumerate(vector_branch.retrieve(cau_hoi), start=1):
+    rank_vector[res.node.node_id] = i
+for i, res in enumerate(bm25_branch.retrieve(cau_hoi), start=1):
+    rank_bm25[res.node.node_id] = i
+for i, res in enumerate(hybrid.retrieve(cau_hoi), start=1):
+    v = rank_vector.get(res.node.node_id, "-")
+    b = rank_bm25.get(res.node.node_id, "-")
     print("%2d. RRF %.4f | hạng vector %2s | hạng BM25 %2s | %s"
-          % (i, kq.score, v, b, ten_ngan(kq)))
+          % (i, res.score, v, b, short_label(res)))
 
 print("=== BƯỚC 3: CA LỖI (KHÔNG TRUYỀN llm KHI KHỞI TẠO) ===")
 try:
-    QueryFusionRetriever([nhanh_vector, nhanh_bm25], mode="reciprocal_rerank", num_queries=1)
-except Exception as loi:
-    print(type(loi).__name__, "-", str(loi).split("\n")[0][:80])
+    QueryFusionRetriever([vector_branch, bm25_branch], mode="reciprocal_rerank", num_queries=1)
+except Exception as error:
+    print(type(error).__name__, "-", str(error).split("\n")[0][:80])

@@ -5,10 +5,10 @@
 from llama_index.core.retrievers import VectorIndexAutoRetriever
 from llama_index.core.vector_stores import MetadataInfo, VectorStoreInfo
 
-from truy_hoi import tao_vector
+from truy_hoi import create_vector
 
 # Mô tả kho cho LLM: LLM chỉ được tạo bộ lọc trên các trường khai báo ở đây
-THONG_TIN_KHO = VectorStoreInfo(
+STORE_INFO = VectorStoreInfo(
     content_info="Mô tả cấu hình và tính năng của một mẫu điện thoại bán tại cửa hàng",
     metadata_info=[
         MetadataInfo(name="brand", type="str",
@@ -24,26 +24,26 @@ THONG_TIN_KHO = VectorStoreInfo(
 )
 
 
-class AutoRetrieverGhiLai(VectorIndexAutoRetriever):
+class RecordingAutoRetriever(VectorIndexAutoRetriever):
     """Giống VectorIndexAutoRetriever nhưng giữ lại đặc tả truy hồi (spec) LLM vừa sinh để in ra."""
 
-    spec_gan_nhat = None
+    last_spec = None
 
     def generate_retrieval_spec(self, query_bundle, **kwargs):
         spec = super().generate_retrieval_spec(query_bundle, **kwargs)
-        self.spec_gan_nhat = spec
+        self.last_spec = spec
         return spec
 
 
-def tao_auto_retriever(llm, embed_model, top_k=3):
-    index = tao_vector(embed_model)._index     # VectorStoreIndex đọc bảng data_san_pham
-    return AutoRetrieverGhiLai(index, vector_store_info=THONG_TIN_KHO, llm=llm,
+def create_auto_retriever(llm, embed_model, top_k=3):
+    index = create_vector(embed_model)._index     # VectorStoreIndex đọc bảng data_san_pham
+    return RecordingAutoRetriever(index, vector_store_info=STORE_INFO, llm=llm,
                                similarity_top_k=top_k, empty_query_top_k=top_k)
 
 
-def bo_loc_dang_chu(spec):
+def filters_as_text(spec):
     # [('brand', '==', 'Xiaomi'), ('price', '<', 20000000)]
-    ket_qua = []
+    result = []
     for f in spec.filters:
-        ket_qua.append((f.key, f.operator.value, f.value))
-    return ket_qua
+        result.append((f.key, f.operator.value, f.value))
+    return result

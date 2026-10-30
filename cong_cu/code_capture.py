@@ -15,7 +15,7 @@ if sys.platform == "win32":
 OUT_DIR = Path("docs/anh_bao_cao")  # chạy ở thư mục gốc: python cong_cu/code_capture.py
 OUT_DIR.mkdir(exist_ok=True)
 
-def tao_anh_codesnap(file_path: Path, is_log: bool = False):
+def create_codesnap_image(file_path: Path, is_log: bool = False):
     text = file_path.read_text(encoding="utf-8", errors="replace").expandtabs(4)
     if not text.strip():
         return
@@ -80,10 +80,10 @@ if __name__ == "__main__":
     skip_files = {"code_capture.py", "chup_anh_hang_loat.py"}
     for py_file in sorted(list(Path("thi_nghiem").glob("*.py")) + list(Path("loi_rag").glob("*.py"))):
         if py_file.name not in skip_files:
-            tao_anh_codesnap(py_file, is_log=False)
+            create_codesnap_image(py_file, is_log=False)
 
     # Chụp toàn bộ các file .txt trong thư mục logs/
     log_dir = Path("logs")
     if log_dir.exists():
         for log_file in sorted(log_dir.glob("*.txt")):
-            tao_anh_codesnap(log_file, is_log=True)
+            create_codesnap_image(log_file, is_log=True)

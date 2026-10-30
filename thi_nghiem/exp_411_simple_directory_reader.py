@@ -56,22 +56,22 @@ for doc in documents:
 
 # Mỗi định dạng file cho ra gì?
 print("\n=== MỖI ĐỊNH DẠNG CHO RA GÌ ===")
-duoi_da_xem = []
+seen_suffix = []
 for doc in documents:
-    duoi = Path(doc.metadata["file_name"]).suffix   # ví dụ .csv
-    if duoi in duoi_da_xem:
+    file_ext = Path(doc.metadata["file_name"]).suffix   # ví dụ .csv
+    if file_ext in seen_suffix:
         continue
-    duoi_da_xem.append(duoi)
+    seen_suffix.append(file_ext)
 
     # Đếm số Document của tất cả file có cùng đuôi này
-    so_document = 0
+    document_count = 0
     for d in documents:
-        if Path(d.metadata["file_name"]).suffix == duoi:
-            so_document = so_document + 1
+        if Path(d.metadata["file_name"]).suffix == file_ext:
+            document_count = document_count + 1
 
     print("-" * 50)
-    print("Đuôi file          :", duoi)
-    print("Số Document        :", so_document)
+    print("Đuôi file          :", file_ext)
+    print("Số Document        :", document_count)
     print("Text (150 ký tự đầu):", doc.text[:150].replace("\n", " | "))
 
 # doc_id có ổn định giữa 2 lần chạy không?
@@ -115,21 +115,21 @@ for doc in documents2:
     print(doc.metadata["file_name"], "| doc_type =", doc.metadata["doc_type"])
 
 # Đếm số Document theo doc_type
-dem_loai = {}
+type_counts = {}
 for doc in documents2:
-    loai = doc.metadata["doc_type"]
-    if loai in dem_loai:
-        dem_loai[loai] = dem_loai[loai] + 1
+    kind_label = doc.metadata["doc_type"]
+    if kind_label in type_counts:
+        type_counts[kind_label] = type_counts[kind_label] + 1
     else:
-        dem_loai[loai] = 1
-print("Số Document theo doc_type:", dem_loai)
+        type_counts[kind_label] = 1
+print("Số Document theo doc_type:", type_counts)
 
 # Lọc thử: chỉ giữ Document có doc_type = bao_hanh
-chi_bao_hanh = []
+warranty_only = []
 for doc in documents2:
     if doc.metadata["doc_type"] == "bao_hanh":
-        chi_bao_hanh.append(doc)
-print("Lọc doc_type = bao_hanh: còn", len(chi_bao_hanh), "Document")
+        warranty_only.append(doc)
+print("Lọc doc_type = bao_hanh: còn", len(warranty_only), "Document")
 
 # Document chỉ nằm trong bộ nhớ
 doc = documents[0]
@@ -144,6 +144,6 @@ print("Chưa lưu vào database. Việc đó do IngestionPipeline làm ở bư�
 print("\n=== CA LỖI (THƯ MỤC KHÔNG TỒN TẠI) ===")
 try:
     SimpleDirectoryReader(input_dir=str(folder / "khong_ton_tai")).load_data()
-except Exception as loi:
-    print("Kiểu lỗi  :", type(loi).__name__)
-    print("Thông báo :", hide_path(loi))
+except Exception as error:
+    print("Kiểu lỗi  :", type(error).__name__)
+    print("Thông báo :", hide_path(error))

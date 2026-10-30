@@ -11,8 +11,8 @@ from llm_gemini import create_answer_llm
 from nhung_gemini import create_embed_model
 
 df = pd.read_excel(PHONE_FILE)
-dong = df[df["product_name"] == "Samsung Galaxy Z Fold7 12GB 256GB"].iloc[0]
-doc = row_to_document(dong)
+fetched = df[df["product_name"] == "Samsung Galaxy Z Fold7 12GB 256GB"].iloc[0]
+doc = row_to_document(fetched)
 print("Document:", doc.get_content()[:100], "...")
 
 index = VectorStoreIndex.from_documents([doc], embed_model=create_embed_model())

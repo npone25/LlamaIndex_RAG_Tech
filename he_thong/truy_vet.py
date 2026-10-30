@@ -20,24 +20,24 @@ try:
 except ImportError:
     from cau_hinh import TOP_K, TOP_N, get_refusal_threshold
 
-from bao_ve import CAU_TU_CHOI_TAN_CONG, ap_dung_guardrails, kiem_tra_regex
-from dinh_tuyen import DANH_SACH_CONG_CU, lay_cau_sql
-from tro_ly import NO_DATA_REPLY, PROMPT_TRA_LOI, PROMPT_VIET_LAI, van_ban_tra_loi
-from truy_hoi import ten_ngan
+from bao_ve import ATTACK_REFUSAL_REPLY, apply_guardrails, check_regex
+from dinh_tuyen import TOOL_NAMES, get_sql_query
+from tro_ly import NO_DATA_REPLY, ANSWER_PROMPT, REWRITE_PROMPT, answer_text
+from truy_hoi import short_label
 
 
-TEN_CAC_NHANH = [
+BRANCH_NAMES = [
     "vector/san_pham",
     "bm25/san_pham",
     "vector/kien_thuc",
     "bm25/kien_thuc",
 ]
 
-THU_MUC_LOGS_TRUY_VET = Path(__file__).parent.parent / "logs" / "truy_vet"
+TRACE_LOG_DIR = Path(__file__).parent.parent / "logs" / "truy_vet"
 
 
-def tinh_rrf_chuan(
-    cac_nhanh_nodes: Dict[str, List[NodeWithScore]],
+def compute_standard_rrf(
+    branch_nodes: Dict[str, List[NodeWithScore]],
     k: float = 60.0,
     top_k: int = TOP_K,
 ) -> Tuple[List[NodeWithScore], List[Dict[str, Any]]]:
@@ -46,215 +46,215 @@ def tinh_rrf_chuan(
     Thứ hạng rank bắt đầu từ 0: 1.0 / (rank + k).
     Khóa gộp node là node.hash.
     """
-    diem_rrf = {}
-    hash_sang_node = {}
-    dong_gop = {}
+    rrf_score = {}
+    hash_to_node = {}
+    contribution = {}
 
-    for ten_nhanh, danh_sach in cac_nhanh_nodes.items():
+    for branch_name, items_list in branch_nodes.items():
         # Sắp xếp giảm dần theo điểm của nhánh
-        sap_xep = sorted(danh_sach, key=lambda x: x.score or 0.0, reverse=True)
-        for rank_0, nws in enumerate(sap_xep):
+        ranked = sorted(items_list, key=lambda x: x.score or 0.0, reverse=True)
+        for rank_0, nws in enumerate(ranked):
             h = nws.node.hash
-            hash_sang_node[h] = nws
-            if h not in diem_rrf:
-                diem_rrf[h] = 0.0
-                dong_gop[h] = []
-            phan_so = 1.0 / (rank_0 + k)
-            diem_rrf[h] += phan_so
+            hash_to_node[h] = nws
+            if h not in rrf_score:
+                rrf_score[h] = 0.0
+                contribution[h] = []
+            fraction = 1.0 / (rank_0 + k)
+            rrf_score[h] += fraction
             # Ghi nhận đóng góp: rank_0 + 1 để hiển thị thứ hạng theo người đọc
-            dong_gop[h].append({
-                "nhanh": ten_nhanh,
+            contribution[h].append({
+                "nhanh": branch_name,
                 "hang_nhanh": rank_0 + 1,
-                "phan_so": round(phan_so, 6),
+                "phan_so": round(fraction, 6),
                 # LlamaIndex tính 1/(rank + k) với rank bắt đầu từ 0, nên hạng 1 ứng với 1/60
                 "bieu_thuc_nhanh": "1/" + str(int(k) + rank_0),
             })
 
     # Sắp xếp các node theo tổng điểm RRF giảm dần
-    sap_xep_rrf = sorted(diem_rrf.items(), key=lambda x: x[1], reverse=True)
+    rrf_ranking = sorted(rrf_score.items(), key=lambda x: x[1], reverse=True)
 
-    nodes_ket_qua = []
-    bang_rrf = []
+    result_nodes = []
+    rrf_table = []
 
-    for hang_0, (h, tong_diem) in enumerate(sap_xep_rrf[:top_k]):
-        goc_node = hash_sang_node[h]
+    for pos0, (h, total_score) in enumerate(rrf_ranking[:top_k]):
+        node_source = hash_to_node[h]
         # Tạo bản sao NodeWithScore để không ghi đè điểm nhánh
-        node_moi = NodeWithScore(node=goc_node.node, score=tong_diem)
-        nodes_ket_qua.append(node_moi)
+        new_node = NodeWithScore(node=node_source.node, score=total_score)
+        result_nodes.append(new_node)
 
-        ds_dong_gop = dong_gop.get(h, [])
-        chuoi_dong_gop = " + ".join(
-            f"{d['nhanh']} #{d['hang_nhanh']}" for d in ds_dong_gop
+        contributions = contribution.get(h, [])
+        contribution_text = " + ".join(
+            f"{d['nhanh']} #{d['hang_nhanh']}" for d in contributions
         )
-        chuoi_phep_tinh = " + ".join(
-            d["bieu_thuc_nhanh"] for d in ds_dong_gop
+        formula_text = " + ".join(
+            d["bieu_thuc_nhanh"] for d in contributions
         )
-        if chuoi_phep_tinh:
-            chuoi_phep_tinh += f" = {tong_diem:.4f}"
+        if formula_text:
+            formula_text += f" = {total_score:.4f}"
 
-        m = goc_node.node.metadata
-        bang_rrf.append({
-            "hang": hang_0 + 1,
-            "node_id": goc_node.node.node_id,
-            "ten_ngan": ten_ngan(goc_node),
+        m = node_source.node.metadata
+        rrf_table.append({
+            "hang": pos0 + 1,
+            "node_id": node_source.node.node_id,
+            "ten_ngan": short_label(node_source),
             "loai": "sản phẩm" if "product_id" in m else "tài liệu",
-            "diem_rrf": round(tong_diem, 4),
-            "dong_gop": chuoi_dong_gop,
-            "phep_tinh": chuoi_phep_tinh,
-            "chi_tiet_dong_gop": ds_dong_gop,
+            "diem_rrf": round(total_score, 4),
+            "dong_gop": contribution_text,
+            "phep_tinh": formula_text,
+            "chi_tiet_dong_gop": contributions,
         })
 
-    return nodes_ket_qua, bang_rrf
+    return result_nodes, rrf_table
 
 
-def tai_xep_hang_va_loc_nguong(
+def rerank_and_cutoff(
     nodes_rrf: List[NodeWithScore],
     query_bundle: QueryBundle,
     reranker: Any,
-    nguong: float = 0.10,
+    cutoff: float = 0.10,
     top_n: int = TOP_N,
 ) -> Tuple[List[NodeWithScore], List[Dict[str, Any]], float]:
     """Chạy Cross-Encoder cho cả 10 node, so sánh thứ hạng và lọc theo ngưỡng."""
-    t_dau = time.perf_counter()
+    t_start = time.perf_counter()
 
     if not nodes_rrf:
-        t_ms = (time.perf_counter() - t_dau) * 1000
+        t_ms = (time.perf_counter() - t_start) * 1000
         return [], [], round(t_ms, 2)
 
     # 1. Tính điểm Cross-Encoder cho toàn bộ 10 node
-    cap_van_ban = [
+    text_pairs = [
         (query_bundle.query_str, nws.node.get_content(metadata_mode=MetadataMode.EMBED))
         for nws in nodes_rrf
     ]
 
-    diem_cross_encoder = []
+    cross_encoder_score = []
     if hasattr(reranker, "_model") and hasattr(reranker._model, "predict"):
-        diem_cross_encoder = reranker._model.predict(cap_van_ban)
+        cross_encoder_score = reranker._model.predict(text_pairs)
     elif hasattr(reranker, "postprocess_nodes"):
         # Dự phòng: nếu không truy cập được _model thì gọi postprocess_nodes
-        cac_node_tam = [NodeWithScore(node=n.node, score=n.score) for n in nodes_rrf]
-        kq_tam = reranker.postprocess_nodes(cac_node_tam, query_bundle=query_bundle)
-        map_diem = {k.node.node_id: k.score for k in kq_tam}
-        diem_cross_encoder = [map_diem.get(n.node.node_id, 0.0) for n in nodes_rrf]
+        temp_nodes = [NodeWithScore(node=n.node, score=n.score) for n in nodes_rrf]
+        res_temp = reranker.postprocess_nodes(temp_nodes, query_bundle=query_bundle)
+        score_map = {k.node.node_id: k.score for k in res_temp}
+        cross_encoder_score = [score_map.get(n.node.node_id, 0.0) for n in nodes_rrf]
     else:
-        diem_cross_encoder = [nws.score or 0.0 for nws in nodes_rrf]
+        cross_encoder_score = [nws.score or 0.0 for nws in nodes_rrf]
 
     # Gán điểm mới cho từng node
-    danh_sach_cham_diem = []
-    for hang_rrf_0, (nws, diem) in enumerate(zip(nodes_rrf, diem_cross_encoder)):
-        diem_float = float(diem)
-        nws_moi = NodeWithScore(node=nws.node, score=diem_float)
-        danh_sach_cham_diem.append({
-            "nws": nws_moi,
-            "hang_rrf": hang_rrf_0 + 1,
-            "diem_rerank": diem_float,
+    scoring_list = []
+    for rrf_rank_0, (nws, score_value) in enumerate(zip(nodes_rrf, cross_encoder_score)):
+        score_float = float(score_value)
+        new_nws = NodeWithScore(node=nws.node, score=score_float)
+        scoring_list.append({
+            "nws": new_nws,
+            "hang_rrf": rrf_rank_0 + 1,
+            "diem_rerank": score_float,
         })
 
     # 2. Sắp xếp lại theo điểm Cross-Encoder giảm dần
-    sap_xep_moi = sorted(
-        danh_sach_cham_diem,
+    new_ranking = sorted(
+        scoring_list,
         key=lambda x: x["diem_rerank"],
         reverse=True,
     )
 
-    bang_rerank = []
+    rerank_table = []
     nodes_top_n = []
-    nodes_qua_nguong = []
+    nodes_above_cutoff = []
 
-    for hang_moi_0, muc in enumerate(sap_xep_moi):
-        hang_moi = hang_moi_0 + 1
-        hang_cu = muc["hang_rrf"]
-        chenh_lech = hang_cu - hang_moi
+    for new_rank_0, item in enumerate(new_ranking):
+        new_rank = new_rank_0 + 1
+        old_rank = item["hang_rrf"]
+        difference = old_rank - new_rank
 
-        if chenh_lech > 0:
-            doi_hang_str = f"▲ +{chenh_lech}"
-        elif chenh_lech < 0:
-            doi_hang_str = f"▼ {chenh_lech}"
+        if difference > 0:
+            rank_change_str = f"▲ +{difference}"
+        elif difference < 0:
+            rank_change_str = f"▼ {difference}"
         else:
-            doi_hang_str = "— 0"
+            rank_change_str = "— 0"
 
-        giu_lai_top_n = (hang_moi <= top_n)
-        qua_nguong = (muc["diem_rerank"] >= nguong)
+        kept_top_n = (new_rank <= top_n)
+        above_cutoff = (item["diem_rerank"] >= cutoff)
 
-        nws_item = muc["nws"]
-        if giu_lai_top_n:
+        nws_item = item["nws"]
+        if kept_top_n:
             nodes_top_n.append(nws_item)
-            if qua_nguong:
-                nodes_qua_nguong.append(nws_item)
+            if above_cutoff:
+                nodes_above_cutoff.append(nws_item)
 
         m = nws_item.node.metadata
-        bang_rerank.append({
-            "hang_moi": hang_moi,
-            "hang_rrf": hang_cu,
-            "doi_hang": doi_hang_str,
-            "chenh_lech": chenh_lech,
+        rerank_table.append({
+            "hang_moi": new_rank,
+            "hang_rrf": old_rank,
+            "doi_hang": rank_change_str,
+            "chenh_lech": difference,
             "node_id": nws_item.node.node_id,
-            "ten_ngan": ten_ngan(nws_item),
+            "ten_ngan": short_label(nws_item),
             "loai": "sản phẩm" if "product_id" in m else "tài liệu",
-            "diem_rerank": round(muc["diem_rerank"], 4),
-            "giu_lai_top_n": giu_lai_top_n,
-            "qua_nguong": qua_nguong,
-            "trang_thai": "Giữ lại" if (giu_lai_top_n and qua_nguong) else (
-                "Bị ngưỡng loại" if giu_lai_top_n else "Loại khỏi Top 3"
+            "diem_rerank": round(item["diem_rerank"], 4),
+            "giu_lai_top_n": kept_top_n,
+            "qua_nguong": above_cutoff,
+            "trang_thai": "Giữ lại" if (kept_top_n and above_cutoff) else (
+                "Bị ngưỡng loại" if kept_top_n else "Loại khỏi Top 3"
             ),
         })
 
-    t_ms = (time.perf_counter() - t_dau) * 1000
-    return nodes_qua_nguong, bang_rerank, round(t_ms, 2)
+    t_ms = (time.perf_counter() - t_start) * 1000
+    return nodes_above_cutoff, rerank_table, round(t_ms, 2)
 
 
-def doi_chieu_nguon_voi_cau_tra_loi(
-    ds_nguon: List[Dict[str, Any]],
+def match_sources_to_answer(
+    sources_list: List[Dict[str, Any]],
     cau_tra_loi: str,
 ) -> List[Dict[str, Any]]:
     """Đối chiếu tự động: kiểm tra tên máy hoặc tên tài liệu có xuất hiện trong câu trả lời."""
-    van_ban_tl_lower = (cau_tra_loi or "").lower()
-    ket_qua = []
+    document_text_lower = (cau_tra_loi or "").lower()
+    result = []
 
-    for n in ds_nguon:
-        ten = n.get("ten_hien_thi") or n.get("ten_ngan") or n.get("product_name") or n.get("file_name") or ""
-        xuat_hien = False
-        tu_khoa = ten.strip()
+    for n in sources_list:
+        item_name = n.get("ten_hien_thi") or n.get("ten_ngan") or n.get("product_name") or n.get("file_name") or ""
+        occurrences = False
+        keyword = item_name.strip()
 
-        if tu_khoa:
+        if keyword:
             # So khớp chuỗi trực tiếp
-            if tu_khoa.lower() in van_ban_tl_lower:
-                xuat_hien = True
+            if keyword.lower() in document_text_lower:
+                occurrences = True
             else:
                 # Thử so khớp các từ khóa chính nếu tên dài (ví dụ: 'iPhone 13 128GB' -> 'iPhone 13')
-                cac_tu = [t for t in re.split(r"[\s,\.\-_]+", tu_khoa) if len(t) >= 2]
-                if len(cac_tu) >= 2:
-                    doan_ngan = " ".join(cac_tu[:2]).lower()
-                    if doan_ngan in van_ban_tl_lower:
-                        xuat_hien = True
+                words = [t for t in re.split(r"[\s,\.\-_]+", keyword) if len(t) >= 2]
+                if len(words) >= 2:
+                    short_snippet = " ".join(words[:2]).lower()
+                    if short_snippet in document_text_lower:
+                        occurrences = True
 
         # Tài liệu: thử thêm tiêu đề trong đoạn (dòng bắt đầu bằng "#"), vì câu trả lời thường nêu tiêu đề tài liệu
-        if not xuat_hien:
-            for dong in str(n.get("doan_van") or "").splitlines():
-                tieu_de = dong.strip().lstrip("#").strip()
+        if not occurrences:
+            for fetched in str(n.get("doan_van") or "").splitlines():
+                heading = fetched.strip().lstrip("#").strip()
                 # Bỏ số thứ tự đầu tiêu đề, ví dụ "8. Kiểm tra máy mới" -> "Kiểm tra máy mới"
-                tieu_de = re.sub(r"^[0-9]+[.)]\s*", "", tieu_de)
-                if dong.strip().startswith("#") and len(tieu_de) >= 6 and tieu_de.lower() in van_ban_tl_lower:
-                    xuat_hien = True
+                heading = re.sub(r"^[0-9]+[.)]\s*", "", heading)
+                if fetched.strip().startswith("#") and len(heading) >= 6 and heading.lower() in document_text_lower:
+                    occurrences = True
                     break
 
-        muc = dict(n)
-        muc["co_trong_cau_tra_loi"] = xuat_hien
-        if xuat_hien:
-            muc["ghi_chu_doi_chieu"] = "Khớp tên tự động trong câu trả lời"
+        item = dict(n)
+        item["co_trong_cau_tra_loi"] = occurrences
+        if occurrences:
+            item["ghi_chu_doi_chieu"] = "Khớp tên tự động trong câu trả lời"
         else:
-            muc["ghi_chu_doi_chieu"] = "Không tìm thấy tên trong câu trả lời"
-        ket_qua.append(muc)
+            item["ghi_chu_doi_chieu"] = "Không tìm thấy tên trong câu trả lời"
+        result.append(item)
 
-    return ket_qua
+    return result
 
 
-def tao_thong_tin_nguon_chi_tiet(
-    nodes_qua_nguong: List[NodeWithScore],
+def create_source_details(
+    nodes_above_cutoff: List[NodeWithScore],
 ) -> List[Dict[str, Any]]:
     """Trích xuất đầy đủ thông tin kỹ thuật của từng node nguồn."""
-    ds_nguon = []
-    for nws in nodes_qua_nguong:
+    sources_list = []
+    for nws in nodes_above_cutoff:
         node = nws.node
         m = node.metadata or {}
 
@@ -269,25 +269,25 @@ def tao_thong_tin_nguon_chi_tiet(
         prev_id = prev_node.node_id if prev_node else "không có"
         next_id = next_node.node_id if next_node else "không có"
 
-        loai = "sản phẩm" if "product_id" in m else "tài liệu"
-        tieu_de = ten_ngan(nws)
+        kind_label = "sản phẩm" if "product_id" in m else "tài liệu"
+        heading = short_label(nws)
 
         # Danh sách khóa loại trừ
         excluded_embed = list(getattr(node, "excluded_embed_metadata_keys", []) or [])
         excluded_llm = list(getattr(node, "excluded_llm_metadata_keys", []) or [])
 
-        ds_nguon.append({
+        sources_list.append({
             "node_id": node.node_id,
             "ref_doc_id": node.ref_doc_id or m.get("ref_doc_id") or m.get("doc_id") or "không có",
-            "ten_hien_thi": tieu_de,
-            "loai": loai,
+            "ten_hien_thi": heading,
+            "loai": kind_label,
             "file_name": m.get("file_name", "không có"),
             "page_label": str(m.get("page_label", "không có")),
             "product_id": m.get("product_id", "không có"),
             "product_name": m.get("product_name", "không có"),
             "brand": m.get("brand", "không có"),
             "price": m.get("price", "không có"),
-            "doc_type": m.get("doc_type", "sản phẩm" if loai == "sản phẩm" else "chung"),
+            "doc_type": m.get("doc_type", "sản phẩm" if kind_label == "sản phẩm" else "chung"),
             "start_char_idx": start_char if start_char is not None else "không có",
             "end_char_idx": end_char if end_char is not None else "không có",
             "prev_node_id": prev_id,
@@ -299,10 +299,10 @@ def tao_thong_tin_nguon_chi_tiet(
             "doan_van": node.get_content(),
         })
 
-    return ds_nguon
+    return sources_list
 
 
-def trich_xuat_token_usage(response: Any, prompt_str: str, cau_tra_loi: str) -> Dict[str, Any]:
+def extract_token_usage(response: Any, prompt_str: str, cau_tra_loi: str) -> Dict[str, Any]:
     """Lấy số token vào/ra từ phản hồi Gemini hoặc ước lượng theo độ dài."""
     usage_info = {
         "token_vao": 0,
@@ -330,14 +330,14 @@ def trich_xuat_token_usage(response: Any, prompt_str: str, cau_tra_loi: str) -> 
     return usage_info
 
 
-class TaiNguyenTruyVet:
+class TraceResources:
     """Tập hợp tài nguyên phục vụ chạy truy vết một lần, không dựng lại."""
 
     def __init__(
         self,
         llm=None,
         embed_model=None,
-        retrievers_4_nhanh=None,
+        four_branch_retrievers=None,
         reranker=None,
         postprocessor=None,
         synthesizer=None,
@@ -346,11 +346,11 @@ class TaiNguyenTruyVet:
         selector=None,
         router=None,
         query_engine=None,
-        loc_engine=None,
+        filter_engine=None,
     ):
         self.llm = llm
         self.embed_model = embed_model
-        self.retrievers_4_nhanh = retrievers_4_nhanh or []
+        self.four_branch_retrievers = four_branch_retrievers or []
         self.reranker = reranker
         self.postprocessor = postprocessor
         self.synthesizer = synthesizer
@@ -359,16 +359,16 @@ class TaiNguyenTruyVet:
         self.selector = selector
         self.router = router
         self.query_engine = query_engine
-        self.loc_engine = loc_engine
+        self.filter_engine = filter_engine
 
 
-def khoi_tao_tai_nguyen_truy_vet(
+def init_trace_resources(
     tro_ly: Optional[Any] = None,
     llm: Optional[Any] = None,
     embed_model: Optional[Any] = None,
-    nodes_theo_bang: Optional[Dict[str, Any]] = None,
-) -> TaiNguyenTruyVet:
-    """Xây dựng hoặc trích xuất tài nguyên truy vết từ TroLy hiện có."""
+    nodes_by_table: Optional[Dict[str, Any]] = None,
+) -> TraceResources:
+    """Xây dựng hoặc trích xuất tài nguyên truy vết từ Assistant hiện có."""
     if tro_ly is not None:
         llm = llm or tro_ly.llm
         embed_model = embed_model or tro_ly.embed_model
@@ -376,44 +376,44 @@ def khoi_tao_tai_nguyen_truy_vet(
     # Trích xuất 4 nhánh retriever
     retrievers = []
     if tro_ly is not None and getattr(tro_ly, "retriever", None) is not None:
-        ret_goc = tro_ly.retriever
-        if hasattr(ret_goc, "_retrievers") and len(ret_goc._retrievers) == 4:
-            retrievers = list(ret_goc._retrievers)
+        base_ret = tro_ly.retriever
+        if hasattr(base_ret, "_retrievers") and len(base_ret._retrievers) == 4:
+            retrievers = list(base_ret._retrievers)
 
     if not retrievers:
         from kho_du_lieu import KNOWLEDGE_VECTOR_TABLE, PRODUCT_VECTOR_TABLE
-        from truy_hoi import lay_nodes, tao_bm25, tao_vector
+        from truy_hoi import load_table_nodes, create_bm25, create_vector
 
-        for ten_bang in [PRODUCT_VECTOR_TABLE, KNOWLEDGE_VECTOR_TABLE]:
-            retrievers.append(tao_vector(embed_model, ten_bang, top_k=TOP_K))
-            if nodes_theo_bang and ten_bang in nodes_theo_bang:
-                cac_node = nodes_theo_bang[ten_bang]
+        for table_name in [PRODUCT_VECTOR_TABLE, KNOWLEDGE_VECTOR_TABLE]:
+            retrievers.append(create_vector(embed_model, table_name, top_k=TOP_K))
+            if nodes_by_table and table_name in nodes_by_table:
+                node_list = nodes_by_table[table_name]
             else:
-                cac_node = lay_nodes(ten_bang)
-            retrievers.append(tao_bm25(cac_node, top_k=TOP_K))
+                node_list = load_table_nodes(table_name)
+            retrievers.append(create_bm25(node_list, top_k=TOP_K))
 
     # Reranker và postprocessor
     reranker = None
-    hau_xu_ly_san = None
+    existing_postprocessors = None
     if tro_ly is not None:
-        hau_xu_ly_san = getattr(tro_ly, "hau_xu_ly", None) or getattr(
+        existing_postprocessors = getattr(tro_ly, "postprocessors", None) or getattr(
             getattr(tro_ly, "query_engine", None), "_node_postprocessors", None)
-    if hau_xu_ly_san:
-        for hp in hau_xu_ly_san:
+    if existing_postprocessors:
+        for hp in existing_postprocessors:
             if hasattr(hp, "_model") or hasattr(hp, "model"):
                 reranker = hp
                 break
 
     if reranker is None:
-        from truy_hoi import tao_reranker
-        reranker = tao_reranker(top_n=TOP_N)
+        from truy_hoi import create_reranker
+        reranker = create_reranker(top_n=TOP_N)
 
     postprocessor = SimilarityPostprocessor(similarity_cutoff=get_refusal_threshold())
 
     # Response synthesizer
     synthesizer = get_response_synthesizer(
         llm=llm,
-        text_qa_template=PROMPT_TRA_LOI,
+        text_qa_template=ANSWER_PROMPT,
         response_mode="compact",
     )
 
@@ -422,7 +422,7 @@ def khoi_tao_tai_nguyen_truy_vet(
     query_engine = getattr(tro_ly, "query_engine", None) if tro_ly else None
     sql_engine = None
     tragop_engine = None
-    loc_engine = None
+    filter_engine = None
     selector = None
 
     if router is not None:
@@ -432,12 +432,12 @@ def khoi_tao_tai_nguyen_truy_vet(
             sql_engine = engines[0]
             tragop_engine = engines[2]
         if len(engines) >= 4:
-            loc_engine = engines[3]
+            filter_engine = engines[3]
 
-    return TaiNguyenTruyVet(
+    return TraceResources(
         llm=llm,
         embed_model=embed_model,
-        retrievers_4_nhanh=retrievers,
+        four_branch_retrievers=retrievers,
         reranker=reranker,
         postprocessor=postprocessor,
         synthesizer=synthesizer,
@@ -446,135 +446,135 @@ def khoi_tao_tai_nguyen_truy_vet(
         selector=selector,
         router=router,
         query_engine=query_engine,
-        loc_engine=loc_engine,
+        filter_engine=filter_engine,
     )
 
 
-def lam_sach_vet_de_luu(vet: Dict[str, Any]) -> Dict[str, Any]:
+def clean_trace_for_save(trace: Dict[str, Any]) -> Dict[str, Any]:
     """Làm sạch dict vết để ghi JSON: chuyển đối tượng thành chuỗi, giấu khóa bí mật."""
-    chuoi_json = json.dumps(vet, default=str, ensure_ascii=False)
+    json_text = json.dumps(trace, default=str, ensure_ascii=False)
     # Loại bỏ khóa API Google dạng AIza...
-    chuoi_json = re.sub(r'AIza[0-9A-Za-z\-_]+', '***DA_GIAU_API_KEY***', chuoi_json)
+    json_text = re.sub(r'AIza[0-9A-Za-z\-_]+', '***DA_GIAU_API_KEY***', json_text)
     # Loại bỏ mật khẩu trong URL PostgreSQL: postgresql://user:pass@host:port/db
-    chuoi_json = re.sub(r'postgresql://([^:]+):([^@]+)@', r'postgresql://***:***@', chuoi_json)
-    chuoi_json = re.sub(r'postgresql://[^@]+@', 'postgresql://***:***@', chuoi_json)
-    return json.loads(chuoi_json)
+    json_text = re.sub(r'postgresql://([^:]+):([^@]+)@', r'postgresql://***:***@', json_text)
+    json_text = re.sub(r'postgresql://[^@]+@', 'postgresql://***:***@', json_text)
+    return json.loads(json_text)
 
 
-def luu_file_vet(vet: Dict[str, Any], thu_muc: Optional[Path] = None) -> Path:
+def save_trace_file(trace: Dict[str, Any], folder: Optional[Path] = None) -> Path:
     """Lưu dict vết ra file JSON với dấu thời gian UTF-8."""
-    thu_muc_dich = thu_muc or THU_MUC_LOGS_TRUY_VET
-    thu_muc_dich.mkdir(parents=True, exist_ok=True)
+    target_folder = folder or TRACE_LOG_DIR
+    target_folder.mkdir(parents=True, exist_ok=True)
 
-    thoi_diem = datetime.now().strftime("%Y%m%d_%H%M%S_%f")[:19]
-    ten_file = f"{thoi_diem}.json"
-    duong_dan = thu_muc_dich / ten_file
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")[:19]
+    file_name_value = f"{timestamp}.json"
+    path_value = target_folder / file_name_value
 
-    vet_sach = lam_sach_vet_de_luu(vet)
-    with open(duong_dan, "w", encoding="utf-8") as f:
-        json.dump(vet_sach, f, ensure_ascii=False, indent=2)
+    clean_trace = clean_trace_for_save(trace)
+    with open(path_value, "w", encoding="utf-8") as f:
+        json.dump(clean_trace, f, ensure_ascii=False, indent=2)
 
-    return duong_dan
+    return path_value
 
 
-def gop_cac_phan_hoi(tai_nguyen: "TaiNguyenTruyVet", ds_phan_hoi: List[Any], query_bundle: QueryBundle) -> Any:
+def merge_responses(resources: "TraceResources", responses_list: List[Any], query_bundle: QueryBundle) -> Any:
     """Gộp câu trả lời của nhiều công cụ đúng như RouterQueryEngine (combine_responses + summarizer của router)."""
     from llama_index.core.query_engine.router_query_engine import combine_responses
-    return combine_responses(tai_nguyen.router._summarizer, ds_phan_hoi, query_bundle)
+    return combine_responses(resources.router._summarizer, responses_list, query_bundle)
 
 
-def truy_vet_cau_hoi(
+def trace_question(
     cau_hoi: str,
-    lich_su: Optional[List[Dict[str, str]]] = None,
-    tai_nguyen: Optional[TaiNguyenTruyVet] = None,
+    history: Optional[List[Dict[str, str]]] = None,
+    resources: Optional[TraceResources] = None,
     tro_ly: Optional[Any] = None,
-    bat_loi: bool = True,
-    luu_file: bool = True,
+    catch_errors: bool = True,
+    save_file: bool = True,
 ) -> Dict[str, Any]:
     """Hàm chính thực hiện toàn bộ luồng hỏi-đáp ở chế độ Truy vết RAG minh bạch.
 
     Trả về dict `vet` chứa dữ liệu chi tiết ở từng khâu.
     """
-    t_tong_dau = time.perf_counter()
+    t_total_start = time.perf_counter()
     thoi_gian_ms = {}
 
-    if tai_nguyen is None:
-        tai_nguyen = khoi_tao_tai_nguyen_truy_vet(tro_ly=tro_ly)
+    if resources is None:
+        resources = init_trace_resources(tro_ly=tro_ly)
 
-    llm = tai_nguyen.llm
-    embed_model = tai_nguyen.embed_model
+    llm = resources.llm
+    embed_model = resources.embed_model
 
     # 1. ĐẦU VÀO
-    cau_hoi_goc = cau_hoi or ""
-    cau_hoi_sach = cau_hoi_goc.strip()
+    original_question = cau_hoi or ""
+    clean_question = original_question.strip()
 
-    thong_bao_ghi_chu = None
-    if len(cau_hoi_sach) > 500:
-        cau_hoi_sach = cau_hoi_sach[:500]
-        thong_bao_ghi_chu = "Câu hỏi đã được rút ngắn còn 500 ký tự."
+    note_message = None
+    if len(clean_question) > 500:
+        clean_question = clean_question[:500]
+        note_message = "Câu hỏi đã được rút ngắn còn 500 ký tự."
 
     cau_hoi_viet_lai = None
-    t_vl_ms = 0.0
+    t_rewrite_ms = 0.0
 
-    if lich_su and len(lich_su) > 0 and llm is not None:
-        t_vl_dau = time.perf_counter()
+    if history and len(history) > 0 and llm is not None:
+        t_rewrite_start = time.perf_counter()
         try:
-            tin_nhan_loc = lich_su[-6:]
-            doan_hoi_thoai = []
-            for tin in tin_nhan_loc:
-                vai_tro = "Khách hàng" if tin.get("role") == "user" else "Nhân viên tư vấn"
-                doan_hoi_thoai.append(f"{vai_tro}: {tin.get('content', '')}")
-            chat_history_str = "\n".join(doan_hoi_thoai)
+            recent_messages = history[-6:]
+            dialogue_lines = []
+            for msg in recent_messages:
+                role = "Khách hàng" if msg.get("role") == "user" else "Nhân viên tư vấn"
+                dialogue_lines.append(f"{role}: {msg.get('content', '')}")
+            chat_history_str = "\n".join(dialogue_lines)
 
             if hasattr(llm, "predict"):
-                phan_hoi_vl = llm.predict(
-                    PROMPT_VIET_LAI,
+                rewrite_response = llm.predict(
+                    REWRITE_PROMPT,
                     chat_history=chat_history_str,
-                    question=cau_hoi_sach,
+                    question=clean_question,
                 )
             else:
-                prompt_str = PROMPT_VIET_LAI.format(
+                prompt_str = REWRITE_PROMPT.format(
                     chat_history=chat_history_str,
-                    question=cau_hoi_sach,
+                    question=clean_question,
                 )
-                phan_hoi_vl = llm.complete(prompt_str)
-            cau_hoi_viet_lai = str(phan_hoi_vl).strip()
+                rewrite_response = llm.complete(prompt_str)
+            cau_hoi_viet_lai = str(rewrite_response).strip()
         except Exception:
-            if not bat_loi:
+            if not catch_errors:
                 raise
             cau_hoi_viet_lai = None
-        t_vl_ms = (time.perf_counter() - t_vl_dau) * 1000
+        t_rewrite_ms = (time.perf_counter() - t_rewrite_start) * 1000
 
-    thoi_gian_ms["viet_lai"] = round(t_vl_ms, 2)
-    cau_hoi_dung = cau_hoi_viet_lai if cau_hoi_viet_lai else cau_hoi_sach
+    thoi_gian_ms["viet_lai"] = round(t_rewrite_ms, 2)
+    question_used = cau_hoi_viet_lai if cau_hoi_viet_lai else clean_question
 
-    dau_vao = {
-        "cau_goc": cau_hoi_goc,
-        "cau_sach": cau_hoi_sach,
+    input_info = {
+        "cau_goc": original_question,
+        "cau_sach": clean_question,
         "cau_viet_lai": cau_hoi_viet_lai,
-        "cau_su_dung": cau_hoi_dung,
-        "thoi_gian_ms": round(t_vl_ms, 2),
-        "ghi_chu": thong_bao_ghi_chu,
+        "cau_su_dung": question_used,
+        "thoi_gian_ms": round(t_rewrite_ms, 2),
+        "ghi_chu": note_message,
     }
 
     # 2. BẢO VỆ (GUARDRAILS)
-    t_bv_dau = time.perf_counter()
-    mau_regex = kiem_tra_regex(cau_hoi_dung)
+    t_guard_start = time.perf_counter()
+    regex_pattern = check_regex(question_used)
 
-    if mau_regex is not None:
-        t_bv_ms = (time.perf_counter() - t_bv_dau) * 1000
-        thoi_gian_ms["bao_ve"] = round(t_bv_ms, 2)
-        thoi_gian_ms["tong"] = round((time.perf_counter() - t_tong_dau) * 1000, 2)
+    if regex_pattern is not None:
+        t_guard_ms = (time.perf_counter() - t_guard_start) * 1000
+        thoi_gian_ms["bao_ve"] = round(t_guard_ms, 2)
+        thoi_gian_ms["tong"] = round((time.perf_counter() - t_total_start) * 1000, 2)
 
-        vet = {
-            "dau_vao": dau_vao,
+        trace = {
+            "dau_vao": input_info,
             "bao_ve": {
                 "cho_phep": False,
                 "lop": "regex",
-                "mau_khop": mau_regex,
+                "mau_khop": regex_pattern,
                 "chu_de": None,
-                "phan_hoi": CAU_TU_CHOI_TAN_CONG,
-                "thoi_gian_ms": round(t_bv_ms, 2),
+                "phan_hoi": ATTACK_REFUSAL_REPLY,
+                "thoi_gian_ms": round(t_guard_ms, 2),
             },
             "dinh_tuyen": {"cong_cu": "bi_chan", "ly_do": "Khớp biểu thức chính quy tấn công"},
             "nhung": None,
@@ -583,7 +583,7 @@ def truy_vet_cau_hoi(
             "rerank": [],
             "tong_hop": {
                 "prompt": None,
-                "cau_tra_loi": CAU_TU_CHOI_TAN_CONG,
+                "cau_tra_loi": ATTACK_REFUSAL_REPLY,
                 "co_goi_llm": False,
                 "che_do": "bi_chan",
             },
@@ -591,29 +591,29 @@ def truy_vet_cau_hoi(
             "doi_chieu_nguon": [],
             "thoi_gian_ms": thoi_gian_ms,
         }
-        if luu_file:
+        if save_file:
             try:
-                vet["file_log"] = str(luu_file_vet(vet))
+                trace["file_log"] = str(save_trace_file(trace))
             except Exception:
-                vet["file_log"] = None
-        return vet
+                trace["file_log"] = None
+        return trace
 
     try:
-        kiem_tra = ap_dung_guardrails(cau_hoi_dung, llm)
+        check = apply_guardrails(question_used, llm)
     except Exception as e:
-        if not bat_loi:
+        if not catch_errors:
             raise
-        t_bv_ms = (time.perf_counter() - t_bv_dau) * 1000
-        thoi_gian_ms["bao_ve"] = round(t_bv_ms, 2)
-        thoi_gian_ms["tong"] = round((time.perf_counter() - t_tong_dau) * 1000, 2)
-        vet = {
-            "dau_vao": dau_vao,
+        t_guard_ms = (time.perf_counter() - t_guard_start) * 1000
+        thoi_gian_ms["bao_ve"] = round(t_guard_ms, 2)
+        thoi_gian_ms["tong"] = round((time.perf_counter() - t_total_start) * 1000, 2)
+        trace = {
+            "dau_vao": input_info,
             "bao_ve": {
                 "cho_phep": False,
                 "lop": "loi",
                 "chu_de": None,
                 "phan_hoi": "Đã xảy ra lỗi khi kiểm tra an toàn.",
-                "thoi_gian_ms": round(t_bv_ms, 2),
+                "thoi_gian_ms": round(t_guard_ms, 2),
                 "loi": str(e)[:200],
             },
             "dinh_tuyen": {"cong_cu": "loi", "ly_do": "Lỗi kiểm tra bảo vệ"},
@@ -631,37 +631,37 @@ def truy_vet_cau_hoi(
             "doi_chieu_nguon": [],
             "thoi_gian_ms": thoi_gian_ms,
         }
-        if luu_file:
+        if save_file:
             try:
-                vet["file_log"] = str(luu_file_vet(vet))
+                trace["file_log"] = str(save_trace_file(trace))
             except Exception:
-                vet["file_log"] = None
-        return vet
+                trace["file_log"] = None
+        return trace
 
-    t_bv_ms = (time.perf_counter() - t_bv_dau) * 1000
-    thoi_gian_ms["bao_ve"] = round(t_bv_ms, 2)
+    t_guard_ms = (time.perf_counter() - t_guard_start) * 1000
+    thoi_gian_ms["bao_ve"] = round(t_guard_ms, 2)
 
-    bao_ve_dict = {
-        "cho_phep": kiem_tra.cho_phep,
-        "lop": kiem_tra.lop,
-        "chu_de": kiem_tra.chu_de,
-        "phan_hoi": kiem_tra.phan_hoi,
-        "thoi_gian_ms": round(t_bv_ms, 2),
+    guard_dict = {
+        "cho_phep": check.cho_phep,
+        "lop": check.lop,
+        "chu_de": check.chu_de,
+        "phan_hoi": check.phan_hoi,
+        "thoi_gian_ms": round(t_guard_ms, 2),
     }
 
-    if not kiem_tra.cho_phep:
-        thoi_gian_ms["tong"] = round((time.perf_counter() - t_tong_dau) * 1000, 2)
-        vet = {
-            "dau_vao": dau_vao,
-            "bao_ve": bao_ve_dict,
-            "dinh_tuyen": {"cong_cu": "bi_chan", "ly_do": f"Chặn bởi {kiem_tra.lop}"},
+    if not check.cho_phep:
+        thoi_gian_ms["tong"] = round((time.perf_counter() - t_total_start) * 1000, 2)
+        trace = {
+            "dau_vao": input_info,
+            "bao_ve": guard_dict,
+            "dinh_tuyen": {"cong_cu": "bi_chan", "ly_do": f"Chặn bởi {check.lop}"},
             "nhung": None,
             "cac_nhanh": [],
             "rrf": [],
             "rerank": [],
             "tong_hop": {
                 "prompt": None,
-                "cau_tra_loi": kiem_tra.phan_hoi or CAU_TU_CHOI_TAN_CONG,
+                "cau_tra_loi": check.phan_hoi or ATTACK_REFUSAL_REPLY,
                 "co_goi_llm": False,
                 "che_do": "bi_chan",
             },
@@ -669,242 +669,242 @@ def truy_vet_cau_hoi(
             "doi_chieu_nguon": [],
             "thoi_gian_ms": thoi_gian_ms,
         }
-        if luu_file:
+        if save_file:
             try:
-                vet["file_log"] = str(luu_file_vet(vet))
+                trace["file_log"] = str(save_trace_file(trace))
             except Exception:
-                vet["file_log"] = None
-        return vet
+                trace["file_log"] = None
+        return trace
 
     # 3. ĐỊNH TUYẾN (ROUTER)
     # Bộ chọn có thể trả về nhiều công cụ; khi đó RouterQueryEngine chạy từng công cụ rồi gộp
     # các câu trả lời bằng combine_responses. Truy vết làm đúng như vậy.
-    t_dt_dau = time.perf_counter()
-    query_bundle = QueryBundle(cau_hoi_dung)
-    cac_cong_cu_chon = []
-    cac_ly_do = []
+    t_route_start = time.perf_counter()
+    query_bundle = QueryBundle(question_used)
+    chosen_tools = []
+    reason_list = []
     cau_sql = None
-    ket_qua_sql = None
-    tham_so_tra_gop = None
-    phan_hoi_theo_cong_cu = {}
+    sql_result = None
+    installment_params = None
+    responses_by_tool = {}
 
-    if tai_nguyen.router is not None and tai_nguyen.selector is not None:
+    if resources.router is not None and resources.selector is not None:
         try:
             # RouterQueryEngine (llama-index-core 0.14.25) lưu mô tả các công cụ trong _metadatas
-            metadatas = list(getattr(tai_nguyen.router, "_metadatas", []) or [])
+            metadatas = list(getattr(resources.router, "_metadatas", []) or [])
             if len(metadatas) == 0:
                 raise ValueError("Không đọc được danh sách công cụ của router")
-            sel_result = tai_nguyen.selector.select(metadatas, query_bundle)
-            cac_chi_so = list(sel_result.inds)
-            cac_ly_do = list(sel_result.reasons)
-            for chi_so in cac_chi_so:
-                if 0 <= chi_so < len(DANH_SACH_CONG_CU):
-                    cac_cong_cu_chon.append(DANH_SACH_CONG_CU[chi_so])
+            sel_result = resources.selector.select(metadatas, query_bundle)
+            indices = list(sel_result.inds)
+            reason_list = list(sel_result.reasons)
+            for pos in indices:
+                if 0 <= pos < len(TOOL_NAMES):
+                    chosen_tools.append(TOOL_NAMES[pos])
 
-            for ten_cong_cu in cac_cong_cu_chon:
-                if ten_cong_cu == "tra_cuu_so_lieu" and tai_nguyen.sql_engine is not None:
-                    resp_sql = tai_nguyen.sql_engine.query(query_bundle)
-                    cau_sql = lay_cau_sql(resp_sql)
+            for tool_name in chosen_tools:
+                if tool_name == "tra_cuu_so_lieu" and resources.sql_engine is not None:
+                    resp_sql = resources.sql_engine.query(query_bundle)
+                    cau_sql = get_sql_query(resp_sql)
                     if hasattr(resp_sql, "source_nodes"):
-                        ket_qua_sql = [nws.node.get_content() for nws in resp_sql.source_nodes]
-                    phan_hoi_theo_cong_cu[ten_cong_cu] = resp_sql
-                elif ten_cong_cu == "tinh_tra_gop" and tai_nguyen.tragop_engine is not None:
-                    resp_tg = tai_nguyen.tragop_engine.query(query_bundle)
-                    tham_so_tra_gop = getattr(tai_nguyen.tragop_engine, "tham_so_gan_nhat", None)
-                    phan_hoi_theo_cong_cu[ten_cong_cu] = resp_tg
-                elif ten_cong_cu == "tu_van_theo_dieu_kien" and tai_nguyen.loc_engine is not None:
-                    phan_hoi_theo_cong_cu[ten_cong_cu] = tai_nguyen.loc_engine.query(query_bundle)
+                        sql_result = [nws.node.get_content() for nws in resp_sql.source_nodes]
+                    responses_by_tool[tool_name] = resp_sql
+                elif tool_name == "tinh_tra_gop" and resources.tragop_engine is not None:
+                    resp_tg = resources.tragop_engine.query(query_bundle)
+                    installment_params = getattr(resources.tragop_engine, "last_params", None)
+                    responses_by_tool[tool_name] = resp_tg
+                elif tool_name == "tu_van_theo_dieu_kien" and resources.filter_engine is not None:
+                    responses_by_tool[tool_name] = resources.filter_engine.query(query_bundle)
         except Exception as e:
-            if not bat_loi:
+            if not catch_errors:
                 raise
-            cac_cong_cu_chon = []
-            cac_ly_do = ["Lỗi bộ chọn (" + str(e)[:80] + "), chuyển về RAG"]
+            chosen_tools = []
+            reason_list = ["Lỗi bộ chọn (" + str(e)[:80] + "), chuyển về RAG"]
 
-    if len(cac_cong_cu_chon) == 0:
-        cac_cong_cu_chon = ["tu_van_va_chinh_sach"]
-        if len(cac_ly_do) == 0:
-            cac_ly_do = ["Không có bộ định tuyến, dùng công cụ RAG"]
+    if len(chosen_tools) == 0:
+        chosen_tools = ["tu_van_va_chinh_sach"]
+        if len(reason_list) == 0:
+            reason_list = ["Không có bộ định tuyến, dùng công cụ RAG"]
 
-    co_rag = "tu_van_va_chinh_sach" in cac_cong_cu_chon
-    if co_rag:
-        cong_cu_chon = "tu_van_va_chinh_sach"
+    has_rag = "tu_van_va_chinh_sach" in chosen_tools
+    if has_rag:
+        chosen_tool = "tu_van_va_chinh_sach"
     else:
-        cong_cu_chon = cac_cong_cu_chon[0]
-    ly_do_chon = " | ".join(str(x) for x in cac_ly_do)
+        chosen_tool = chosen_tools[0]
+    selection_reason = " | ".join(str(x) for x in reason_list)
 
-    t_dt_ms = (time.perf_counter() - t_dt_dau) * 1000
-    thoi_gian_ms["dinh_tuyen"] = round(t_dt_ms, 2)
+    t_route_ms = (time.perf_counter() - t_route_start) * 1000
+    thoi_gian_ms["dinh_tuyen"] = round(t_route_ms, 2)
 
-    dinh_tuyen_dict = {
-        "cong_cu": cong_cu_chon,
-        "cac_cong_cu": cac_cong_cu_chon,
-        "ly_do": ly_do_chon,
-        "thoi_gian_ms": round(t_dt_ms, 2),
+    routing_dict = {
+        "cong_cu": chosen_tool,
+        "cac_cong_cu": chosen_tools,
+        "ly_do": selection_reason,
+        "thoi_gian_ms": round(t_route_ms, 2),
         "cau_sql": cau_sql,
-        "ket_qua_sql": ket_qua_sql,
-        "tham_so_tra_gop": tham_so_tra_gop,
+        "ket_qua_sql": sql_result,
+        "tham_so_tra_gop": installment_params,
     }
 
     # Không có công cụ RAG: trả lời bằng SQL / trả góp (gộp lại nếu có hai công cụ)
-    if not co_rag:
-        ds_phan_hoi = []
-        for ten_cong_cu in cac_cong_cu_chon:
-            if ten_cong_cu in phan_hoi_theo_cong_cu:
-                ds_phan_hoi.append(phan_hoi_theo_cong_cu[ten_cong_cu])
-        cau_tra_loi_khac = ""
-        if len(ds_phan_hoi) == 1:
+    if not has_rag:
+        responses_list = []
+        for tool_name in chosen_tools:
+            if tool_name in responses_by_tool:
+                responses_list.append(responses_by_tool[tool_name])
+        other_answer = ""
+        if len(responses_list) == 1:
             # Như luồng gốc: phản hồi rỗng (không máy nào qua bộ lọc và ngưỡng) thành câu từ chối
-            cau_tra_loi_khac = van_ban_tra_loi(str(ds_phan_hoi[0]))
-        elif len(ds_phan_hoi) > 1:
-            cau_tra_loi_khac = str(gop_cac_phan_hoi(tai_nguyen, ds_phan_hoi, query_bundle))
+            other_answer = answer_text(str(responses_list[0]))
+        elif len(responses_list) > 1:
+            other_answer = str(merge_responses(resources, responses_list, query_bundle))
         # Công cụ lọc theo điều kiện trả về các node nguồn; SQL và trả góp thì không có
-        ds_nguon_khac = []
-        ds_doi_chieu_khac = []
-        resp_loc = phan_hoi_theo_cong_cu.get("tu_van_theo_dieu_kien")
-        if resp_loc is not None:
-            ds_nguon_khac = tao_thong_tin_nguon_chi_tiet(list(getattr(resp_loc, "source_nodes", None) or []))
-            ds_doi_chieu_khac = doi_chieu_nguon_voi_cau_tra_loi(ds_nguon_khac, cau_tra_loi_khac)
-        thoi_gian_ms["tong"] = round((time.perf_counter() - t_tong_dau) * 1000, 2)
-        vet: Dict[str, Any] = {
-            "dau_vao": dau_vao,
-            "bao_ve": bao_ve_dict,
-            "dinh_tuyen": dinh_tuyen_dict,
+        other_sources = []
+        other_match_list = []
+        resp_filtered = responses_by_tool.get("tu_van_theo_dieu_kien")
+        if resp_filtered is not None:
+            other_sources = create_source_details(list(getattr(resp_filtered, "source_nodes", None) or []))
+            other_match_list = match_sources_to_answer(other_sources, other_answer)
+        thoi_gian_ms["tong"] = round((time.perf_counter() - t_total_start) * 1000, 2)
+        trace: Dict[str, Any] = {
+            "dau_vao": input_info,
+            "bao_ve": guard_dict,
+            "dinh_tuyen": routing_dict,
             "nhung": None,
             "cac_nhanh": [],
             "rrf": [],
             "rerank": [],
             "tong_hop": {
                 "prompt": None,
-                "cau_tra_loi": cau_tra_loi_khac,
+                "cau_tra_loi": other_answer,
                 "co_goi_llm": True,
-                "che_do": "tu_choi" if cau_tra_loi_khac == NO_DATA_REPLY else "day_du",
-                "gop_nhieu_cong_cu": len(ds_phan_hoi) > 1,
+                "che_do": "tu_choi" if other_answer == NO_DATA_REPLY else "day_du",
+                "gop_nhieu_cong_cu": len(responses_list) > 1,
             },
-            "nguon": ds_nguon_khac,
-            "doi_chieu_nguon": ds_doi_chieu_khac,
+            "nguon": other_sources,
+            "doi_chieu_nguon": other_match_list,
             "thoi_gian_ms": thoi_gian_ms,
         }
-        if luu_file:
+        if save_file:
             try:
-                vet["file_log"] = str(luu_file_vet(vet))
+                trace["file_log"] = str(save_trace_file(trace))
             except Exception:
-                vet["file_log"] = None
-        return vet
+                trace["file_log"] = None
+        return trace
 
     # 4. NHÚNG VECTOR CÂU HỎI
-    t_nhung_dau = time.perf_counter()
-    so_chieu = 0
-    gia_tri_dau = []
+    t_embed_start = time.perf_counter()
+    dim_count = 0
+    first_values = []
 
     if embed_model is not None:
         try:
             if query_bundle.embedding is None:
                 query_bundle.embedding = embed_model.get_query_embedding(query_bundle.query_str)
-            so_chieu = len(query_bundle.embedding)
-            gia_tri_dau = [round(float(v), 5) for v in query_bundle.embedding[:8]]
+            dim_count = len(query_bundle.embedding)
+            first_values = [round(float(v), 5) for v in query_bundle.embedding[:8]]
         except Exception:
-            if not bat_loi:
+            if not catch_errors:
                 raise
-            so_chieu = 0
-            gia_tri_dau = []
+            dim_count = 0
+            first_values = []
 
-    t_nhung_ms = (time.perf_counter() - t_nhung_dau) * 1000
-    thoi_gian_ms["nhung"] = round(t_nhung_ms, 2)
+    t_embed_ms = (time.perf_counter() - t_embed_start) * 1000
+    thoi_gian_ms["nhung"] = round(t_embed_ms, 2)
 
-    nhung_dict = {
-        "so_chieu": so_chieu,
-        "gia_tri_dau": gia_tri_dau,
-        "thoi_gian_ms": round(t_nhung_ms, 2),
+    embedding_dict = {
+        "so_chieu": dim_count,
+        "gia_tri_dau": first_values,
+        "thoi_gian_ms": round(t_embed_ms, 2),
     }
 
     # 5. TRUY HỒI 4 NHÁNH
-    cac_nhanh_raw = {}
-    cac_nhanh_hien_thi = []
-    cac_retrievers = tai_nguyen.retrievers_4_nhanh
+    raw_branches = {}
+    visible_branches = []
+    retriever_list = resources.four_branch_retrievers
 
-    for idx, ten_nhanh in enumerate(TEN_CAC_NHANH):
-        t_nhanh_dau = time.perf_counter()
-        nodes_nhanh = []
-        if idx < len(cac_retrievers) and cac_retrievers[idx] is not None:
+    for idx, branch_name in enumerate(BRANCH_NAMES):
+        t_branch_start = time.perf_counter()
+        branch_node_list = []
+        if idx < len(retriever_list) and retriever_list[idx] is not None:
             try:
-                nodes_nhanh = cac_retrievers[idx].retrieve(query_bundle)
+                branch_node_list = retriever_list[idx].retrieve(query_bundle)
             except Exception:
-                if not bat_loi:
+                if not catch_errors:
                     raise
-                nodes_nhanh = []
+                branch_node_list = []
 
-        t_nhanh_ms = (time.perf_counter() - t_nhanh_dau) * 1000
-        thoi_gian_ms[f"nhanh_{ten_nhanh}"] = round(t_nhanh_ms, 2)
-        cac_nhanh_raw[ten_nhanh] = nodes_nhanh
+        t_branch_ms = (time.perf_counter() - t_branch_start) * 1000
+        thoi_gian_ms[f"nhanh_{branch_name}"] = round(t_branch_ms, 2)
+        raw_branches[branch_name] = branch_node_list
 
-        ds_nodes_nhanh = []
-        for hang_0, nws in enumerate(nodes_nhanh):
+        branch_node_lists = []
+        for pos0, nws in enumerate(branch_node_list):
             m = nws.node.metadata
-            ds_nodes_nhanh.append({
-                "hang": hang_0 + 1,
+            branch_node_lists.append({
+                "hang": pos0 + 1,
                 "node_id": nws.node.node_id,
-                "ten_ngan": ten_ngan(nws),
+                "ten_ngan": short_label(nws),
                 "loai": "sản phẩm" if "product_id" in m else "tài liệu",
                 "diem_goc": round(float(nws.score or 0.0), 4),
             })
 
-        cac_nhanh_hien_thi.append({
-            "ten": ten_nhanh,
-            "loai": "sản phẩm" if "san_pham" in ten_nhanh else "kiến thức",
-            "kieu": "vector" if "vector" in ten_nhanh else "bm25",
-            "thoi_gian_ms": round(t_nhanh_ms, 2),
-            "so_node": len(nodes_nhanh),
-            "nodes": ds_nodes_nhanh,
+        visible_branches.append({
+            "ten": branch_name,
+            "loai": "sản phẩm" if "san_pham" in branch_name else "kiến thức",
+            "kieu": "vector" if "vector" in branch_name else "bm25",
+            "thoi_gian_ms": round(t_branch_ms, 2),
+            "so_node": len(branch_node_list),
+            "nodes": branch_node_lists,
         })
 
     # 6. HỢP NHẤT RRF
-    t_rrf_dau = time.perf_counter()
-    nodes_rrf, bang_rrf = tinh_rrf_chuan(cac_nhanh_raw, k=60.0, top_k=TOP_K)
-    t_rrf_ms = (time.perf_counter() - t_rrf_dau) * 1000
+    t_rrf_start = time.perf_counter()
+    nodes_rrf, rrf_table = compute_standard_rrf(raw_branches, k=60.0, top_k=TOP_K)
+    t_rrf_ms = (time.perf_counter() - t_rrf_start) * 1000
     thoi_gian_ms["rrf"] = round(t_rrf_ms, 2)
 
     # 7. TÁI XẾP HẠNG (RERANK) & NGƯỠNG
-    nguong_chuan = get_refusal_threshold()
-    nodes_qua_nguong, bang_rerank, t_rerank_ms = tai_xep_hang_va_loc_nguong(
+    standard_cutoff = get_refusal_threshold()
+    nodes_above_cutoff, rerank_table, t_rerank_ms = rerank_and_cutoff(
         nodes_rrf=nodes_rrf,
         query_bundle=query_bundle,
-        reranker=tai_nguyen.reranker,
-        nguong=nguong_chuan,
+        reranker=resources.reranker,
+        cutoff=standard_cutoff,
         top_n=TOP_N,
     )
     thoi_gian_ms["rerank"] = t_rerank_ms
 
     # 8. TỔNG HỢP CÂU TRẢ LỜI & PROMPT
-    t_th_dau = time.perf_counter()
-    prompt_cuoi = None
+    t_synth_start = time.perf_counter()
+    final_prompt = None
     cau_tra_loi = NO_DATA_REPLY
-    co_goi_llm = False
+    called_llm = False
     che_do = "day_du"
     token_usage = {"token_vao": 0, "token_ra": 0, "tong_token": 0, "nguon": "khong_goi"}
 
-    if nodes_qua_nguong and len(nodes_qua_nguong) > 0 and tai_nguyen.synthesizer is not None:
-        co_goi_llm = True
+    if nodes_above_cutoff and len(nodes_above_cutoff) > 0 and resources.synthesizer is not None:
+        called_llm = True
         # Tạo chuỗi context_str để hiển thị đúng văn bản gửi LLM
-        doan_context = [
+        context_snippet = [
             nws.node.get_content(metadata_mode=MetadataMode.LLM)
-            for nws in nodes_qua_nguong
+            for nws in nodes_above_cutoff
         ]
-        context_str = "\n\n".join(doan_context)
-        prompt_cuoi = PROMPT_TRA_LOI.format(
+        context_str = "\n\n".join(context_snippet)
+        final_prompt = ANSWER_PROMPT.format(
             context_str=context_str,
             query_str=query_bundle.query_str,
         )
 
         try:
-            resp_synth = tai_nguyen.synthesizer.synthesize(
+            resp_synth = resources.synthesizer.synthesize(
                 query=query_bundle,
-                nodes=nodes_qua_nguong,
+                nodes=nodes_above_cutoff,
             )
             resp_text = getattr(resp_synth, "response", resp_synth)
-            cau_tra_loi = van_ban_tra_loi(resp_text)
-            token_usage = trich_xuat_token_usage(resp_synth, prompt_cuoi, cau_tra_loi)
+            cau_tra_loi = answer_text(resp_text)
+            token_usage = extract_token_usage(resp_synth, final_prompt, cau_tra_loi)
         except Exception as e:
-            if not bat_loi:
+            if not catch_errors:
                 raise
             cau_tra_loi = f"Lỗi tạo câu trả lời: {str(e)[:150]}"
             che_do = "loi"
@@ -912,71 +912,71 @@ def truy_vet_cau_hoi(
         # Không có node nào vượt ngưỡng: không gọi LLM
         cau_tra_loi = NO_DATA_REPLY
         che_do = "tu_choi"
-        co_goi_llm = False
+        called_llm = False
 
-    t_th_ms = (time.perf_counter() - t_th_dau) * 1000
+    t_th_ms = (time.perf_counter() - t_synth_start) * 1000
     thoi_gian_ms["tong_hop"] = round(t_th_ms, 2)
 
-    cau_tra_loi_rag = None
-    if len(phan_hoi_theo_cong_cu) > 0:
+    rag_answer = None
+    if len(responses_by_tool) > 0:
         from llama_index.core.base.response.schema import Response
-        t_gop_dau = time.perf_counter()
-        cau_tra_loi_rag = cau_tra_loi
+        t_merge_start = time.perf_counter()
+        rag_answer = cau_tra_loi
         # RetrieverQueryEngine trả "Empty Response" khi mọi node bị ngưỡng loại; giữ đúng như vậy khi gộp
-        if co_goi_llm:
-            resp_rag = Response(response=cau_tra_loi, source_nodes=nodes_qua_nguong)
+        if called_llm:
+            resp_rag = Response(response=cau_tra_loi, source_nodes=nodes_above_cutoff)
         else:
             resp_rag = Response(response="Empty Response", source_nodes=[])
-        ds_phan_hoi = []
-        for ten_cong_cu in cac_cong_cu_chon:
-            if ten_cong_cu == "tu_van_va_chinh_sach":
-                ds_phan_hoi.append(resp_rag)
-            elif ten_cong_cu in phan_hoi_theo_cong_cu:
-                ds_phan_hoi.append(phan_hoi_theo_cong_cu[ten_cong_cu])
-        cau_tra_loi = van_ban_tra_loi(str(gop_cac_phan_hoi(tai_nguyen, ds_phan_hoi, query_bundle)))
-        co_goi_llm = True
+        responses_list = []
+        for tool_name in chosen_tools:
+            if tool_name == "tu_van_va_chinh_sach":
+                responses_list.append(resp_rag)
+            elif tool_name in responses_by_tool:
+                responses_list.append(responses_by_tool[tool_name])
+        cau_tra_loi = answer_text(str(merge_responses(resources, responses_list, query_bundle)))
+        called_llm = True
         che_do = "day_du"
-        thoi_gian_ms["gop_cong_cu"] = round((time.perf_counter() - t_gop_dau) * 1000, 2)
+        thoi_gian_ms["gop_cong_cu"] = round((time.perf_counter() - t_merge_start) * 1000, 2)
 
-    tong_hop_dict = {
-        "prompt": prompt_cuoi,
+    synthesis_dict = {
+        "prompt": final_prompt,
         "cau_tra_loi": cau_tra_loi,
-        "co_goi_llm": co_goi_llm,
+        "co_goi_llm": called_llm,
         "che_do": che_do,
         "che_do_tong_hop": "compact",
         "thoi_gian_ms": round(t_th_ms, 2),
         "token": token_usage,
-        "gop_nhieu_cong_cu": cau_tra_loi_rag is not None,
-        "cau_tra_loi_rag": cau_tra_loi_rag,
+        "gop_nhieu_cong_cu": rag_answer is not None,
+        "cau_tra_loi_rag": rag_answer,
     }
 
     # 9. NGUỒN TRÍCH XUẤT ĐẦY ĐỦ
-    ds_nguon = tao_thong_tin_nguon_chi_tiet(nodes_qua_nguong)
+    sources_list = create_source_details(nodes_above_cutoff)
 
     # 10. ĐỐI CHIẾU NGUỒN VỚI CÂU TRẢ LỜI
-    ds_doi_chieu = doi_chieu_nguon_voi_cau_tra_loi(ds_nguon, cau_tra_loi)
+    match_list = match_sources_to_answer(sources_list, cau_tra_loi)
 
     # 11. TỔNG THỜI GIAN
-    thoi_gian_ms["tong"] = round((time.perf_counter() - t_tong_dau) * 1000, 2)
+    thoi_gian_ms["tong"] = round((time.perf_counter() - t_total_start) * 1000, 2)
 
-    vet = {
-        "dau_vao": dau_vao,
-        "bao_ve": bao_ve_dict,
-        "dinh_tuyen": dinh_tuyen_dict,
-        "nhung": nhung_dict,
-        "cac_nhanh": cac_nhanh_hien_thi,
-        "rrf": bang_rrf,
-        "rerank": bang_rerank,
-        "tong_hop": tong_hop_dict,
-        "nguon": ds_nguon,
-        "doi_chieu_nguon": ds_doi_chieu,
+    trace = {
+        "dau_vao": input_info,
+        "bao_ve": guard_dict,
+        "dinh_tuyen": routing_dict,
+        "nhung": embedding_dict,
+        "cac_nhanh": visible_branches,
+        "rrf": rrf_table,
+        "rerank": rerank_table,
+        "tong_hop": synthesis_dict,
+        "nguon": sources_list,
+        "doi_chieu_nguon": match_list,
         "thoi_gian_ms": thoi_gian_ms,
     }
 
-    if luu_file:
+    if save_file:
         try:
-            vet["file_log"] = str(luu_file_vet(vet))
+            trace["file_log"] = str(save_trace_file(trace))
         except Exception:
-            vet["file_log"] = None
+            trace["file_log"] = None
 
-    return vet
+    return trace

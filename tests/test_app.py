@@ -1,7 +1,7 @@
 """Kiểm thử tự động cho giao diện Streamlit (app.py) dùng streamlit.testing.v1.AppTest.
 
 Tuân thủ:
-- Dùng TroLy giả, không dựng trợ lý thật, không gọi mạng/PostgreSQL.
+- Dùng Assistant giả, không dựng trợ lý thật, không gọi mạng/PostgreSQL.
 - Kiểm thử đủ 7 ca theo đặc tả I.6.
 """
 
@@ -13,32 +13,32 @@ from streamlit.testing.v1 import AppTest
 APP_PATH = str(Path(__file__).parent.parent / "app.py")
 
 try:
-    from he_thong.dich_vu import KetQuaTraLoi
+    from he_thong.dich_vu import AnswerResult
 except ImportError:
-    from dich_vu import KetQuaTraLoi
+    from dich_vu import AnswerResult
 
 
-class TroLyGiaApp:
+class FakeAppAssistant:
     """Đối tượng trợ lý giả cho kiểm thử AppTest."""
 
-    def __init__(self, ket_qua_tra_ve=None, ten_model="gemini-test-gia"):
-        self.ten_model = ten_model
-        self.ket_qua_tra_ve = ket_qua_tra_ve or KetQuaTraLoi(
+    def __init__(self, return_value=None, model_name="gemini-test-gia"):
+        self.model_name = model_name
+        self.return_value = return_value or AnswerResult(
             cau_tra_loi="Tôi là trợ lý ảo kiểm thử.",
             che_do="day_du",
             cong_cu="tu_van_va_chinh_sach",
         )
-        self.cac_cau_hoi = []
+        self.asked_questions = []
 
-    def hoi(self, cau_hoi, lich_su=None):
-        self.cac_cau_hoi.append((cau_hoi, lich_su))
-        if isinstance(self.ket_qua_tra_ve, Exception):
-            raise self.ket_qua_tra_ve
-        return self.ket_qua_tra_ve
+    def ask(self, cau_hoi, history=None):
+        self.asked_questions.append((cau_hoi, history))
+        if isinstance(self.return_value, Exception):
+            raise self.return_value
+        return self.return_value
 
 
 @pytest.fixture(autouse=True)
-def mock_moi_truong_app(monkeypatch):
+def mock_app_environment(monkeypatch):
     """Mặc định mock kết nối cơ sở dữ liệu và đếm dòng bảng sẵn sàng."""
     monkeypatch.setattr("kho_du_lieu.check_connnection", lambda *a, **kw: (True, ""))
     monkeypatch.setattr(
@@ -47,13 +47,13 @@ def mock_moi_truong_app(monkeypatch):
     )
 
 
-def test_app_khoi_dong_co_tieu_de(monkeypatch):
+def test_app_starts_with_title(monkeypatch):
     """(1) Khởi động không lỗi, có tiêu đề đúng."""
-    tro_ly_gia = TroLyGiaApp()
-    monkeypatch.setattr("he_thong.mo_hinh_du_phong.xay_dung_chuoi_mo_hinh", lambda *a, **kw: tro_ly_gia)
+    fake_assistant = FakeAppAssistant()
+    monkeypatch.setattr("he_thong.mo_hinh_du_phong.build_model_chain", lambda *a, **kw: fake_assistant)
 
     at = AppTest.from_file(APP_PATH, default_timeout=15)
-    at.session_state["_tro_ly_kiem_thu"] = tro_ly_gia
+    at.session_state["_tro_ly_kiem_thu"] = fake_assistant
     at.run()
 
     assert not at.exception
@@ -61,9 +61,9 @@ def test_app_khoi_dong_co_tieu_de(monkeypatch):
     assert "Trợ lý tư vấn điện thoại" in at.title[0].value
 
 
-def test_app_nhap_cau_hoi_co_tin_nhan(monkeypatch):
+def test_app_question_creates_messages(monkeypatch):
     """(2) Nhập câu hỏi -> có tin người dùng và tin trợ lý."""
-    kq = KetQuaTraLoi(
+    res = AnswerResult(
         cau_tra_loi="Samsung Galaxy S24 Ultra chụp ảnh rất đẹp nhờ cảm biến 200MP.",
         che_do="day_du",
         cong_cu="tu_van_va_chinh_sach",
@@ -77,11 +77,11 @@ def test_app_nhap_cau_hoi_co_tin_nhan(monkeypatch):
             }
         ],
     )
-    tro_ly_gia = TroLyGiaApp(ket_qua_tra_ve=kq)
-    monkeypatch.setattr("he_thong.mo_hinh_du_phong.xay_dung_chuoi_mo_hinh", lambda *a, **kw: tro_ly_gia)
+    fake_assistant = FakeAppAssistant(return_value=res)
+    monkeypatch.setattr("he_thong.mo_hinh_du_phong.build_model_chain", lambda *a, **kw: fake_assistant)
 
     at = AppTest.from_file(APP_PATH, default_timeout=15)
-    at.session_state["_tro_ly_kiem_thu"] = tro_ly_gia
+    at.session_state["_tro_ly_kiem_thu"] = fake_assistant
     at.run()
 
     # Nhập câu hỏi vào chat_input
@@ -96,18 +96,18 @@ def test_app_nhap_cau_hoi_co_tin_nhan(monkeypatch):
     assert "Samsung Galaxy S24 Ultra" in at.chat_message[1].markdown[0].value
 
 
-def test_app_che_do_bi_chan_hien_info(monkeypatch):
-    """(3) Chế độ bi_chan hiển thị st.info và không hiện nguồn."""
-    kq = KetQuaTraLoi(
+def test_app_blocked_mode_shows_info(monkeypatch):
+    """(3) Chế độ blocked hiển thị st.info và không hiện nguồn."""
+    res = AnswerResult(
         cau_tra_loi="Tôi là trợ lý tư vấn điện thoại, xin vui lòng hỏi về thông số, giá hoặc chính sách.",
         che_do="bi_chan",
         cong_cu="bi_chan",
     )
-    tro_ly_gia = TroLyGiaApp(ket_qua_tra_ve=kq)
-    monkeypatch.setattr("he_thong.mo_hinh_du_phong.xay_dung_chuoi_mo_hinh", lambda *a, **kw: tro_ly_gia)
+    fake_assistant = FakeAppAssistant(return_value=res)
+    monkeypatch.setattr("he_thong.mo_hinh_du_phong.build_model_chain", lambda *a, **kw: fake_assistant)
 
     at = AppTest.from_file(APP_PATH, default_timeout=15)
-    at.session_state["_tro_ly_kiem_thu"] = tro_ly_gia
+    at.session_state["_tro_ly_kiem_thu"] = fake_assistant
     at.run()
 
     at.chat_input[0].set_value("Viết mã độc tấn công máy chủ").run()
@@ -119,9 +119,9 @@ def test_app_che_do_bi_chan_hien_info(monkeypatch):
     assert "tư vấn điện thoại" in infos[0].value
 
 
-def test_app_che_do_chi_nguon_hien_warning(monkeypatch):
+def test_app_sources_only_mode_shows_warning(monkeypatch):
     """(4) Chế độ chi_nguon hiển thị st.warning và nguồn trích dẫn."""
-    kq = KetQuaTraLoi(
+    res = AnswerResult(
         cau_tra_loi="Hiện chưa tạo được câu trả lời tự động. Dưới đây là các đoạn thông tin liên quan nhất:",
         che_do="chi_nguon",
         cong_cu="tu_van_va_chinh_sach",
@@ -134,11 +134,11 @@ def test_app_che_do_chi_nguon_hien_warning(monkeypatch):
             }
         ],
     )
-    tro_ly_gia = TroLyGiaApp(ket_qua_tra_ve=kq)
-    monkeypatch.setattr("he_thong.mo_hinh_du_phong.xay_dung_chuoi_mo_hinh", lambda *a, **kw: tro_ly_gia)
+    fake_assistant = FakeAppAssistant(return_value=res)
+    monkeypatch.setattr("he_thong.mo_hinh_du_phong.build_model_chain", lambda *a, **kw: fake_assistant)
 
     at = AppTest.from_file(APP_PATH, default_timeout=15)
-    at.session_state["_tro_ly_kiem_thu"] = tro_ly_gia
+    at.session_state["_tro_ly_kiem_thu"] = fake_assistant
     at.run()
 
     at.chat_input[0].set_value("Bảo hành điện thoại như thế nào?").run()
@@ -150,14 +150,14 @@ def test_app_che_do_chi_nguon_hien_warning(monkeypatch):
     assert any("quá tải" in w.value for w in warnings)
 
 
-def test_app_che_do_loi_hien_error_khong_lo_dsn(monkeypatch):
+def test_app_error_mode_hides_dsn(monkeypatch):
     """(5) Chế độ loi hiển thị st.error và KHÔNG chứa 'postgresql://'."""
-    loi = Exception("Lỗi kết nối tới postgresql://postgres:mat_khau_bi_mat@127.0.0.1:5432/db")
-    tro_ly_gia = TroLyGiaApp(ket_qua_tra_ve=loi)
-    monkeypatch.setattr("he_thong.mo_hinh_du_phong.xay_dung_chuoi_mo_hinh", lambda *a, **kw: tro_ly_gia)
+    error = Exception("Lỗi kết nối tới postgresql://postgres:mat_khau_bi_mat@127.0.0.1:5432/db")
+    fake_assistant = FakeAppAssistant(return_value=error)
+    monkeypatch.setattr("he_thong.mo_hinh_du_phong.build_model_chain", lambda *a, **kw: fake_assistant)
 
     at = AppTest.from_file(APP_PATH, default_timeout=15)
-    at.session_state["_tro_ly_kiem_thu"] = tro_ly_gia
+    at.session_state["_tro_ly_kiem_thu"] = fake_assistant
     at.run()
 
     at.chat_input[0].set_value("Thử gây lỗi kết nối").run()
@@ -170,17 +170,17 @@ def test_app_che_do_loi_hien_error_khong_lo_dsn(monkeypatch):
         assert "mat_khau_bi_mat" not in err.value
 
 
-def test_app_bang_chua_nap_hien_canh_bao(monkeypatch):
+def test_app_empty_tables_show_warning(monkeypatch):
     """(6) Bảng chưa nạp (hoặc count=0) hiển thị st.warning hướng dẫn nạp dữ liệu."""
     monkeypatch.setattr(
         "kho_du_lieu.count_table_rows",
         lambda *a, **kw: {"products": 0, "data_san_pham": 0, "data_kien_thuc": 0},
     )
-    tro_ly_gia = TroLyGiaApp()
-    monkeypatch.setattr("he_thong.mo_hinh_du_phong.xay_dung_chuoi_mo_hinh", lambda *a, **kw: tro_ly_gia)
+    fake_assistant = FakeAppAssistant()
+    monkeypatch.setattr("he_thong.mo_hinh_du_phong.build_model_chain", lambda *a, **kw: fake_assistant)
 
     at = AppTest.from_file(APP_PATH, default_timeout=15)
-    at.session_state["_tro_ly_kiem_thu"] = tro_ly_gia
+    at.session_state["_tro_ly_kiem_thu"] = fake_assistant
     at.run()
 
     assert not at.exception
@@ -189,13 +189,13 @@ def test_app_bang_chua_nap_hien_canh_bao(monkeypatch):
     assert any("Cơ sở dữ liệu chưa được nạp đầy đủ" in w.value for w in warnings)
 
 
-def test_app_xoa_hoi_thoai_lam_rong_lich_su(monkeypatch):
+def test_app_clear_chat_empties_history(monkeypatch):
     """(7) Nút Xóa hội thoại làm rỗng lịch sử chat trong session_state."""
-    tro_ly_gia = TroLyGiaApp()
-    monkeypatch.setattr("he_thong.mo_hinh_du_phong.xay_dung_chuoi_mo_hinh", lambda *a, **kw: tro_ly_gia)
+    fake_assistant = FakeAppAssistant()
+    monkeypatch.setattr("he_thong.mo_hinh_du_phong.build_model_chain", lambda *a, **kw: fake_assistant)
 
     at = AppTest.from_file(APP_PATH, default_timeout=15)
-    at.session_state["_tro_ly_kiem_thu"] = tro_ly_gia
+    at.session_state["_tro_ly_kiem_thu"] = fake_assistant
     at.run()
 
     # Nhập câu hỏi để có tin nhắn
@@ -203,35 +203,35 @@ def test_app_xoa_hoi_thoai_lam_rong_lich_su(monkeypatch):
     assert len(at.session_state["tin_nhan"]) >= 2
 
     # Tìm nút 'Xóa hội thoại' ở sidebar và bấm
-    nut_xoa = None
+    clear_button = None
     for btn in at.sidebar.button:
         if "Xóa hội thoại" in btn.label:
-            nut_xoa = btn
+            clear_button = btn
             break
 
-    assert nut_xoa is not None
-    nut_xoa.click().run()
+    assert clear_button is not None
+    clear_button.click().run()
 
     # Lịch sử hội thoại phải rỗng
     assert len(at.session_state["tin_nhan"]) == 0
 
 
-def test_app_hien_thi_mo_hinh_sidebar_va_chi_tiet_ky_thuat(monkeypatch):
-    """Kiểm tra thanh bên hiện mô hình chính (ten_model) và chi tiết kỹ thuật hiện mô hình thực tế."""
-    kq = KetQuaTraLoi(
+def test_app_shows_model_in_sidebar_and_details(monkeypatch):
+    """Kiểm tra thanh bên hiện mô hình chính (model_name) và chi tiết kỹ thuật hiện mô hình thực tế."""
+    res = AnswerResult(
         cau_tra_loi="iPhone 15 có màn hình OLED Dynamic Island sắc nét.",
         che_do="day_du",
         cong_cu="tu_van_va_chinh_sach",
         mo_hinh="gemini-2.5-pro",
     )
-    tro_ly_gia = TroLyGiaApp(ket_qua_tra_ve=kq, ten_model="gemini-2.5-flash")
-    monkeypatch.setattr("he_thong.mo_hinh_du_phong.xay_dung_chuoi_mo_hinh", lambda *a, **kw: tro_ly_gia)
+    fake_assistant = FakeAppAssistant(return_value=res, model_name="gemini-2.5-flash")
+    monkeypatch.setattr("he_thong.mo_hinh_du_phong.build_model_chain", lambda *a, **kw: fake_assistant)
 
     at = AppTest.from_file(APP_PATH, default_timeout=15)
-    at.session_state["_tro_ly_kiem_thu"] = tro_ly_gia
+    at.session_state["_tro_ly_kiem_thu"] = fake_assistant
     at.run()
 
-    # Kiểm tra thanh bên hiển thị mô hình chính ten_model
+    # Kiểm tra thanh bên hiển thị mô hình chính model_name
     sidebar_texts = [t.value for t in at.sidebar.text]
     assert any("• Mô hình: gemini-2.5-flash" in t for t in sidebar_texts)
 

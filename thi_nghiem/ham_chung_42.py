@@ -22,7 +22,7 @@ PDF_FILE = FOLDER / "Data_for_exp" / "iphone-18-pro-max-info.pdf"
 tokenizer = get_tokenizer()
 
 
-def in_phien_ban():
+def print_version():
     print("Python", sys.version.split()[0], "| llama-index-core", version("llama-index-core"))
 
 
@@ -31,27 +31,27 @@ def hide_path(text):
     return str(text).replace(str(FOLDER) + os.sep, "")
 
 
-def rut_gon(text, so_ky_tu=80):
+def shorten(text, char_count=80):
     # Cắt ngắn và bỏ xuống dòng để mỗi dòng log vừa một ảnh chụp
     text = str(text).replace("\n", " ")
-    if len(text) <= so_ky_tu:
+    if len(text) <= char_count:
         return text
-    return text[:so_ky_tu] + "..."
+    return text[:char_count] + "..."
 
 
-def dem_token(text):
+def count_tokens(text):
     return len(tokenizer(text))
 
 
-def lay_document_dai_nhat(documents):
-    dai_nhat = documents[0]
+def get_longest_document(documents):
+    longest = documents[0]
     for doc in documents:
-        if len(doc.text) > len(dai_nhat.text):
-            dai_nhat = doc
-    return dai_nhat
+        if len(doc.text) > len(longest.text):
+            longest = doc
+    return longest
 
 
-def doc_chinh_sach():
+def load_policies():
     """Đọc văn bản chính sách bảo hành - đổi trả (văn bản mẫu) thành một Document."""
     text = POLICY_FILE.read_text(encoding="utf-8")
     return Document(

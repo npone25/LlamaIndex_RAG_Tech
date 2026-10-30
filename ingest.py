@@ -149,8 +149,8 @@ def main(args=None):
         return
 
     if "--vector-gia" in args:
-        from vector_gia import VectorGia
-        embed_model = VectorGia()
+        from vector_gia import FakeEmbedding
+        embed_model = FakeEmbedding()
         print("Mô hình nhúng: VECTOR GIẢ (chỉ để thử luồng)")
     else:
         from nhung_gemini import MODEL_EMBEDDING_NAME, create_embed_model
@@ -181,9 +181,9 @@ def main(args=None):
             row = conn.execute(text("SELECT count(*), min(vector_dims(embedding)), "
                                      "count(DISTINCT metadata_->>'doc_id') FROM " + table)).one()
             print("  ", table, "| số dòng:", row[0], "| số chiều:", row[1], "| số Document:", row[2])
-            chi_muc = conn.execute(text("SELECT indexname FROM pg_indexes WHERE tablename = :b "
+            index_obj = conn.execute(text("SELECT indexname FROM pg_indexes WHERE tablename = :b "
                                         "AND indexdef LIKE '%hnsw%'"), {"b": table}).scalar()
-            print("     chỉ mục HNSW:", chi_muc)
+            print("     chỉ mục HNSW:", index_obj)
 
 
 if __name__ == "__main__":

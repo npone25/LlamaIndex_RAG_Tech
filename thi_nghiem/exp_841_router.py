@@ -4,11 +4,11 @@
 import _duong_dan  # noqa: F401  (thêm thư mục gốc và loi_rag/ vào đường dẫn tìm module)
 from llm_gemini import create_answer_llm
 from nhung_gemini import create_embed_model
-from dinh_tuyen import tao_router
+from dinh_tuyen import create_router
 
-router = tao_router(create_answer_llm(), create_embed_model())
-TEN_CONG_CU = ["tra_cuu_so_lieu", "tu_van_va_chinh_sach", "tinh_tra_gop", "tu_van_theo_dieu_kien"]
-KIEM_TRA = [
+router = create_router(create_answer_llm(), create_embed_model())
+TOOL_NAME = ["tra_cuu_so_lieu", "tu_van_va_chinh_sach", "tinh_tra_gop", "tu_van_theo_dieu_kien"]
+CHECKS = [
     ("3 điện thoại Samsung còn hàng rẻ nhất là máy nào?", "tra_cuu_so_lieu"),
     ("Có bao nhiêu điện thoại Xiaomi giá dưới 10 triệu?", "tra_cuu_so_lieu"),
     ("Tư vấn điện thoại màn hình gập chụp ảnh đẹp", "tu_van_va_chinh_sach"),
@@ -19,24 +19,24 @@ KIEM_TRA = [
     ("Điện thoại Samsung chơi game mượt, RAM từ 8GB", "tu_van_theo_dieu_kien"),
 ]
 
-so_dung = 0
-for i, (cau_hoi, mong_doi) in enumerate(KIEM_TRA, start=1):
+correct_count = 0
+for i, (cau_hoi, expected) in enumerate(CHECKS, start=1):
     response = router.query(cau_hoi)
-    chon = response.metadata["selector_result"].selections[0]
-    ten = TEN_CONG_CU[chon.index]
-    if ten == mong_doi:
-        so_dung = so_dung + 1
+    selection = response.metadata["selector_result"].selections[0]
+    item_name = TOOL_NAME[selection.index]
+    if item_name == expected:
+        correct_count = correct_count + 1
     print("=== CÂU %d: %s ===" % (i, cau_hoi))
-    print("Chọn: %s | mong đợi: %s | %s" % (ten, mong_doi, "ĐÚNG" if ten == mong_doi else "SAI"))
-    print("Lý do:", chon.reason.replace("\n", " ")[:100])
+    print("Chọn: %s | mong đợi: %s | %s" % (item_name, expected, "ĐÚNG" if item_name == expected else "SAI"))
+    print("Lý do:", selection.reason.replace("\n", " ")[:100])
     print("Trả lời:", str(response).replace("\n", " ")[:110])
-print("Định tuyến đúng: %d/%d" % (so_dung, len(KIEM_TRA)))
+print("Định tuyến đúng: %d/%d" % (correct_count, len(CHECKS)))
 
 print("=== CA LỖI: CÂU HỎI CẦN HAI CÔNG CỤ CÙNG LÚC ===")
 cau_hoi = "Máy Samsung còn hàng rẻ nhất là máy nào, nếu góp 6 tháng lãi 0% thì mỗi tháng bao nhiêu?"
 response = router.query(cau_hoi)
-chon = response.metadata["selector_result"].selections[0]
+selection = response.metadata["selector_result"].selections[0]
 print("Câu hỏi:", cau_hoi)
-so_cong_cu = len(response.metadata["selector_result"].selections)
-print("Chọn:", TEN_CONG_CU[chon.index], "| số công cụ được gọi:", so_cong_cu)
+tool_count = len(response.metadata["selector_result"].selections)
+print("Chọn:", TOOL_NAME[selection.index], "| số công cụ được gọi:", tool_count)
 print("Trả lời:", str(response).replace("\n", " ")[:110])

@@ -18,118 +18,118 @@ from ragas import EvaluationDataset, RunConfig, SingleTurnSample, evaluate  # no
 from ragas.llms import LlamaIndexLLMWrapper  # noqa: E402
 from ragas.metrics import Faithfulness, LLMContextPrecisionWithReference  # noqa: E402
 
-from llm_gemini import create_answer_llm, create_judge_model  # noqa: E402
+from llm_gemini import create_answer_llm, create_judge_llm  # noqa: E402
 from nhung_gemini import create_embed_model  # noqa: E402
-from tro_ly import tao_query_engine, van_ban_tra_loi  # noqa: E402
+from tro_ly import create_query_engine, answer_text  # noqa: E402
 
 sys.stdout.reconfigure(encoding="utf-8")
 FOLDER = Path(__file__).parent
-GOC = FOLDER.parent
-FILE_KET_QUA = GOC / "logs" / "ket_qua_ch9.json"
-COT = ["faithfulness", "llm_context_precision_with_reference"]
-SO_LUOT_TOI_DA = 3
+ROOT_FOLDER = FOLDER.parent
+RESULT_FILE = ROOT_FOLDER / "logs" / "ket_qua_ch9.json"
+COLUMNS = ["faithfulness", "llm_context_precision_with_reference"]
+MAX_TURNS = 3
 
 
-def la_trong(gia_tri):
-    return gia_tri is None or (isinstance(gia_tri, float) and math.isnan(gia_tri))
+def is_blank(val):
+    return val is None or (isinstance(val, float) and math.isnan(val))
 
 
-bo = json.loads((FOLDER / "golden_set_ch9.json").read_text(encoding="utf-8"))
-cau_theo_id = {}
-for muc in bo:
-    cau_theo_id[muc["id"]] = muc
+eval_set = json.loads((FOLDER / "golden_set_ch9.json").read_text(encoding="utf-8"))
+question_by_id = {}
+for item in eval_set:
+    question_by_id[item["id"]] = item
 
-ket_qua = json.loads(FILE_KET_QUA.read_text(encoding="utf-8"))
-can_cham = []
-for dong in ket_qua:
-    if la_trong(dong["faithfulness"]) or la_trong(dong["llm_context_precision_with_reference"]):
-        can_cham.append(dong["id"])
+result = json.loads(RESULT_FILE.read_text(encoding="utf-8"))
+to_score = []
+for fetched in result:
+    if is_blank(fetched["faithfulness"]) or is_blank(fetched["llm_context_precision_with_reference"]):
+        to_score.append(fetched["id"])
 
 print("=== BƯỚC 1: CÁC CÂU CÒN Ô TRỐNG TRONG logs/ket_qua_ch9.json ===")
-print("Số câu:", len(can_cham), "|", ", ".join(can_cham))
-if len(can_cham) == 0:
+print("Số câu:", len(to_score), "|", ", ".join(to_score))
+if len(to_score) == 0:
     print("Không có ô trống, không cần chấm bù.")
     sys.exit(0)
 
 print("=== BƯỚC 2: HỎI LẠI CÁC CÂU NÀY (cùng query engine với exp_94_ragas.py) ===")
-engine = tao_query_engine(create_answer_llm(), create_embed_model())
-mau_theo_id = {}
-for ma in can_cham:
-    muc = cau_theo_id[ma]
-    response = engine.query(muc["cau_hoi"])
-    ngu_canh = [n.node.get_content(metadata_mode=MetadataMode.LLM) for n in response.source_nodes]
-    tra_loi = van_ban_tra_loi(response)
-    dong_cu = None
-    for dong in ket_qua:
-        if dong["id"] == ma:
-            dong_cu = dong
-    giong = tra_loi.strip() == dong_cu["response"].strip()
-    print("%s | %d đoạn ngữ cảnh | câu trả lời %s lần chạy trước" % (ma, len(ngu_canh), "GIỐNG" if giong else "KHÁC"))
-    if not giong:
+engine = create_query_engine(create_answer_llm(), create_embed_model())
+sample_by_id = {}
+for item_id in to_score:
+    item = question_by_id[item_id]
+    response = engine.query(item["cau_hoi"])
+    context = [n.node.get_content(metadata_mode=MetadataMode.LLM) for n in response.source_nodes]
+    answer = answer_text(response)
+    old_row = None
+    for fetched in result:
+        if fetched["id"] == item_id:
+            old_row = fetched
+    similar = answer.strip() == old_row["response"].strip()
+    print("%s | %d đoạn ngữ cảnh | câu trả lời %s lần chạy trước" % (item_id, len(context), "GIỐNG" if similar else "KHÁC"))
+    if not similar:
         # Câu trả lời đổi thì điểm cũ không còn đúng với câu trả lời mới: chấm lại cả hai chỉ số
-        dong_cu["response"] = tra_loi
-        dong_cu["faithfulness"] = None
-        dong_cu["llm_context_precision_with_reference"] = None
-    if len(ngu_canh) == 0:
+        old_row["response"] = answer
+        old_row["faithfulness"] = None
+        old_row["llm_context_precision_with_reference"] = None
+    if len(context) == 0:
         print("   -> bị ngưỡng loại hết Node, không có ngữ cảnh để chấm")
         continue
-    mau_theo_id[ma] = SingleTurnSample(user_input=muc["cau_hoi"], response=tra_loi,
-                                       retrieved_contexts=ngu_canh, reference=muc["tra_loi_mau"])
+    sample_by_id[item_id] = SingleTurnSample(user_input=item["cau_hoi"], response=answer,
+                                       retrieved_contexts=context, reference=item["tra_loi_mau"])
 
-print("=== BƯỚC 3: CHẤM BÙ, TỐI ĐA %d LƯỢT CHO CÁC Ô CÒN TRỐNG ===" % SO_LUOT_TOI_DA)
-giam_khao = LlamaIndexLLMWrapper(create_judge_model())
+print("=== BƯỚC 3: CHẤM BÙ, TỐI ĐA %d LƯỢT CHO CÁC Ô CÒN TRỐNG ===" % MAX_TURNS)
+judge = LlamaIndexLLMWrapper(create_judge_llm())
 cau_hinh = RunConfig(max_workers=1, max_retries=10, max_wait=60, timeout=180)
-for luot in range(1, SO_LUOT_TOI_DA + 1):
-    con_lai = []
-    for dong in ket_qua:
-        if dong["id"] in mau_theo_id and (la_trong(dong[COT[0]]) or la_trong(dong[COT[1]])):
-            con_lai.append(dong["id"])
-    print("Lượt %d: còn %d câu có ô trống" % (luot, len(con_lai)))
-    if len(con_lai) == 0:
+for turn in range(1, MAX_TURNS + 1):
+    remaining = []
+    for fetched in result:
+        if fetched["id"] in sample_by_id and (is_blank(fetched[COLUMNS[0]]) or is_blank(fetched[COLUMNS[1]])):
+            remaining.append(fetched["id"])
+    print("Lượt %d: còn %d câu có ô trống" % (turn, len(remaining)))
+    if len(remaining) == 0:
         break
-    danh_gia = evaluate(EvaluationDataset(samples=[mau_theo_id[ma] for ma in con_lai]), llm=giam_khao,
+    evaluate_finder = evaluate(EvaluationDataset(samples=[sample_by_id[item_id] for item_id in remaining]), llm=judge,
                         run_config=cau_hinh, metrics=[Faithfulness(), LLMContextPrecisionWithReference()],
                         show_progress=False)
-    bang = danh_gia.to_pandas()
-    for i, ma in enumerate(con_lai):
-        for dong in ket_qua:
-            if dong["id"] != ma:
+    table = evaluate_finder.to_pandas()
+    for i, item_id in enumerate(remaining):
+        for fetched in result:
+            if fetched["id"] != item_id:
                 continue
-            for cot in COT:
-                diem_moi = bang.iloc[i][cot]
+            for column in COLUMNS:
+                new_score = table.iloc[i][column]
                 # Chỉ điền vào ô đang trống, không ghi đè điểm đã có
-                if la_trong(dong[cot]) and not la_trong(diem_moi):
-                    dong[cot] = float(diem_moi)
+                if is_blank(fetched[column]) and not is_blank(new_score):
+                    fetched[column] = float(new_score)
 
 print("=== BƯỚC 4: ĐIỂM SAU KHI CHẤM BÙ ===")
-for dong in ket_qua:
-    if dong["id"] in can_cham:
-        f = "trống" if la_trong(dong[COT[0]]) else "%.2f" % dong[COT[0]]
-        cp = "trống" if la_trong(dong[COT[1]]) else "%.2f" % dong[COT[1]]
-        print("%s | Faithfulness %s | Context Precision %s" % (dong["id"], f, cp))
+for fetched in result:
+    if fetched["id"] in to_score:
+        f = "trống" if is_blank(fetched[COLUMNS[0]]) else "%.2f" % fetched[COLUMNS[0]]
+        cp = "trống" if is_blank(fetched[COLUMNS[1]]) else "%.2f" % fetched[COLUMNS[1]]
+        print("%s | Faithfulness %s | Context Precision %s" % (fetched["id"], f, cp))
 
 print("=== BƯỚC 5: TRUNG BÌNH THEO NHÓM (chỉ tính ô có điểm) ===")
-for nhom in ["TS", "CS", "Tất cả"]:
-    phan = []
-    for ten, cot in [("Faithfulness", COT[0]), ("Context Precision", COT[1])]:
-        diem = []
-        so_cau = 0
-        for dong in ket_qua:
-            if nhom != "Tất cả" and not dong["id"].startswith(nhom):
+for group in ["TS", "CS", "Tất cả"]:
+    part = []
+    for item_name, column in [("Faithfulness", COLUMNS[0]), ("Context Precision", COLUMNS[1])]:
+        score_value = []
+        question_count = 0
+        for fetched in result:
+            if group != "Tất cả" and not fetched["id"].startswith(group):
                 continue
-            so_cau = so_cau + 1
-            if not la_trong(dong[cot]):
-                diem.append(dong[cot])
-        if len(diem) == 0:
-            phan.append("%s không chấm được" % ten)
+            question_count = question_count + 1
+            if not is_blank(fetched[column]):
+                score_value.append(fetched[column])
+        if len(score_value) == 0:
+            part.append("%s không chấm được" % item_name)
         else:
-            phan.append("%s %.3f (%d/%d câu)" % (ten, sum(diem) / len(diem), len(diem), so_cau))
-    print("%-6s | %s" % (nhom, " | ".join(phan)))
+            part.append("%s %.3f (%d/%d câu)" % (item_name, sum(score_value) / len(score_value), len(score_value), question_count))
+    print("%-6s | %s" % (group, " | ".join(part)))
 
 # Ô trống ghi ra JSON là null
-for dong in ket_qua:
-    for cot in COT:
-        if la_trong(dong[cot]):
-            dong[cot] = None
-FILE_KET_QUA.write_text(json.dumps(ket_qua, ensure_ascii=False, indent=1), encoding="utf-8")
+for fetched in result:
+    for column in COLUMNS:
+        if is_blank(fetched[column]):
+            fetched[column] = None
+RESULT_FILE.write_text(json.dumps(result, ensure_ascii=False, indent=1), encoding="utf-8")
 print("Đã cập nhật logs/ket_qua_ch9.json")

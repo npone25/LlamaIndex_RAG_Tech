@@ -9,9 +9,9 @@ from llama_index.core.ingestion import IngestionPipeline
 from llama_index.core.node_parser import SentenceSplitter
 from sqlalchemy import text
 
-from ham_chung_42 import load_phones, doc_chinh_sach, in_phien_ban
+from ham_chung_42 import load_phones, load_policies, print_version
 from kho_du_lieu import create_db_engine, create_vector_store
-from vector_gia import VectorGia
+from vector_gia import FakeEmbedding
 
 engine = create_db_engine()
 with engine.begin() as conn:
@@ -19,66 +19,66 @@ with engine.begin() as conn:
     conn.execute(text("DROP TABLE IF EXISTS data_exp441_kt"))
 
 print("=== BƯỚC 0: PHIÊN BẢN ===")
-in_phien_ban()
-san_pham = load_phones()
-model = VectorGia()
+print_version()
+products_list = load_phones()
+model = FakeEmbedding()
 
 # BƯỚC 1: Chuỗi biến đổi chạy trong bộ nhớ: Document -> Node -> Node có vector
 pipeline = IngestionPipeline(transformations=[SentenceSplitter(chunk_size=1024, chunk_overlap=0), model])
-nodes = pipeline.run(documents=san_pham)
-co_vector = 0
+nodes = pipeline.run(documents=products_list)
+has_vector = 0
 for n in nodes:
     if n.embedding is not None:
-        co_vector = co_vector + 1
+        has_vector = has_vector + 1
 print("=== BƯỚC 1: CHUỖI BIẾN ĐỔI (CHƯA GHI XUỐNG CSDL) ===")
-ten_buoc = []
+step_name = []
 for t in pipeline.transformations:
-    ten_buoc.append(type(t).__name__)
-print("Các bước:", " -> ".join(ten_buoc))
-print("Document vào:", len(san_pham), "| Node ra:", len(nodes), "| Node có vector:", co_vector,
+    step_name.append(type(t).__name__)
+print("Các bước:", " -> ".join(step_name))
+print("Document vào:", len(products_list), "| Node ra:", len(nodes), "| Node có vector:", has_vector,
       "| số chiều:", len(nodes[0].embedding))
-print("Node đầu: ref_doc_id =", nodes[0].ref_doc_id, "| metadata giữ nguyên:", nodes[0].metadata == san_pham[0].metadata)
+print("Node đầu: ref_doc_id =", nodes[0].ref_doc_id, "| metadata giữ nguyên:", nodes[0].metadata == products_list[0].metadata)
 
 # BƯỚC 2: Gắn vector_store -> pipeline tự ghi Node vào PostgreSQL sau bước cuối
-pipeline_sp = IngestionPipeline(
+product_pipeline = IngestionPipeline(
     transformations=[SentenceSplitter(chunk_size=1024, chunk_overlap=0), model],
     vector_store=create_vector_store("exp441_sp"),
 )
-bat_dau = time.perf_counter()
-pipeline_sp.run(documents=san_pham)
-thoi_gian = time.perf_counter() - bat_dau
+start_time = time.perf_counter()
+product_pipeline.run(documents=products_list)
+duration = time.perf_counter() - start_time
 with engine.connect() as conn:
-    so_dong = conn.execute(text("SELECT count(*) FROM data_exp441_sp")).scalar()
+    row_count_value = conn.execute(text("SELECT count(*) FROM data_exp441_sp")).scalar()
 print("=== BƯỚC 2: NẠP THẲNG VÀO PGVECTORSTORE (BẢNG SẢN PHẨM) ===")
-print("SELECT count(*) FROM data_exp441_sp ->", so_dong, "| thời gian:", round(thoi_gian, 1), "giây")
+print("SELECT count(*) FROM data_exp441_sp ->", row_count_value, "| thời gian:", round(duration, 1), "giây")
 
 # BƯỚC 3: Pipeline thứ hai cho tài liệu chính sách, cấu hình cắt khác (theo 4.2.4)
-pipeline_kt = IngestionPipeline(
+knowledge_pipeline = IngestionPipeline(
     transformations=[SentenceSplitter(chunk_size=256, chunk_overlap=30), model],
     vector_store=create_vector_store("exp441_kt"),
 )
-pipeline_kt.run(documents=[doc_chinh_sach()])
+knowledge_pipeline.run(documents=[load_policies()])
 with engine.connect() as conn:
-    so_dong = conn.execute(text("SELECT count(*) FROM data_exp441_kt")).scalar()
-    loai = conn.execute(text("SELECT DISTINCT metadata_->>'doc_type' FROM data_exp441_kt")).scalar()
+    row_count_value = conn.execute(text("SELECT count(*) FROM data_exp441_kt")).scalar()
+    kind_label = conn.execute(text("SELECT DISTINCT metadata_->>'doc_type' FROM data_exp441_kt")).scalar()
 print("=== BƯỚC 3: PIPELINE CHO TÀI LIỆU CHÍNH SÁCH (256 / 30) ===")
-print("SELECT count(*) FROM data_exp441_kt ->", so_dong, "| doc_type:", loai)
+print("SELECT count(*) FROM data_exp441_kt ->", row_count_value, "| doc_type:", kind_label)
 
 # BƯỚC 4: Ca lỗi - đặt bước nhúng TRƯỚC bước cắt (tài liệu chính sách được cắt thành nhiều Node)
 print("=== BƯỚC 4: CA LỖI (NHÚNG TRƯỚC, CẮT SAU) ===")
-for ten, thu_tu in [("đúng", "cat_truoc"), ("sai", "nhung_truoc")]:
-    m = VectorGia()
+for item_name, order in [("đúng", "cat_truoc"), ("sai", "nhung_truoc")]:
+    m = FakeEmbedding()
     cat = SentenceSplitter(chunk_size=256, chunk_overlap=30)
-    if thu_tu == "cat_truoc":
-        buoc = [cat, m]
+    if order == "cat_truoc":
+        step = [cat, m]
     else:
-        buoc = [m, cat]
-    nodes_kt = IngestionPipeline(transformations=buoc).run(documents=[doc_chinh_sach()])
-    vector_khac_nhau = set()
-    for n in nodes_kt:
-        vector_khac_nhau.add(tuple(n.embedding[:5]))
-    print("Thứ tự", ten, "| Node:", len(nodes_kt), "| số lần nhúng:", m.so_van_ban_da_nhung,
-          "| số vector khác nhau:", len(vector_khac_nhau))
+        step = [m, cat]
+    knowledge_node_list = IngestionPipeline(transformations=step).run(documents=[load_policies()])
+    vectors_differ = set()
+    for n in knowledge_node_list:
+        vectors_differ.add(tuple(n.embedding[:5]))
+    print("Thứ tự", item_name, "| Node:", len(knowledge_node_list), "| số lần nhúng:", m.embedded_text_count,
+          "| số vector khác nhau:", len(vectors_differ))
 
 with engine.begin() as conn:
     conn.execute(text("DROP TABLE data_exp441_sp"))

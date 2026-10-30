@@ -4,25 +4,25 @@
 import _duong_dan  # noqa: F401  (thêm thư mục gốc và loi_rag/ vào đường dẫn tìm module)
 from llama_index.core import SQLDatabase
 
-from dinh_tuyen import tao_engine_chi_doc
+from dinh_tuyen import create_readonly_engine
 
-csdl = SQLDatabase(tao_engine_chi_doc(), include_tables=["products"])
+sql_db = SQLDatabase(create_readonly_engine(), include_tables=["products"])
 
 print("=== BƯỚC 1: THÔNG TIN SCHEMA MÀ NLSQL ĐƯA CHO LLM (rút gọn) ===")
-thong_tin = csdl.get_single_table_info("products")
-print(thong_tin[:300].replace("\n", " "), "...")
+info = sql_db.get_single_table_info("products")
+print(info[:300].replace("\n", " "), "...")
 
 print("=== BƯỚC 2: CÂU ĐỌC DỮ LIỆU CHẠY BÌNH THƯỜNG ===")
-ket_qua, _ = csdl.run_sql("SELECT count(*) FROM products WHERE price IS NOT NULL")
-print("SELECT count(*) ... ->", ket_qua)
+result, _ = sql_db.run_sql("SELECT count(*) FROM products WHERE price IS NOT NULL")
+print("SELECT count(*) ... ->", result)
 
 print("=== BƯỚC 3: CA LỖI GIẢ LẬP - LLM SINH CÂU XÓA DỮ LIỆU ===")
-for cau in ["DELETE FROM products WHERE brand = 'Nokia'", "DROP TABLE products"]:
+for sentence in ["DELETE FROM products WHERE brand = 'Nokia'", "DROP TABLE products"]:
     try:
-        csdl.run_sql(cau)
-        print(cau, "-> ĐÃ CHẠY (nguy hiểm)")
-    except Exception as loi:
+        sql_db.run_sql(sentence)
+        print(sentence, "-> ĐÃ CHẠY (nguy hiểm)")
+    except Exception as error:
         # loi.orig là lỗi gốc do PostgreSQL trả về
-        print(cau, "->", type(loi.orig).__name__, "-", str(loi.orig).strip())
-ket_qua, _ = csdl.run_sql("SELECT count(*) FROM products")
-print("Số dòng sau hai câu trên:", ket_qua)
+        print(sentence, "->", type(error.orig).__name__, "-", str(error.orig).strip())
+result, _ = sql_db.run_sql("SELECT count(*) FROM products")
+print("Số dòng sau hai câu trên:", result)

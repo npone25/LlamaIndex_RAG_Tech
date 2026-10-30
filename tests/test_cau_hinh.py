@@ -23,32 +23,32 @@ from cau_hinh import (
 )
 
 
-def test_kiem_tra_pg_dsn_la_gia():
+def test_pg_dsn_is_fake():
     """Quy tắc 1: Đảm bảo biến môi trường trong lúc chạy test là giá trị giả, không trỏ DB thật."""
     assert os.environ.get("PG_DSN") == "postgresql://gia:gia@127.0.0.1:1/khong_ton_tai"
     assert os.environ.get("GOOGLE_API_KEY") == "khoa_gia_cho_test"
 
 
-def test_read_env_co_san(monkeypatch):
+def test_read_env_existing(monkeypatch):
     """Đọc biến môi trường đã tồn tại."""
     monkeypatch.setenv("BIEN_THU_NGHIEM", "gia_tri_123")
     assert read_env("BIEN_THU_NGHIEM") == "gia_tri_123"
 
 
-def test_read_env_mac_dinh(monkeypatch):
+def test_read_env_default(monkeypatch):
     """Đọc biến môi trường chưa có sẽ nhận giá trị mặc định."""
     monkeypatch.delenv("BIEN_CHUA_DAT", raising=False)
     assert read_env("BIEN_CHUA_DAT", default="gia_tri_mac_dinh") == "gia_tri_mac_dinh"
 
 
-def test_read_env_bat_buoc_thieu(monkeypatch):
+def test_read_env_required_missing(monkeypatch):
     """Thiếu biến bắt buộc phải báo lỗi ConfigError nêu tên biến, không lộ bí mật."""
     monkeypatch.delenv("BIEN_BAT_BUOC_BI_THIEU", raising=False)
     with pytest.raises(ConfigError) as exc_info:
         read_env("BIEN_BAT_BUOC_BI_THIEU", require=True)
-    thong_bao = str(exc_info.value)
-    assert "BIEN_BAT_BUOC_BI_THIEU" in thong_bao
-    assert "Thiếu biến môi trường bắt buộc" in thong_bao
+    message = str(exc_info.value)
+    assert "BIEN_BAT_BUOC_BI_THIEU" in message
+    assert "Thiếu biến môi trường bắt buộc" in message
 
 
 def test_get_answer_model_name(monkeypatch):
@@ -88,7 +88,7 @@ def test_get_refusal_threshold(monkeypatch):
     assert get_refusal_threshold() == 0.10
 
 
-def test_hang_so_he_thong():
+def test_system_constants():
     """Kiểm tra giá trị các hằng số hệ thống theo đặc tả."""
     assert TOP_K == 10
     assert TOP_N == 3

@@ -23,74 +23,74 @@ def l2(u, v):
     return float(np.linalg.norm(u - v))
 
 
-def xep_hang(vec_cau_hoi, cac_vec, ten):
+def rank_by(query_vector, vectors, item_name):
     # Cosine và dot: càng lớn càng gần. L2: càng nhỏ càng gần.
-    theo_cosine = []
-    theo_dot = []
-    theo_l2 = []
-    for i in range(len(cac_vec)):
-        theo_cosine.append((cosine(vec_cau_hoi, cac_vec[i]), ten[i]))
-        theo_dot.append((dot(vec_cau_hoi, cac_vec[i]), ten[i]))
-        theo_l2.append((l2(vec_cau_hoi, cac_vec[i]), ten[i]))
-    theo_cosine.sort(reverse=True)
-    theo_dot.sort(reverse=True)
-    theo_l2.sort()
-    return theo_cosine, theo_dot, theo_l2
+    by_cosine = []
+    by_dot = []
+    by_l2 = []
+    for i in range(len(vectors)):
+        by_cosine.append((cosine(query_vector, vectors[i]), item_name[i]))
+        by_dot.append((dot(query_vector, vectors[i]), item_name[i]))
+        by_l2.append((l2(query_vector, vectors[i]), item_name[i]))
+    by_cosine.sort(reverse=True)
+    by_dot.sort(reverse=True)
+    by_l2.sort()
+    return by_cosine, by_dot, by_l2
 
 
-def in_bang(theo_cosine, theo_dot, theo_l2):
-    for hang in range(len(theo_cosine)):
-        print("   hạng", hang + 1,
-              "| cosine:", theo_cosine[hang][1], round(theo_cosine[hang][0], 4),
-              "| dot:", theo_dot[hang][1], round(theo_dot[hang][0], 4),
-              "| L2:", theo_l2[hang][1], round(theo_l2[hang][0], 4))
+def print_table(by_cosine, by_dot, by_l2):
+    for rank in range(len(by_cosine)):
+        print("   hạng", rank + 1,
+              "| cosine:", by_cosine[rank][1], round(by_cosine[rank][0], 4),
+              "| dot:", by_dot[rank][1], round(by_dot[rank][0], 4),
+              "| L2:", by_l2[rank][1], round(by_l2[rank][0], 4))
 
 
-def thu_tu(danh_sach):
-    ket_qua = []
-    for cap in danh_sach:
-        ket_qua.append(cap[1])
-    return ket_qua
+def order(items_list):
+    result = []
+    for pair in items_list:
+        result.append(pair[1])
+    return result
 
 
 with open("vector_431.json", encoding="utf-8") as f:
-    du_lieu = json.load(f)
-ten = du_lieu["ten_tai_lieu"]
-tai_lieu = []
-for v in du_lieu["tai_lieu"]:
-    tai_lieu.append(np.array(v))
-q = np.array(du_lieu["vec_cau_hoi"][0])
-print("Câu hỏi:", du_lieu["cau_hoi"][0])
+    data = json.load(f)
+item_name = data["ten_tai_lieu"]
+documents_list = []
+for v in data["tai_lieu"]:
+    documents_list.append(np.array(v))
+q = np.array(data["vec_cau_hoi"][0])
+print("Câu hỏi:", data["cau_hoi"][0])
 
 # BƯỚC 1: Vector đã chuẩn hóa (độ dài 1): ba độ đo cho cùng thứ hạng
 print("\n=== BƯỚC 1: VECTOR ĐÃ CHUẨN HÓA ===")
-for i in range(len(tai_lieu)):
-    print("Độ dài vector", ten[i], ":", round(float(np.linalg.norm(tai_lieu[i])), 4))
-c, d, e = xep_hang(q, tai_lieu, ten)
-in_bang(c, d, e)
-print("Ba độ đo cùng thứ hạng?", thu_tu(c) == thu_tu(d) == thu_tu(e))
+for i in range(len(documents_list)):
+    print("Độ dài vector", item_name[i], ":", round(float(np.linalg.norm(documents_list[i])), 4))
+c, d, e = rank_by(q, documents_list, item_name)
+print_table(c, d, e)
+print("Ba độ đo cùng thứ hạng?", order(c) == order(d) == order(e))
 
 # BƯỚC 2: Kiểm tra công thức liên hệ khi độ dài bằng 1: L2^2 = 2 - 2*cosine
 print("\n=== BƯỚC 2: LIÊN HỆ GIỮA L2 VÀ COSINE ===")
-for i in range(len(tai_lieu)):
-    trai = l2(q, tai_lieu[i]) ** 2
-    phai = 2 - 2 * cosine(q, tai_lieu[i])
-    print(ten[i], "| L2^2 =", round(trai, 6), "| 2 - 2*cosine =", round(phai, 6))
+for i in range(len(documents_list)):
+    left_side = l2(q, documents_list[i]) ** 2
+    right_side = 2 - 2 * cosine(q, documents_list[i])
+    print(item_name[i], "| L2^2 =", round(left_side, 6), "| 2 - 2*cosine =", round(right_side, 6))
 
 # BƯỚC 3: Ca lỗi - vector chưa chuẩn hóa: nhân độ dài lên 3 lần, hướng giữ nguyên
 # Thử hai lần: nhân tài liệu đang xếp cuối, rồi nhân tài liệu đang xếp đầu (theo cosine)
 print("\n=== BƯỚC 3: CA LỖI (VECTOR CHƯA CHUẨN HÓA) ===")
-ten_cuoi = c[len(c) - 1][1]
-ten_dau = c[0][1]
-for ten_bi_nhan in [ten_cuoi, ten_dau]:
-    vi_tri = ten.index(ten_bi_nhan)
-    tai_lieu_lech = []
-    for v in tai_lieu:
-        tai_lieu_lech.append(v.copy())
-    tai_lieu_lech[vi_tri] = tai_lieu_lech[vi_tri] * 3
-    print("Nhân vector", ten_bi_nhan, "lên 3 lần:")
-    c2, d2, e2 = xep_hang(q, tai_lieu_lech, ten)
-    in_bang(c2, d2, e2)
-    print("   Thứ hạng cosine có đổi?", thu_tu(c2) != thu_tu(c))
-    print("   Thứ hạng dot có đổi?   ", thu_tu(d2) != thu_tu(d))
-    print("   Thứ hạng L2 có đổi?    ", thu_tu(e2) != thu_tu(e))
+last_name = c[len(c) - 1][1]
+first_name = c[0][1]
+for labeled_name in [last_name, first_name]:
+    location = item_name.index(labeled_name)
+    mismatched_documents = []
+    for v in documents_list:
+        mismatched_documents.append(v.copy())
+    mismatched_documents[location] = mismatched_documents[location] * 3
+    print("Nhân vector", labeled_name, "lên 3 lần:")
+    c2, d2, e2 = rank_by(q, mismatched_documents, item_name)
+    print_table(c2, d2, e2)
+    print("   Thứ hạng cosine có đổi?", order(c2) != order(c))
+    print("   Thứ hạng dot có đổi?   ", order(d2) != order(d))
+    print("   Thứ hạng L2 có đổi?    ", order(e2) != order(e))

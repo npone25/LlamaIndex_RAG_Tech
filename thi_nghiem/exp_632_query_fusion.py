@@ -5,38 +5,38 @@ import _duong_dan  # noqa: F401  (thêm thư mục gốc và loi_rag/ vào đư�
 import time
 
 from nhung_gemini import create_embed_model
-from truy_hoi import lay_nodes, tao_bm25, tao_hybrid, tao_vector, ten_ngan
+from truy_hoi import load_table_nodes, create_bm25, create_fusion, create_vector, short_label
 
-nhanh_vector = tao_vector(create_embed_model())
-nhanh_bm25 = tao_bm25(lay_nodes())
-hybrid = tao_hybrid(nhanh_vector, nhanh_bm25)
+vector_branch = create_vector(create_embed_model())
+bm25_branch = create_bm25(load_table_nodes())
+hybrid = create_fusion(vector_branch, bm25_branch)
 cau_hoi = "điện thoại pin trâu chip Snapdragon chơi game"
 print("Câu hỏi:", cau_hoi)
 
 print("=== BƯỚC 1: CHẠY RIÊNG TỪNG NHÁNH ===")
-ket_qua_nhanh = {}
-for ten, nhanh in [("vector", nhanh_vector), ("bm25", nhanh_bm25)]:
-    bat_dau = time.perf_counter()
-    ket_qua_nhanh[ten] = nhanh.retrieve(cau_hoi)
-    print("%-6s: %d Node | %.2f giây | Top 1: %s" % (ten, len(ket_qua_nhanh[ten]),
-          time.perf_counter() - bat_dau, ten_ngan(ket_qua_nhanh[ten][0])))
-id_v = {kq.node.node_id for kq in ket_qua_nhanh["vector"]}
-id_b = {kq.node.node_id for kq in ket_qua_nhanh["bm25"]}
+branch_results = {}
+for item_name, branch in [("vector", vector_branch), ("bm25", bm25_branch)]:
+    start_time = time.perf_counter()
+    branch_results[item_name] = branch.retrieve(cau_hoi)
+    print("%-6s: %d Node | %.2f giây | Top 1: %s" % (item_name, len(branch_results[item_name]),
+          time.perf_counter() - start_time, short_label(branch_results[item_name][0])))
+id_v = {res.node.node_id for res in branch_results["vector"]}
+id_b = {res.node.node_id for res in branch_results["bm25"]}
 print("Node xuất hiện ở cả hai nhánh:", len(id_v & id_b), "| tổng khác nhau:", len(id_v | id_b))
 
 print("=== BƯỚC 2: TỰ TÍNH RRF TỪ HAI DANH SÁCH TRÊN (k = 60, hạng từ 0 như thư viện) ===")
-tu_tinh = {}
-for ds in ket_qua_nhanh.values():
-    for hang, kq in enumerate(ds):
-        tu_tinh[kq.node.node_id] = tu_tinh.get(kq.node.node_id, 0) + 1 / (60 + hang)
-thu_tu_tu_tinh = sorted(tu_tinh, key=tu_tinh.get, reverse=True)[:10]
+own_result = {}
+for rows in branch_results.values():
+    for rank, res in enumerate(rows):
+        own_result[res.node.node_id] = own_result.get(res.node.node_id, 0) + 1 / (60 + rank)
+own_order = sorted(own_result, key=own_result.get, reverse=True)[:10]
 
 print("=== BƯỚC 3: QueryFusionRetriever ===")
-bat_dau = time.perf_counter()
-ket_qua = hybrid.retrieve(cau_hoi)
-giay = time.perf_counter() - bat_dau
-print("Hợp nhất: %d Node | %.2f giây (gồm cả hai nhánh)" % (len(ket_qua), giay))
-for i, kq in enumerate(ket_qua[:5], start=1):
-    print("%d. %.4f | %s" % (i, kq.score, ten_ngan(kq)))
-thu_tu_thu_vien = [kq.node.node_id for kq in ket_qua]
-print("Thứ tự trùng với RRF tự tính:", thu_tu_thu_vien == thu_tu_tu_tinh)
+start_time = time.perf_counter()
+result = hybrid.retrieve(cau_hoi)
+seconds = time.perf_counter() - start_time
+print("Hợp nhất: %d Node | %.2f giây (gồm cả hai nhánh)" % (len(result), seconds))
+for i, res in enumerate(result[:5], start=1):
+    print("%d. %.4f | %s" % (i, res.score, short_label(res)))
+library_order = [res.node.node_id for res in result]
+print("Thứ tự trùng với RRF tự tính:", library_order == own_order)

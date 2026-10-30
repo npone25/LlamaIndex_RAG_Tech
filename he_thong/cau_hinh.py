@@ -62,11 +62,11 @@ def get_judge_model_name() -> str:
 # mô hình dự phòng khi mô hình chính quá tải 
 def get_fallback_models() -> list[str]:
     raw_model_names = read_env("GEMINI_MODEL_DU_PHONG", default="gemini-3.1-flash-lite")
-    ket_qua = []
+    result = []
     for model_name in raw_model_names.split(","):
         if model_name.strip():
-            ket_qua.append(model_name.strip())
-    return ket_qua
+            result.append(model_name.strip())
+    return result
 
 def get_refusal_threshold() -> float:
     return float(REFUSAL_THRESHOLD)

@@ -8,49 +8,49 @@ from pathlib import Path
 
 sys.stdout.reconfigure(encoding="utf-8")
 FOLDER = Path(__file__).resolve().parent.parent  # thư mục gốc dự án
-CAC_THU_MUC = [FOLDER, FOLDER / "loi_rag", FOLDER / "thi_nghiem"]
-DUNG_CHUNG = ["chuyen_doi_san_pham", "kho_du_lieu", "nhung_gemini", "llm_gemini", "truy_hoi",
+FOLDERS = [FOLDER, FOLDER / "loi_rag", FOLDER / "thi_nghiem"]
+SHARED_MODULES = ["chuyen_doi_san_pham", "kho_du_lieu", "nhung_gemini", "llm_gemini", "truy_hoi",
               "loc_metadata", "tro_ly", "tra_gop", "dinh_tuyen", "bao_ve", "ham_chung_42",
               "vector_gia"]
 
 # Bước 1: đọc lệnh import của mọi file .py trong thư mục dự án
-cac_file = []
-for thu_muc in CAC_THU_MUC:
-    for p in sorted(thu_muc.glob("*.py")):
+files = []
+for folder in FOLDERS:
+    for p in sorted(folder.glob("*.py")):
         if p.name not in (Path(__file__).name, "_duong_dan.py"):
-            cac_file.append(p)
-vi_tri = {}  # tên module -> đường dẫn file
-for p in cac_file:
-    vi_tri[p.stem] = p
-import_cua = {}
-for p in cac_file:
-    cay = ast.parse(p.read_text(encoding="utf-8"))
-    ten = set()
-    for nut in ast.walk(cay):
-        if isinstance(nut, ast.ImportFrom) and nut.module:
-            ten.add(nut.module)
-        elif isinstance(nut, ast.Import):
-            for a in nut.names:
-                ten.add(a.name)
-    import_cua[p.stem] = ten
+            files.append(p)
+location = {}  # tên module -> đường dẫn file
+for p in files:
+    location[p.stem] = p
+imports_of = {}
+for p in files:
+    tree = ast.parse(p.read_text(encoding="utf-8"))
+    item_name = set()
+    for ast_node in ast.walk(tree):
+        if isinstance(ast_node, ast.ImportFrom) and ast_node.module:
+            item_name.add(ast_node.module)
+        elif isinstance(ast_node, ast.Import):
+            for a in ast_node.names:
+                item_name.add(a.name)
+    imports_of[p.stem] = item_name
 
 print("=== BƯỚC 1: TỔNG QUAN ===")
-so_exp = sum(1 for p in cac_file if p.stem.startswith("exp_"))
-print("Số file .py:", len(cac_file), "| thí nghiệm exp_*:", so_exp, "| module dùng chung:", len(DUNG_CHUNG))
+experiment_count = sum(1 for p in files if p.stem.startswith("exp_"))
+print("Số file .py:", len(files), "| thí nghiệm exp_*:", experiment_count, "| module dùng chung:", len(SHARED_MODULES))
 
 print("=== BƯỚC 2: TỪNG MODULE DÙNG CHUNG ===")
-for m in DUNG_CHUNG:
-    cay = ast.parse(vi_tri[m].read_text(encoding="utf-8"))
-    ham = [n.name for n in cay.body if isinstance(n, (ast.FunctionDef, ast.ClassDef))]
-    dung_boi = sorted(f for f, ds in import_cua.items() if m in ds)
-    phu_thuoc = sorted(d for d in import_cua[m] if d in DUNG_CHUNG)
+for m in SHARED_MODULES:
+    tree = ast.parse(location[m].read_text(encoding="utf-8"))
+    func = [n.name for n in tree.body if isinstance(n, (ast.FunctionDef, ast.ClassDef))]
+    found_by = sorted(f for f, rows in imports_of.items() if m in rows)
+    dependencies = sorted(d for d in imports_of[m] if d in SHARED_MODULES)
     print("%-20s | %2d hàm/lớp | được %2d file dùng | phụ thuộc: %s"
-          % (m, len(ham), len(dung_boi), ", ".join(phu_thuoc) or "-"))
+          % (m, len(func), len(found_by), ", ".join(dependencies) or "-"))
 
 print("=== BƯỚC 3: KIỂM TRA PHỤ THUỘC MỘT CHIỀU ===")
-nguoc = []
-for m in DUNG_CHUNG:
-    for d in import_cua[m]:
+reverse_deps = []
+for m in SHARED_MODULES:
+    for d in imports_of[m]:
         if d.startswith("exp_") or d in ("ingest", "seed_sql"):
-            nguoc.append(m + " -> " + d)
-print("Module dùng chung import ngược thí nghiệm/script chạy:", nguoc or "không có")
+            reverse_deps.append(m + " -> " + d)
+print("Module dùng chung import ngược thí nghiệm/script chạy:", reverse_deps or "không có")
