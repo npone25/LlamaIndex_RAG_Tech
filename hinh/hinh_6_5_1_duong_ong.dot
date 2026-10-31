@@ -1,0 +1,21 @@
+digraph G {
+  rankdir=TB; nodesep=0.3; ranksep=0.35;
+  node [shape=box, style="rounded,filled", fillcolor="#eef3fb", color="#4a6fa5", fontname="Liberation Sans", fontsize=11];
+  edge [color="#555555", fontname="Liberation Sans", fontsize=10];
+  q [label="Câu hỏi (đã viết lại nếu có lịch sử)", shape=ellipse, fillcolor="#e6f4ea", color="#3b8b55"];
+  subgraph cluster_1 {
+    label="Giai đoạn 1: create_all_retriever() - 4 nhánh, mỗi nhánh Top 10"; style="rounded,dashed"; color="#4a6fa5"; fontname="Liberation Sans"; fontsize=11; labelloc="b";
+    v1 [label="Vector\ndata_san_pham"]; b1 [label="BM25\ndata_san_pham"];
+    v2 [label="Vector\ndata_kien_thuc"]; b2 [label="BM25\ndata_kien_thuc"];
+  }
+  rrf [label="QueryFusionRetriever\nmode = reciprocal_rerank\nRRF -> Top 10", fillcolor="#fff7d6", color="#b39b2d"];
+  rr [label="SentenceTransformerRerank\nBAAI/bge-reranker-base -> Top 3", fillcolor="#dbeafe", color="#2563eb"];
+  th [label="SimilarityPostprocessor\nbỏ Node có điểm < 0,10", shape=diamond, fillcolor="#fff7d6", color="#b39b2d"];
+  out [label="Node đưa vào ANSWER_PROMPT\n(source_nodes để trích nguồn)", fillcolor="#e6f4ea", color="#3b8b55"];
+  tc [label="Không còn Node:\ncâu từ chối cố định, không gọi LLM", fillcolor="#f2f2f2", color="#888888"];
+  q -> v1; q -> b1; q -> v2; q -> b2;
+  v1 -> rrf; b1 -> rrf; v2 -> rrf; b2 -> rrf;
+  rrf -> rr -> th;
+  th -> out [label="còn Node"];
+  th -> tc [label="rỗng"];
+}

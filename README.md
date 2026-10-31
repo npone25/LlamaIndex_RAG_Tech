@@ -14,12 +14,13 @@ Chatbot tư vấn điện thoại và chính sách bán hàng, xây bằng **Lla
   - Tái xếp hạng: `BAAI/bge-reranker-base` chạy trên máy.
 - **Luồng một câu hỏi** (`phone_advisor/service/assistant.py`, hàm `Assistant.ask`):
   1. Làm sạch câu hỏi (tối đa 500 ký tự).
-  2. Viết lại câu hỏi theo 6 tin nhắn gần nhất của phiên.
+  2. Đưa lịch sử của phiên vào `Memory` của LlamaIndex (`MEMORY_TOKEN_LIMIT` trong `phone_advisor/config.py`); các tin nhắn gần nhất nằm trong giới hạn token được dùng để viết lại câu hỏi bằng `REWRITE_PROMPT`.
   3. Lớp bảo vệ 1 (regex) rồi lớp 2 (LLM phân loại tấn công / ngoài phạm vi).
-  4. `RouterQueryEngine` chọn một trong ba công cụ:
+  4. `RouterQueryEngine` chọn một (có khi hai) trong bốn công cụ:
      - `tra_cuu_so_lieu`: Text-to-SQL trên kết nối chỉ đọc.
      - `tu_van_va_chinh_sach`: Vector + BM25 trên hai bảng → RRF → reranker → ngưỡng từ chối → tổng hợp có trích nguồn.
      - `tinh_tra_gop`: LLM trích tham số, hàm Python tính tiền.
+     - `tu_van_theo_dieu_kien`: LLM tách điều kiện (hãng, giá, RAM...) thành bộ lọc metadata rồi truy hồi vector có lọc (`VectorIndexAutoRetriever`).
   5. `ModelChain` đổi sang mô hình dự phòng khi gặp lỗi 500/503/504/429; hết mô hình thì trả về các đoạn tài liệu liên quan nhất.
 - Lịch sử hội thoại giữ trong `st.session_state` của Streamlit (tối đa 40 tin nhắn), không lưu vào cơ sở dữ liệu.
 

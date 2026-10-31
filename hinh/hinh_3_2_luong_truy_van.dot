@@ -3,7 +3,7 @@ digraph G {
   node [shape=box, style="rounded,filled", fillcolor="#eef3fb", color="#4a6fa5", fontname="Liberation Sans", fontsize=11];
   edge [color="#555555", fontname="Liberation Sans", fontsize=10];
   user [label="Người dùng\n(Streamlit, app.py)", shape=ellipse, fillcolor="#e6f4ea", color="#3b8b55"];
-  vl [label="Viết lại câu hỏi\nPROMPT_VIET_LAI\n(6 tin nhắn gần nhất,\nchỉ khi có lịch sử)"];
+  vl [label="Viết lại câu hỏi bằng REWRITE_PROMPT\nlịch sử lấy qua Memory (tin nhắn gần nhất\ntrong giới hạn token, chỉ khi có lịch sử)"];
   rg [label="Lớp 1: regex\n(không gọi LLM)", shape=diamond, fillcolor="#fff7d6", color="#b39b2d"];
   lg [label="Lớp 2: LLM kiểm duyệt\ntấn công? trong phạm vi?", shape=diamond, fillcolor="#fff7d6", color="#b39b2d"];
   refuse [label="Từ chối /\nđiều hướng", fillcolor="#f2f2f2", color="#888888"];
