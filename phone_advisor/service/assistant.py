@@ -51,7 +51,10 @@ class Assistant:
         nodes_by_table=None,
         model_name: Optional[str] = None,
         log_dir: Optional[Path] = None,
+        memory_token_limit: Optional[int] = None,
     ):
+        from phone_advisor.config import MEMORY_TOKEN_LIMIT
+
         self.llm = llm
         self.embed_model = embed_model
         self.use_router = use_router
@@ -61,6 +64,8 @@ class Assistant:
         self.postprocessors = postprocessors
         self.nodes_by_table = nodes_by_table
         self.log_dir = log_dir
+        # Giới hạn token của Memory khi lấy lịch sử để viết lại câu hỏi
+        self.memory_token_limit = memory_token_limit or MEMORY_TOKEN_LIMIT
         self._bm25_retriever = None
 
         if model_name:
@@ -134,14 +139,11 @@ class Assistant:
         if history and len(history) > 0 and self.llm is not None:
             t_rewrite_start = time.perf_counter()
             try:
-                from phone_advisor.retrieval.query_engine import REWRITE_PROMPT
+                from phone_advisor.retrieval.query_engine import REWRITE_PROMPT, history_to_memory, memory_to_text
 
-                recent_messages = history[-6:]
-                dialogue_lines = []
-                for msg in recent_messages:
-                    role = "Khách hàng" if msg.get("role") == "user" else "Nhân viên tư vấn"
-                    dialogue_lines.append(f"{role}: {msg.get('content', '')}")
-                chat_history_str = "\n".join(dialogue_lines)
+                # Memory của LlamaIndex chỉ trả các tin nhắn gần nhất nằm trong giới hạn token
+                memory = history_to_memory(history, self.memory_token_limit)
+                chat_history_str = memory_to_text(memory)
 
                 if hasattr(self.llm, "predict"):
                     rewrite_response = self.llm.predict(

@@ -28,6 +28,9 @@ KNOWLEDGE_CHUNK_OVERLAP = 30
 # Ngưỡng từ chối
 REFUSAL_THRESHOLD = 0.10
 
+# Giới hạn token của Memory khi lấy lịch sử hội thoại để viết lại câu hỏi (7.2)
+MEMORY_TOKEN_LIMIT = 3000
+
 # Ghi mỗi lượt hỏi-đáp thành một dòng tóm tắt vào logs/hoi_dap.jsonl; đặt True khi cần thống kê
 LOGGING_ENABLED = False
 

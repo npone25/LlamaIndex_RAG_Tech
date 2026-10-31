@@ -17,7 +17,14 @@ from llama_index.core.schema import MetadataMode, NodeWithScore, QueryBundle
 
 from phone_advisor.config import TOP_K, TOP_N, get_refusal_threshold
 from phone_advisor.guardrails import ATTACK_REFUSAL_REPLY, apply_guardrails, check_regex
-from phone_advisor.retrieval.query_engine import ANSWER_PROMPT, NO_DATA_REPLY, REWRITE_PROMPT, answer_text
+from phone_advisor.retrieval.query_engine import (
+    ANSWER_PROMPT,
+    NO_DATA_REPLY,
+    REWRITE_PROMPT,
+    answer_text,
+    history_to_memory,
+    memory_to_text,
+)
 from phone_advisor.retrieval.retrievers import short_label
 from phone_advisor.tools.router import TOOL_NAMES, get_sql_query
 
@@ -511,17 +518,13 @@ def _stopped_trace(input_info, guard_info, routing_info, answer, che_do, thoi_gi
 
 
 def _rewrite_question(llm, history, clean_question, catch_errors):
-    """Bước 1: viết lại câu hỏi theo 6 tin gần nhất. Trả về (câu đã viết lại hoặc None, thời gian ms)."""
+    """Bước 1: viết lại câu hỏi từ lịch sử lấy qua Memory. Trả về (câu đã viết lại hoặc None, thời gian ms)."""
     if not (history and len(history) > 0 and llm is not None):
         return None, 0.0
     t_rewrite_start = time.perf_counter()
     try:
-        recent_messages = history[-6:]
-        dialogue_lines = []
-        for msg in recent_messages:
-            role = "Khách hàng" if msg.get("role") == "user" else "Nhân viên tư vấn"
-            dialogue_lines.append(f"{role}: {msg.get('content', '')}")
-        chat_history_str = "\n".join(dialogue_lines)
+        memory = history_to_memory(history)
+        chat_history_str = memory_to_text(memory)
 
         if hasattr(llm, "predict"):
             rewrite_response = llm.predict(

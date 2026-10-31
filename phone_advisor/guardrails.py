@@ -83,13 +83,3 @@ def apply_guardrails(cau_hoi, llm):
     if not verdict.trong_pham_vi:
         return GuardResult(False, "llm-pham-vi", out_of_scope_reply(verdict.chu_de), verdict.chu_de)
     return GuardResult(True, "qua", None, verdict.chu_de)
-
-
-def answer_safely(engine, cau_hoi, llm):
-    """Chạy guardrails rồi mới chuyển câu hỏi cho engine (chat engine hoặc router)."""
-    check = apply_guardrails(cau_hoi, llm)
-    if not check.cho_phep:
-        return check.phan_hoi, check
-    if hasattr(engine, "chat"):
-        return str(engine.chat(cau_hoi)), check
-    return str(engine.query(cau_hoi)), check

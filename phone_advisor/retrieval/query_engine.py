@@ -1,13 +1,13 @@
-# Trợ lý tư vấn: prompt trả lời, ngưỡng từ chối, query engine và chat engine (chương 7)
+# Trợ lý tư vấn: prompt trả lời, ngưỡng từ chối, query engine và bộ nhớ hội thoại (chương 7)
 # Dùng lại các khối truy hồi của chương 6 (phone_advisor/retrieval/retrievers.py)
 
 from llama_index.core import PromptTemplate
-from llama_index.core.chat_engine import CondenseQuestionChatEngine
+from llama_index.core.llms import ChatMessage, MessageRole
 from llama_index.core.memory import Memory
 from llama_index.core.postprocessor import SimilarityPostprocessor
 from llama_index.core.query_engine import RetrieverQueryEngine
 
-from phone_advisor.config import NO_DATA_REPLY, get_refusal_threshold
+from phone_advisor.config import MEMORY_TOKEN_LIMIT, NO_DATA_REPLY, get_refusal_threshold
 from phone_advisor.retrieval.retrievers import create_all_retriever, create_reranker, short_label
 
 # Điểm reranker thấp nhất để một Node được đưa cho LLM; chọn theo thí nghiệm 7.3:
@@ -64,13 +64,32 @@ def create_query_engine(
     )
 
 
-def create_chat_engine(llm, embed_model, token_limit=3000):
-    return CondenseQuestionChatEngine.from_defaults(
-        query_engine=create_query_engine(llm, embed_model),
-        condense_question_prompt=REWRITE_PROMPT,
-        memory=Memory.from_defaults(token_limit=token_limit),
-        llm=llm,
-    )
+def history_to_memory(history, token_limit=MEMORY_TOKEN_LIMIT):
+    """Đưa lịch sử hội thoại (danh sách dict role/content của st.session_state) vào Memory của LlamaIndex."""
+    memory = Memory.from_defaults(token_limit=token_limit)
+    for msg in history or []:
+        if msg.get("role") == "user":
+            role = MessageRole.USER
+        else:
+            role = MessageRole.ASSISTANT
+        memory.put(ChatMessage(role=role, content=str(msg.get("content", ""))))
+    return memory
+
+
+def memory_to_text(memory):
+    """Chuỗi lịch sử đưa vào REWRITE_PROMPT.
+
+    Memory.get() chỉ trả các tin nhắn gần nhất nằm trong giới hạn token; tin cũ hơn vẫn còn
+    trong memory.get_all() nhưng không được gửi cho LLM.
+    """
+    lines = []
+    for msg in memory.get():
+        if msg.role == MessageRole.USER:
+            role = "Khách hàng"
+        else:
+            role = "Nhân viên tư vấn"
+        lines.append(role + ": " + str(msg.content))
+    return "\n".join(lines)
 
 
 def answer_text(response):

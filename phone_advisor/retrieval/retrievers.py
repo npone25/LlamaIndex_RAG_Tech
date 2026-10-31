@@ -39,11 +39,11 @@ def load_table_nodes(table_name=PRODUCT_VECTOR_TABLE):
     return nodes
 
 
-def create_bm25(nodes, top_k=TOP_K, filters=None):
+def create_bm25(nodes, top_k=TOP_K):
     # skip_stemming=True: bộ rút gọn từ mặc định là tiếng Anh, không có ý nghĩa với tiếng Việt
     # top_k không được lớn hơn số Node (kho chính sách chỉ có vài Node)
     return BM25Retriever.from_defaults(nodes=nodes, similarity_top_k=min(top_k, len(nodes)),
-                                       skip_stemming=True, filters=filters)
+                                       skip_stemming=True)
 
 
 def create_vector(embed_model, table_name=PRODUCT_VECTOR_TABLE, top_k=TOP_K, filters=None):
@@ -63,10 +63,10 @@ def create_reranker(top_n=TOP_N):
     return SentenceTransformerRerank(model=RERANKER_NAME, top_n=top_n)
 
 
-def create_hybrid_retriever(embed_model, table_name=PRODUCT_VECTOR_TABLE, filters=None):
-    """Bộ truy hồi lai ghép hoàn chỉnh; filters được đưa vào CẢ HAI nhánh (xem 6.5.1)."""
-    vector_branch = create_vector(embed_model, table_name, filters=filters)
-    bm25_branch = create_bm25(load_table_nodes(table_name), filters=filters)
+def create_hybrid_retriever(embed_model, table_name=PRODUCT_VECTOR_TABLE):
+    """Bộ truy hồi lai ghép hai nhánh trên một bảng (chương 6); ứng dụng dùng bản bốn nhánh create_all_retriever()."""
+    vector_branch = create_vector(embed_model, table_name)
+    bm25_branch = create_bm25(load_table_nodes(table_name))
     return create_fusion(vector_branch, bm25_branch)
 
 

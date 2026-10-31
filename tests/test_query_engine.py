@@ -13,6 +13,8 @@ from phone_advisor.retrieval.query_engine import (
     REWRITE_PROMPT,
     answer_text,
     extract_sources,
+    history_to_memory,
+    memory_to_text,
 )
 
 
@@ -105,3 +107,32 @@ def test_rewrite_prompt_structure():
     )
     assert "iPhone 15 có tốt không?" in formatted
     assert "Nó giá bao nhiêu?" in formatted
+
+
+def test_history_to_memory_keeps_all_messages():
+    """Memory lưu đủ mọi tin nhắn của lịch sử, đúng vai trò khách và nhân viên."""
+    history = [
+        {"role": "user", "content": "Tư vấn Galaxy Z Fold7"},
+        {"role": "assistant", "content": "Z Fold7 là máy gập của Samsung."},
+    ]
+    memory = history_to_memory(history, token_limit=3000)
+    assert len(memory.get_all()) == 2
+    text = memory_to_text(memory)
+    assert text == "Khách hàng: Tư vấn Galaxy Z Fold7\nNhân viên tư vấn: Z Fold7 là máy gập của Samsung."
+
+
+def test_memory_get_drops_old_messages_when_over_limit():
+    """Vượt giới hạn token: get() chỉ trả lượt hỏi-đáp gần nhất, get_all() vẫn giữ đủ."""
+    history = []
+    for i in range(5):
+        history.append({"role": "user", "content": "Câu hỏi số %d về pin điện thoại Samsung" % i})
+        history.append({"role": "assistant", "content": "Trả lời số %d: pin 5000 mAh, sạc nhanh 45W. " % i * 5})
+    memory = history_to_memory(history, token_limit=40)
+    assert len(memory.get_all()) == 10
+    recent = memory.get()
+    assert len(recent) == 2
+    assert "Câu hỏi số 4" in recent[0].content
+
+
+def test_memory_with_empty_history():
+    assert memory_to_text(history_to_memory([], token_limit=3000)) == ""

@@ -365,3 +365,29 @@ def test_assistant_with_real_llamaindex_router(monkeypatch):
     assert tro_ly.router._query_engines[1] is tro_ly.query_engine
 
 
+def test_rewrite_uses_memory_token_limit():
+    """Bước viết lại lấy lịch sử qua Memory: giới hạn token nhỏ thì prompt chỉ còn lượt gần nhất."""
+    from phone_advisor.guardrails import QuestionCheck
+
+    fake_llm = FakeLLM(
+        scripted_answers=["Galaxy A56 có màu gì?"],
+        structured_results=[QuestionCheck(la_tan_cong=False, trong_pham_vi=True, chu_de="màu sắc")],
+    )
+    mock_router = MagicMock()
+    mock_router.query.return_value = SimpleNamespace(
+        response="Galaxy A56 có màu đen.", source_nodes=[],
+        metadata={"selector_result": SimpleNamespace(selections=[SimpleNamespace(index=1)]), "sql_query": None},
+    )
+    tro_ly = Assistant(llm=fake_llm, router=mock_router, use_router=True, model_name="gemini-test",
+                       memory_token_limit=40)
+    history = [
+        {"role": "user", "content": "Tư vấn Galaxy Z Fold7 " * 10},
+        {"role": "assistant", "content": "Z Fold7 là máy gập. " * 10},
+        {"role": "user", "content": "Còn Galaxy A56 thì sao?"},
+        {"role": "assistant", "content": "A56 là máy tầm trung."},
+    ]
+    tro_ly.ask("Máy đó có màu gì?", history=history)
+
+    rewrite_prompt = fake_llm.prompts[0]
+    assert "Galaxy A56" in rewrite_prompt
+    assert "Z Fold7" not in rewrite_prompt
