@@ -1,0 +1,34 @@
+Mã nguồn: commit 2043486 | file đã sửa nhưng chưa commit: 0
+=== CÂU 1: 3 điện thoại Samsung còn hàng rẻ nhất là máy nào? ===
+Chọn: tra_cuu_so_lieu | mong đợi: tra_cuu_so_lieu | ĐÚNG
+Lý do: Câu hỏi yêu cầu liệt kê hoặc sắp xếp số liệu (3 điện thoại rẻ nhất) dựa trên các thuộc tính trong bả
+Trả lời: 3 mẫu điện thoại Samsung còn hàng có giá rẻ nhất là: 1. **Samsung Galaxy A07 4GB 128GB**: 4.190.000 VNĐ 2. **S
+=== CÂU 2: Có bao nhiêu điện thoại Xiaomi giá dưới 10 triệu? ===
+Chọn: tra_cuu_so_lieu | mong đợi: tra_cuu_so_lieu | ĐÚNG
+Lý do: Câu hỏi 'Có bao nhiêu điện thoại Xiaomi giá dưới 10 triệu?' yêu cầu đếm số lượng sản phẩm dựa trên đ
+Trả lời: Có 33 điện thoại Xiaomi có giá dưới 10 triệu.
+=== CÂU 3: Tư vấn điện thoại màn hình gập chụp ảnh đẹp ===
+Chọn: tu_van_va_chinh_sach | mong đợi: tu_van_va_chinh_sach | ĐÚNG
+Lý do: Câu hỏi 'Tư vấn điện thoại màn hình gập chụp ảnh đẹp' yêu cầu tư vấn theo nhu cầu và tính năng mô tả
+Trả lời: Dạ, em xin tư vấn cho anh/chị dòng điện thoại màn hình gập chụp ảnh đẹp là **HONOR Magic V Flip 2** ạ.   Theo 
+=== CÂU 4: Điện thoại bị vào nước có được bảo hành không? ===
+Chọn: tu_van_va_chinh_sach | mong đợi: tu_van_va_chinh_sach | ĐÚNG
+Lý do: Câu hỏi 'Điện thoại bị vào nước có được bảo hành không?' liên quan đến chính sách bảo hành, đổi trả 
+Trả lời: Theo tài liệu `kien_thuc` và `chính_sach`, điện thoại bị vào nước sẽ **không được bảo hành**, kể cả với các dò
+=== CÂU 5: Mua iPhone 17 Pro Max 256GB trả trước 30%, góp 12 tháng lãi 0% thì mỗi tháng bao nhiêu? ===
+Chọn: tinh_tra_gop | mong đợi: tinh_tra_gop | ĐÚNG
+Lý do: Câu hỏi yêu cầu tính tiền trả trước và tiền góp mỗi tháng khi mua máy trả góp ('trả trước 30%, góp 1
+Trả lời: iPhone 17 Pro Max 256GB giá 34,990,000 đồng: trả trước 10,497,000 đồng, góp 12 tháng, mỗi tháng 2,041,083 đồng
+=== CÂU 6: Gợi ý máy chụp ảnh đẹp dưới 10 triệu ===
+Chọn: tu_van_theo_dieu_kien | mong đợi: tu_van_theo_dieu_kien | ĐÚNG
+Lý do: Câu hỏi 'Gợi ý máy chụp ảnh đẹp dưới 10 triệu' vừa nêu nhu cầu/tính năng bằng lời ('chụp ảnh đẹp') v
+Trả lời: Dưới 10 triệu, cửa hàng xin gợi ý cho bạn các mẫu máy có camera chất lượng cao sau:  1. **TECNO CAMON 40 8GB 1
+=== CÂU 7: Điện thoại Samsung chơi game mượt, RAM từ 8GB ===
+Chọn: tu_van_theo_dieu_kien | mong đợi: tu_van_theo_dieu_kien | ĐÚNG
+Lý do: Câu hỏi nêu nhu cầu bằng lời ('chơi game mượt') kết hợp với điều kiện cụ thể về hãng ('Samsung') và 
+Trả lời: Dựa trên thông tin cửa hàng, các dòng điện thoại Samsung đáp ứng nhu cầu chơi game mượt và có RAM từ 8GB gồm: 
+Định tuyến đúng: 7/7
+=== CA LỖI: CÂU HỎI CẦN HAI CÔNG CỤ CÙNG LÚC ===
+Câu hỏi: Máy Samsung còn hàng rẻ nhất là máy nào, nếu góp 6 tháng lãi 0% thì mỗi tháng bao nhiêu?
+Chọn: tra_cuu_so_lieu | số công cụ được gọi: 1
+Trả lời: Điện thoại Samsung còn hàng có giá rẻ nhất hiện nay là **Samsung Galaxy A07 4GB 128GB** với giá **4.190.000đ**
