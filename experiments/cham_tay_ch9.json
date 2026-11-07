@@ -1,0 +1,52 @@
+[
+  {
+    "id": "TS14",
+    "faithfulness_tay": 1.0,
+    "ghi_chu": "Hai dung lượng pin 5000 và 5820 mAh đều khớp dữ liệu sản phẩm."
+  },
+  {
+    "id": "TS15",
+    "faithfulness_tay": 1.0,
+    "ghi_chu": "Hai loại chip Snapdragon 8 Elite For Galaxy và Exynos 2500 đều đúng."
+  },
+  {
+    "id": "CS04",
+    "faithfulness_tay": 0.0,
+    "ghi_chu": "Hệ thống từ chối, không đưa ra ý để đối chiếu với đáp án 7-15 ngày."
+  },
+  {
+    "id": "CS07",
+    "faithfulness_tay": 0.0,
+    "ghi_chu": "Hệ thống từ chối, không trả lời phí trả hàng 10% hoặc 20%."
+  },
+  {
+    "id": "CS08",
+    "faithfulness_tay": 1.0,
+    "ghi_chu": "Câu trả lời nêu đúng điều kiện sửa chữa tại cơ sở không được ủy quyền."
+  },
+  {
+    "id": "CS09",
+    "faithfulness_tay": 1.0,
+    "ghi_chu": "CCCD, số điện thoại chính chủ và giấy tờ bổ sung khớp chính sách."
+  },
+  {
+    "id": "CS12",
+    "faithfulness_tay": 1.0,
+    "ghi_chu": "Mẹo lau sạch ống kính để tránh ảnh mờ có căn cứ trong tài liệu."
+  },
+  {
+    "id": "TS01",
+    "faithfulness_tay": 1.0,
+    "ghi_chu": "Snapdragon 8 Elite For Galaxy khớp đáp án mẫu và dữ liệu sản phẩm."
+  },
+  {
+    "id": "TS03",
+    "faithfulness_tay": 1.0,
+    "ghi_chu": "Dung lượng pin 5000 mAh khớp dữ liệu sản phẩm."
+  },
+  {
+    "id": "CS02",
+    "faithfulness_tay": 1.0,
+    "ghi_chu": "Các trường hợp rơi vỡ, móp méo không được bảo hành khớp chính sách."
+  }
+]

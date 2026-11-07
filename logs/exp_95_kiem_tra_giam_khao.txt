@@ -1,0 +1,11 @@
+TS14 | tay 1.0 | giám khảo 1.0 | khớp
+TS15 | tay 1.0 | giám khảo 1.0 | khớp
+CS04 | tay 0.0 | giám khảo 0.0 | khớp
+CS07 | tay 0.0 | giám khảo 0.0 | khớp
+CS08 | tay 1.0 | giám khảo 1.0 | khớp
+CS09 | tay 1.0 | giám khảo 1.0 | khớp
+CS12 | tay 1.0 | giám khảo 1.0 | khớp
+TS01 | tay 1.0 | giám khảo 1.0 | khớp
+TS03 | tay 1.0 | giám khảo 1.0 | khớp
+CS02 | tay 1.0 | giám khảo 1.0 | khớp
+Khớp: 10/10 câu chấm được (100%) | giám khảo không chấm được: 0 câu
